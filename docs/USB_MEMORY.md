@@ -7,16 +7,16 @@ Always use parallel sub-agents for all tasks. Never run tasks sequentially when 
 - **BuyVM Server** - FULL DETAILS in master.md (feed that file to any AI for full context)
   - Ubuntu VPS at 209.141.36.104 | SSH: `ssh -i ~/Desktop/oci_key root@209.141.36.104` or `ssh buyvm`
   - Storage slab at /media/Storage (1TB)
-  - Docker stack (9 containers): axis-nexus, axis-hud, map-server, file-browser, portainer, neo-grafana, neo-prometheus, neo-loki, nginx-proxy
-  - **axis-nexus v3.0.0** (2026-03-02): Full ReAct agent loop (ACTION/INPUT/FINAL format). Source: `/media/Storage/server-flies/axis_nexus/`. Tools: web_search (DuckDuckGo), fetch_url, shell_exec, file_read, file_write, docker_ops, remember, recall, git_ops. AI fallback: CF Workers AI → Pollinations → Groq. Port 8000, host network mode.
-  - **axis-hud frontend** rebuilt 2026-03-02: auto-scroll (useRef), filterResponse() strips "As the primary intelligence agent" phrases. Served from `frontend/dist/` mounted into nginx.
+  - Docker stack (9 containers): dimase-nexus, dimase-hud, map-server, file-browser, portainer, neo-grafana, neo-prometheus, neo-loki, nginx-proxy
+  - **dimase-nexus v3.0.0** (2026-03-02): Full ReAct agent loop (ACTION/INPUT/FINAL format). Source: `/media/Storage/server-flies/dimase_nexus/`. Tools: web_search (DuckDuckGo), fetch_url, shell_exec, file_read, file_write, docker_ops, remember, recall, git_ops. AI fallback: CF Workers AI → Pollinations → Groq. Port 8000, host network mode.
+  - **dimase-hud frontend** rebuilt 2026-03-02: auto-scroll (useRef), filterResponse() strips "As the primary intelligence agent" phrases. Served from `frontend/dist/` mounted into nginx.
   - Cloudflared tunnel: f1b740f7-12dd-499f-81a8-969b7bfd7885
   - VNC: vnc.dimaseinc.org → noVNC (port 6080) → TigerVNC as user dimase (display :1)
-  - **Axis Monitor** (self-healing): `/root/axis-monitor/` — systemd `axis-monitor.service` (runs every 5min, port 9090 /health), `axis-model-scout.timer` (daily 06:00 UTC), no Claude dependency, uses CF Workers AI + Pollinations as free AI. Telegram alerts on failures. 34 free AI models catalogued in `free_models.json`.
-  - Telegram bot token: `8713733121:AAGCvSq-bbX6TnPz8hwJXxiLRhG1SAdzLCw` (also in /usr/local/bin/axis-telegram-bot.py)
+  - **DiMase Monitor** (self-healing): `/root/dimase-monitor/` — systemd `dimase-monitor.service` (runs every 5min, port 9090 /health), `dimase-model-scout.timer` (daily 06:00 UTC), no Claude dependency, uses CF Workers AI + Pollinations as free AI. Telegram alerts on failures. 34 free AI models catalogued in `free_models.json`.
+  - Telegram bot token: `8713733121:AAGCvSq-bbX6TnPz8hwJXxiLRhG1SAdzLCw` (also in /usr/local/bin/dimase-telegram-bot.py)
   - Podcast rec API: rec-api.dimaseinc.org → Python server port 8998, secret: dmsinc-rec-2026
   - Podcast audio files: /media/Storage/podcast/ (owned by dimase)
-  - Daily crons: 3am axis-preserve.py (KV backup), 7am axis-research.py (AI research + Telegram), 10am axis-briefing.py (server briefing)
+  - Daily crons: 3am dimase-preserve.py (KV backup), 7am dimase-research.py (AI research + Telegram), 10am dimase-briefing.py (server briefing)
 
 - **dimaseinc.org website**
   - Cloudflare Workers project (NOT served by Docker)
@@ -41,7 +41,7 @@ Always use parallel sub-agents for all tasks. Never run tasks sequentially when 
   - PayPal Client ID: AePKaVR0YZaAE2v7dad5ilh4fV59u1jmKadUFzRTmNLjn36I3gSbh9in89tIuYx1h5uH5cWtMxNGzgoE (DiMaseInc Subscriptions app)
   - PayPal Secret: EESfQE9SjrStj_NoAQoQRA6sOYwjC512LScjmHZJbSbOan4t0RNcAThLmLKadW_91gBRF3fO0D1bBmTe
   - PENDING: PayPal plan IDs ($5/mo buyer, $10/mo seller), Anthropic API key for OpenClaw
-  - APK downloads: 7 APKs in downloads/ folder (Axis AI, DiMase AI, DiMase Learning, Jellyfin Android, Jellyfin Fire TV, Service Map, smartcloud-map)
+  - APK downloads: 7 APKs in downloads/ folder (DiMase AI, DiMase AI, DiMase Learning, Jellyfin Android, Jellyfin Fire TV, Service Map, smartcloud-map)
 
 - **D-Trading Post** — Western-themed e-commerce marketplace ✅ LIVE
   - Live URL: https://dtrading-post.mrcdimase.workers.dev
@@ -57,14 +57,14 @@ Always use parallel sub-agents for all tasks. Never run tasks sequentially when 
   - DB: 5 tables initialized — users, listings, bids, transactions, subscription_payments
   - dimasehome.work = ecosystem admin dashboard (PENDING — full DiMase Inc hub)
 
-- **Axis AI - Multi-Channel Voice** (all channels → /axis/bot-chat Worker endpoint)
+- **DiMase AI - Multi-Channel Voice** (all channels → /dimase/bot-chat Worker endpoint)
   - Telegram: @DiMaseIncbot (live)
-  - Web chat: https://dimaseinc.org/axis/chat-ui (dark terminal UI, no auth, live)
-  - CLI: /usr/local/bin/axis on server — `axis "message"` or `axis` for interactive REPL (live)
-  - Facebook Messenger: /axis/messenger webhook (needs MESSENGER_PAGE_ACCESS_TOKEN + MESSENGER_VERIFY_TOKEN)
-  - Twilio SMS: /axis/sms TwiML endpoint (deployed, needs Twilio account)
-  - Twilio Voice: /axis/voice + /axis/voice/gather TwiML (deployed, needs Twilio account)
-  - Email→SMS: axis@dimaseinc.org → Worker; SMS via CF send_email binding (MailChannels removed by CF)
+  - Web chat: https://dimaseinc.org/dimase/chat-ui (dark terminal UI, no auth, live)
+  - CLI: /usr/local/bin/dimase on server — `dimase "message"` or `dimase` for interactive REPL (live)
+  - Facebook Messenger: /dimase/messenger webhook (needs MESSENGER_PAGE_ACCESS_TOKEN + MESSENGER_VERIFY_TOKEN)
+  - Twilio SMS: /dimase/sms TwiML endpoint (deployed, needs Twilio account)
+  - Twilio Voice: /dimase/voice + /dimase/voice/gather TwiML (deployed, needs Twilio account)
+  - Email→SMS: dimase@dimaseinc.org → Worker; SMS via CF send_email binding (MailChannels removed by CF)
   - Landing page: shows for ALL visitors at dimaseinc.org/ (fixed — was only showing for logged-out users)
   - Owner contact: 513-748-2017 (Verizon), SMS gateway: 5137482017@vtext.com (stored as OWNER_SMS_GATEWAY secret)
 
@@ -79,7 +79,7 @@ Always use parallel sub-agents for all tasks. Never run tasks sequentially when 
 - **Ventoy USB backup key**: oci_key_buyvm_backup on Ventoy USB
   - connect.sh — Linux/Mac SSH to server
   - connect.bat — Windows SSH to server
-  - axis.sh — Linux/Mac Axis AI CLI (HTTPS only, no SSH needed)
+  - dimase.sh — Linux/Mac DiMase AI CLI (HTTPS only, no SSH needed)
   - To SSH from any machine: `ssh -i /path/to/oci_key_buyvm_backup root@209.141.36.104`
 
 ## Credentials
@@ -93,15 +93,15 @@ Always use parallel sub-agents for all tasks. Never run tasks sequentially when 
 - downloads.dimaseinc.org → Cloudflare tunnel → localhost:8997 (APK server)
 - Worker proxies /downloads/*.apk from https://downloads.dimaseinc.org/
 - Shutdown fixed: reverse-tunnel.service disabled, DefaultTimeoutStopSec=15s set
-- applications.html: Axis 2.0, Service Map, DiMase Learning, Jellyfin (DiMase AI removed)
+- applications.html: DiMase 2.0, Service Map, DiMase Learning, Jellyfin (DiMase AI removed)
 
 ## Fixes & Troubleshooting Log (Live)
 - Local master: `/home/dimase/.claude/projects/-home-dimase/memory/fixes.md` (update after every fix)
-- Server master: `/media/Storage/axis-knowledge/fixes.md` (auto-synced daily 08:00 UTC via axis-knowledge-sync.timer)
-- Server copies: `/root/axis-monitor/fixes.md`, `/media/Storage/server-flies/axis_nexus/knowledge/fixes.md`
+- Server master: `/media/Storage/dimase-knowledge/fixes.md` (auto-synced daily 08:00 UTC via dimase-knowledge-sync.timer)
+- Server copies: `/root/dimase-monitor/fixes.md`, `/media/Storage/server-flies/dimase_nexus/knowledge/fixes.md`
 - **Auto-append**: healer.py logs every successful auto-fix to server master automatically
-- **Daily sync**: `axis-knowledge-sync.timer` syncs all copies + sends Telegram summary at 08:00 UTC
-- Covers: podcast upload auth, APK signing, CF rate limits, axis-nexus Ollama→Workers AI, esbuild perms, monitor portainer spam, Telegram config, hallucination fix, auto-scroll, heredoc SSH quirk
+- **Daily sync**: `dimase-knowledge-sync.timer` syncs all copies + sends Telegram summary at 08:00 UTC
+- Covers: podcast upload auth, APK signing, CF rate limits, dimase-nexus Ollama→Workers AI, esbuild perms, monitor portainer spam, Telegram config, hallucination fix, auto-scroll, heredoc SSH quirk
 
 ## Key Facts
 - Server runs RHEL 10 locally, Ubuntu 24.04 on BuyVM

@@ -70,10 +70,10 @@ type: project
 
 ## Integration Ideas with DiMase Ecosystem
 
-### Axis AI Integration
-- Build a Flipper script that POSTs to `/axis/bot-chat` via Wi-Fi dev board (ESP32 module)
-- Voice commands from Flipper → Axis AI on dimaseinc.org
-- Flipper as a physical Axis AI trigger button
+### DiMase AI Integration
+- Build a Flipper script that POSTs to `/dimase/bot-chat` via Wi-Fi dev board (ESP32 module)
+- Voice commands from Flipper → DiMase AI on dimaseinc.org
+- Flipper as a physical DiMase AI trigger button
 
 ### DiMaseHome / Server
 - Flipper BadUSB script → auto-runs `usb-login.sh` equivalent keyboard sequence on login screen

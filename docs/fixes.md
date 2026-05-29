@@ -10,7 +10,7 @@
 **Fix:** Replaced Pollinations entirely with:
 - **Groq API** (free, 30 req/min): llama-3.3-70b-versatile, llama-4-scout-17b, qwen/qwen3-32b, moonshotai/kimi-k2-instruct, openai/gpt-oss-120b, llama-3.1-8b-instant, groq/compound
 - **Local Ollama**: qwen3:latest, llama3.2:3b, phi3:mini
-- Groq key in axis-control/.env + launch.sh + axis-monitor.service (server)
+- Groq key in dimase-control/.env + launch.sh + dimase-monitor.service (server)
 
 ---
 
@@ -31,7 +31,7 @@
 
 ---
 
-## Axis Control Models Dot Not Turning Green (2026-03-27)
+## DiMase Control Models Dot Not Turning Green (2026-03-27)
 **Symptom:** The `dot-models` status indicator in the top bar stays steel/grey even when models are online.
 **Root cause:** `loadModels()` counted `online` variable but never used it to update `dot-models` element class.
 **Fix:** Added after counting online models:
@@ -45,15 +45,15 @@ else                                    dot.className = 'dot dim';
 
 ---
 
-## Axis Control Consciousness Was Fake (2026-03-27)
+## DiMase Control Consciousness Was Fake (2026-03-27)
 **Symptom:** Consciousness bar showed generic system messages, not real AI reasoning about actual state.
-**Root cause:** Prompt was minimal ("generate 2-3 sentences about CPU/RAM") and used slow Axis Nexus endpoint rather than a capable local model.
+**Root cause:** Prompt was minimal ("generate 2-3 sentences about CPU/RAM") and used slow DiMase Nexus endpoint rather than a capable local model.
 **Fix:** Rebuilt consciousness_loop() in app.py:
 - Uses **Groq Llama 3.3 70B** (0.17s response) for real reasoning
 - Prompt includes: real model statuses, real CPU/RAM, last 6 conversation exchanges, stored memory keys, active goals, live AI news (DuckDuckGo, hourly)
 - Auto-extracts observations into persistent memory.json
 - Updates mood field (optimal/operational/monitoring/degraded) based on real state
-- Falls back to Axis Nexus if Groq unavailable
+- Falls back to DiMase Nexus if Groq unavailable
 - Fires every 60s (was 45s)
 
 ---
@@ -169,16 +169,16 @@ pkill -f websockify   # kill all 15 orphaned processes
 
 ---
 
-## AxisAI.apk Not Installing on Phone (2026-03-07)
-**Symptom:** Original axis-2.0.apk (4.8MB) fails to install; Android shows error or silent failure.
-**Root cause:** Original was a React Native/Flutter app (package org.dimaseinc.axis, minSDK 26) — likely cert conflict with previous install attempt or incompatibility issues.
+## DiMaseAI.apk Not Installing on Phone (2026-03-07)
+**Symptom:** Original dimase-2.0.apk (4.8MB) fails to install; Android shows error or silent failure.
+**Root cause:** Original was a React Native/Flutter app (package org.dimaseinc.dimase, minSDK 26) — likely cert conflict with previous install attempt or incompatibility issues.
 **Fix:** Rebuilt as clean 17KB WebView APK:
-- Package: com.dimaseinc.axisai (new package name avoids cert conflict)
+- Package: com.dimaseinc.dimaseai (new package name avoids cert conflict)
 - minSDK 21 (Android 5.0+) — broader compatibility than original minSDK 26
-- Loads https://dimaseinc.org/axis/chat-ui in WebView
-- Signed with new keystore (alias: axisai, pass: dimase2026)
-- File saved: /media/Storage/website/dimaseinc-website/downloads/AxisAI.apk
-- applications.html updated to link AxisAI.apk (not axis-2.0.apk)
+- Loads https://dimaseinc.org/dimase/chat-ui in WebView
+- Signed with new keystore (alias: dimaseai, pass: dimase2026)
+- File saved: /media/Storage/website/dimaseinc-website/downloads/DiMaseAI.apk
+- applications.html updated to link DiMaseAI.apk (not dimase-2.0.apk)
 
 ---
 
@@ -253,78 +253,78 @@ if (!adminCheck || !adminCheck.is_admin) return apiResponse({ error: 'Forbidden'
 
 ---
 
-## axis-model-scout.service: ModuleNotFoundError httpx
-**Symptom:** `systemctl status axis-model-scout.service` shows `ModuleNotFoundError: No module named 'httpx'`
+## dimase-model-scout.service: ModuleNotFoundError httpx
+**Symptom:** `systemctl status dimase-model-scout.service` shows `ModuleNotFoundError: No module named 'httpx'`
 **Root cause:** `httpx` was installed via pip but the service ran before installation completed, OR pip install was done without `--break-system-packages` on Ubuntu 24.04 (PEP 668 protection).
 **Fix:** `pip3 install httpx --break-system-packages` (httpx 0.28.1 installs to `/usr/local/lib/python3.12/dist-packages/`). Script then ran cleanly — 29 free models catalogued, Telegram notified.
-**File:** `/root/axis-monitor/model_scout.py`
+**File:** `/root/dimase-monitor/model_scout.py`
 
 ---
 
-## axis-monitor: Portainer Healer Spam
-**Symptom:** axis-monitor logs showed healer hitting 2/3 retry attempts every 300s trying to restart "portainer" — `docker restart portainer` → "No such container"; `docker compose up portainer` → "no such service: portainer"
+## dimase-monitor: Portainer Healer Spam
+**Symptom:** dimase-monitor logs showed healer hitting 2/3 retry attempts every 300s trying to restart "portainer" — `docker restart portainer` → "No such container"; `docker compose up portainer` → "no such service: portainer"
 **Root cause:** "portainer" was listed in `DOCKER_CONTAINERS` in monitor.py and in `config.json` under `services.http`, but portainer is NOT a container in `docker-compose-live.yml`. It runs outside Docker compose (accessible at portainer.dimaseinc.org but managed separately).
 **Fix:** Removed "portainer" from `DOCKER_CONTAINERS` in `monitor.py` and from `services.http` in `config.json`. Monitor now reports 18/18 healthy.
-**Files:** `/root/axis-monitor/monitor.py`, `/root/axis-monitor/config.json`
+**Files:** `/root/dimase-monitor/monitor.py`, `/root/dimase-monitor/config.json`
 
 ---
 
-## axis-hud Frontend: esbuild EACCES Permission Denied
+## dimase-hud Frontend: esbuild EACCES Permission Denied
 **Symptom:** `npx vite build` failed with `spawn .../node_modules/@esbuild/linux-x64/bin/esbuild EACCES`
 **Root cause:** esbuild binary lost execute permission (likely from a file copy or mount operation that stripped execute bits).
-**Fix:** `chmod +x /media/Storage/server-flies/apps/axis-2.0/frontend/node_modules/@esbuild/linux-x64/bin/esbuild` then `chmod -R +x node_modules/.bin/`. Build succeeded (304.94 kB JS, 11.61s). Note: `frontend/dist/` is directly mounted into the axis-hud nginx container — no copy needed after build.
-**File:** `/media/Storage/server-flies/apps/axis-2.0/frontend/`
+**Fix:** `chmod +x /media/Storage/server-flies/apps/dimase-2.0/frontend/node_modules/@esbuild/linux-x64/bin/esbuild` then `chmod -R +x node_modules/.bin/`. Build succeeded (304.94 kB JS, 11.61s). Note: `frontend/dist/` is directly mounted into the dimase-hud nginx container — no copy needed after build.
+**File:** `/media/Storage/server-flies/apps/dimase-2.0/frontend/`
 
 ---
 
-## axis-nexus: "Inference Error: All connection attempts failed"
-**Symptom:** https://axis.dimaseinc.org chat showed "Inference Error: All connection attempts failed" on every message
+## dimase-nexus: "Inference Error: All connection attempts failed"
+**Symptom:** https://dimase.dimaseinc.org chat showed "Inference Error: All connection attempts failed" on every message
 **Root cause:** `nexus.py` was hardcoded to call Ollama at `localhost:11434`, but Ollama is NOT installed on the BuyVM VPS.
-**Fix:** Replaced all Ollama calls with `https://dimaseinc.org/axis/bot-chat` (CF Workers AI endpoint). Also fixed port `8001 → 8000` mismatch between `nexus.py` main() and Dockerfile EXPOSE + nginx proxy config.
-**Version:** axis-nexus rebuilt as v3.0.0 with full ReAct agent loop.
-**File:** `/media/Storage/server-flies/axis_nexus/nexus.py`
+**Fix:** Replaced all Ollama calls with `https://dimaseinc.org/dimase/bot-chat` (CF Workers AI endpoint). Also fixed port `8001 → 8000` mismatch between `nexus.py` main() and Dockerfile EXPOSE + nginx proxy config.
+**Version:** dimase-nexus rebuilt as v3.0.0 with full ReAct agent loop.
+**File:** `/media/Storage/server-flies/dimase_nexus/nexus.py`
 
 ---
 
-## axis-nexus v3.0.0: ReAct Agent Loop
+## dimase-nexus v3.0.0: ReAct Agent Loop
 **What was added:** Full agentic tool-use loop using ACTION/INPUT/FINAL text format (works with any LLM — no function calling API needed).
 **Tools available:** web_search (DuckDuckGo dual-API), fetch_url, shell_exec, file_read, file_write, docker_ops, remember (ChromaDB), recall (ChromaDB similarity), git_ops
 **AI fallback chain:** CF Workers AI (bot-chat) → Pollinations.ai (free GET API) → Groq (if key set)
 **Safety:** shell_exec has blocklist for destructive commands; file paths whitelist enforced
-**Files:** `/media/Storage/server-flies/axis_nexus/nexus.py`, `/media/Storage/server-flies/axis_nexus/tool_controller.py`
+**Files:** `/media/Storage/server-flies/dimase_nexus/nexus.py`, `/media/Storage/server-flies/dimase_nexus/tool_controller.py`
 
 ---
 
-## Axis AI: Hallucination / Fabricating Facts
-**Symptom:** Axis answered questions about current weather with made-up data, gave wrong info about Claude architecture
+## DiMase AI: Hallucination / Fabricating Facts
+**Symptom:** DiMase answered questions about current weather with made-up data, gave wrong info about Claude architecture
 **Root cause:** System prompt contained "never vague or generic" and "answer with actual information" — this pressured the model to invent plausible-sounding answers rather than admit uncertainty.
 **Fix:** Replaced with: "You do NOT have access to real-time data (no live weather, news, stock prices, or current events) — say so clearly when asked. Never invent specific facts or technical details you cannot verify."
 **File:** `/media/Storage/website/dimaseinc-website/src/worker.js` (system prompt section)
 
 ---
 
-## Axis AI Chat: "As the primary intelligence agent of DiMase Inc.,"
-**Symptom:** Every response from axis.dimaseinc.org started with "As the primary intelligence agent of DiMase Inc.," — repetitive, robotic
+## DiMase AI Chat: "As the primary intelligence agent of DiMase Inc.,"
+**Symptom:** Every response from dimase.dimaseinc.org started with "As the primary intelligence agent of DiMase Inc.," — repetitive, robotic
 **Root cause:** System prompt phrasing caused the model to use this as a framing opener for every reply.
 **Fix (frontend):** Added `filterResponse()` function to `App.jsx` that strips the phrase and common variants via regex before rendering.
 **Fix (backend):** System prompt updated to explicitly say not to use this opener.
-**File:** `/media/Storage/server-flies/apps/axis-2.0/frontend/src/App.jsx`
+**File:** `/media/Storage/server-flies/apps/dimase-2.0/frontend/src/App.jsx`
 
 ---
 
-## axis-hud: Auto-Scroll Missing
-**Symptom:** New messages in axis.dimaseinc.org chat panel did not scroll into view automatically
+## dimase-hud: Auto-Scroll Missing
+**Symptom:** New messages in dimase.dimaseinc.org chat panel did not scroll into view automatically
 **Fix:** Added `useRef` scroll anchor to `App.jsx`: `const messagesEndRef = useRef(null)` + `useEffect` watching `[messages, isProcessing]` + `<div ref={messagesEndRef} />` at bottom of message list.
-**File:** `/media/Storage/server-flies/apps/axis-2.0/frontend/src/App.jsx`
+**File:** `/media/Storage/server-flies/apps/dimase-2.0/frontend/src/App.jsx`
 
 ---
 
 ## APK Installation Failure (V1-only Signature)
-**Symptom:** Axis 2.0 APK downloaded but Android refused to install ("App not installed")
+**Symptom:** DiMase 2.0 APK downloaded but Android refused to install ("App not installed")
 **Root cause:** `jarsigner` only produces V1 (JAR) signatures. Modern Android requires V2 or V3 APK signatures.
 **Fix:** Re-signed with `uber-apk-signer.jar` which adds V2+V3 signatures automatically.
-**Command:** `java -jar /tmp/uber-apk-signer.jar -a axis-2.0-signed.apk --allowResign --ks /home/dimase/dimaseinc-release.jks --ksAlias dimaseinc-release --ksPass DiMaseInc2026 --ksKeyPass DiMaseInc2026 --skipZipAlign`
-**Also required:** Users must uninstall old Axis AI first if certificate changed (Android blocks signature downgrades).
+**Command:** `java -jar /tmp/uber-apk-signer.jar -a dimase-2.0-signed.apk --allowResign --ks /home/dimase/dimaseinc-release.jks --ksAlias dimaseinc-release --ksPass DiMaseInc2026 --ksKeyPass DiMaseInc2026 --skipZipAlign`
+**Also required:** Users must uninstall old DiMase AI first if certificate changed (Android blocks signature downgrades).
 
 ---
 
@@ -343,7 +343,7 @@ if (!adminCheck || !adminCheck.is_admin) return apiResponse({ error: 'Forbidden'
 
 ---
 
-## axis-monitor: Telegram Alerts Not Firing
+## dimase-monitor: Telegram Alerts Not Firing
 **Symptom:** Monitor detected failures but no Telegram messages were sent
 **Root cause:** `config.json` had `telegram.bot_token` (nested) but `monitor.py` looked for top-level `telegram_token` key.
 **Fix:** Added flattened `telegram_token` and `telegram_chat_id` keys directly at top level of `config.json`.
@@ -426,13 +426,13 @@ if (!adminCheck || !adminCheck.is_admin) return apiResponse({ error: 'Forbidden'
 
 ---
 
-## Axis AI: D-Trading Post Integration
-**What:** Axis can now query live D-Trading Post listings and stats
+## DiMase AI: D-Trading Post Integration
+**What:** DiMase can now query live D-Trading Post listings and stats
 **API endpoints added:**
 - `https://dtradingpost.dimaseinc.org/api/public?type=listings` — all active listings as JSON
 - `https://dtradingpost.dimaseinc.org/api/public?type=stats` — site stats (users, listings, revenue)
 - `https://dtradingpost.dimaseinc.org/api/public?type=listings&q=QUERY` — search listings
-**System prompt:** Updated in `/media/Storage/server-flies/axis_nexus/nexus.py` to include D-Trading Post API URLs. Axis uses fetch_url tool to get live data.
+**System prompt:** Updated in `/media/Storage/server-flies/dimase_nexus/nexus.py` to include D-Trading Post API URLs. DiMase uses fetch_url tool to get live data.
 
 ---
 
@@ -734,14 +734,14 @@ SUPERNERD coupon removed. Landing page and register page updated from $5→$7 re
 ## DiMaseHome Ecosystem Expansion (2026-03-03)
 - Added 4 new Quick Action tiles: Locksmith Admin, Podcast/Sub, Jellyfin, Learning Admin (anchor scroll)
 - Users & Standings expanded to 6 tables: DiMase Inc. Members, D-Trading Post, Locksmith Customers, DiMase Learning Users, Podcast & Site Subscribers (active/trial filter), Jellyfin Media Users
-- Added DiMase Learning Admin section (id=learning-admin): class CRUD for Axis AI + Chatbot Builder tracks, user progress table
+- Added DiMase Learning Admin section (id=learning-admin): class CRUD for DiMase AI + Chatbot Builder tracks, user progress table
 - Added LOCKSMITH_DB binding (dimase-locksmith DB) to DiMaseHome wrangler.toml
 - Added JELLYFIN_API_KEY secret to DiMaseHome (same key as dimaseinc-website)
 - New routes: /admin/locksmith-delete, /admin/lms/class-create, /admin/lms/class-toggle, /admin/lms/class-delete
 - fetchLocksmithRequests, fetchLmsData, fetchJellyfinUsers functions added
 - Jellyfin users fetched via GET https://jellyfin.dimaseinc.org/Users with X-Emby-Token header
 
-## Axis-nexus shell_exec + docker_ops fixed (2026-03-03)
+## DiMase-nexus shell_exec + docker_ops fixed (2026-03-03)
 - nexus.py was calling tools.run_shell() and tools.docker_architect() — old method names
 - ToolController actual methods: _shell_exec(cmd: str) async, _docker_ops(action, name) async
 - Fixed dispatch to: await tools._shell_exec(str(cmd)) and await tools._docker_ops(action, container)
@@ -819,7 +819,7 @@ INSERT OR IGNORE INTO usb_config (key, value) VALUES ('usb_lost', 'false');
 
 ---
 
-## axis-monitor: CPU Always Shows 100% on Single-Core VPS (2026-03-03)
+## dimase-monitor: CPU Always Shows 100% on Single-Core VPS (2026-03-03)
 **Symptom:** DiMaseHome infrastructure panel showed CPU at 100% constantly
 **Root cause:** `get_system_stats()` used `load_avg_1min / ncpu * 100`. Server has 1 CPU core — any load average ≥ 1.0 shows 100%. Load averages include I/O wait and aren't actual CPU utilization.
 **Fix:** Replaced load-average calculation with `/proc/stat` 0.5-second sample:
@@ -837,16 +837,16 @@ dt = t2-t1; di = i2-i1
 stats['cpu'] = round((1 - di/dt)*100, 1) if dt > 0 else 0
 ```
 **Also:** Killed duplicate uvicorn process (PID 2682630), lowered vm.swappiness 60→10, dropped caches
-**File:** `/root/axis-monitor/monitor.py`
+**File:** `/root/dimase-monitor/monitor.py`
 
 ---
 
 ## dimaseinc.org: Agent Zero + Terminal Pages Removed from Sitemap/Nav (2026-03-03)
-**Symptom:** /ai and /terminal gate routes + axis.dimaseinc.org nav links present in site; /axis/chat-ui in sitemap submitted to Google
+**Symptom:** /ai and /terminal gate routes + dimase.dimaseinc.org nav links present in site; /dimase/chat-ui in sitemap submitted to Google
 **Fix:**
 - Removed `/terminal` and `/ai` from the `gates` object in worker.js (set `const gates = {}`)
-- Removed `/axis/chat-ui` entry from /sitemap.xml generation
-- Removed `<li><a href="https://axis.dimaseinc.org">Axis</a></li>` nav links from index.html, learning.html, computer-basics.html, map.html
+- Removed `/dimase/chat-ui` entry from /sitemap.xml generation
+- Removed `<li><a href="https://dimase.dimaseinc.org">DiMase</a></li>` nav links from index.html, learning.html, computer-basics.html, map.html
 **File:** `/media/Storage/website/dimaseinc-website/src/worker.js` + all 4 HTML files
 
 ---
@@ -978,14 +978,14 @@ Then `UPDATE users SET password_hash = '<hash>' WHERE email = '...'`
 ---
 
 ## Telegram Bot "Simulated Access" — system_override Field Ignored (2026-03-10)
-**Symptom:** axis-nexus sent `system_override` in the POST body to the worker.js bot-chat handler, but the worker only read the `system` field — so the override was silently dropped and the bot used the default system prompt.
+**Symptom:** dimase-nexus sent `system_override` in the POST body to the worker.js bot-chat handler, but the worker only read the `system` field — so the override was silently dropped and the bot used the default system prompt.
 **Root cause:** worker.js bot-chat handler destructured only `{ message, system, context }` from the request body; `system_override` was never read.
 **Fix:** Added `system_override` to the destructuring in worker.js bot-chat handler and added fallback: `const effectiveSystem = system_override || system || defaultSystemPrompt`.
 
 ---
 
 ## Bot Announcing Commands Instead of Acting Silently (2026-03-10)
-**Symptom:** Axis AI bot would say things like "I will now run a shell command to check..." before actually executing, which was verbose and broke the UX.
+**Symptom:** DiMase AI bot would say things like "I will now run a shell command to check..." before actually executing, which was verbose and broke the UX.
 **Root cause:** Neither nexus.py nor worker.js system prompts instructed the AI to act without announcing its steps.
 **Fix:** Added "NEVER announce what you are about to do. Just use the tool and report the outcome." to the system prompt in both nexus.py and worker.js bot-chat handler.
 

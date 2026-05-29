@@ -50,12 +50,12 @@ Host buyvm
   │   │   ├── dtrading-post/  # D-Trading Post worker + wrangler.toml
   │   │   ├── dimasehome/     # DiMaseHome worker + wrangler.toml
   │   │   └── dimase-locksmith/ # DiMase Locksmith worker + wrangler.toml
-  │   └── axis_nexus/         # Axis Nexus AI source + knowledge base
+  │   └── dimase_nexus/         # DiMase Nexus AI source + knowledge base
   ├── website/
   │   └── dimaseinc-website/  # Main site source (src/worker.js + static files)
   ├── docker/                 # Docker data root
   ├── podcast/                # Podcast audio files (owned by dimase)
-  ├── axis-knowledge/         # Shared AI knowledge (fixes.md, etc.)
+  ├── dimase-knowledge/         # Shared AI knowledge (fixes.md, etc.)
   └── website/dimaseinc-website/downloads/  # APK files
 ```
 
@@ -68,8 +68,8 @@ All containers managed with Docker Compose. Data root: `/media/Storage/docker/`
 | Container | Purpose | Port/URL |
 |-----------|---------|----------|
 | nginx-proxy | Reverse proxy routing subdomains | 80 (all HTTP) |
-| axis-nexus | AI agent backend (ReAct loop) | 8000 (host network) |
-| axis-hud | Axis AI frontend (React) | served via nginx-proxy |
+| dimase-nexus | AI agent backend (ReAct loop) | 8000 (host network) |
+| dimase-hud | DiMase AI frontend (React) | served via nginx-proxy |
 | map-server | Service map | served via nginx-proxy |
 | file-browser | File manager UI | files.dimaseinc.org |
 | portainer | Docker management UI | portainer.dimaseinc.org |
@@ -79,7 +79,7 @@ All containers managed with Docker Compose. Data root: `/media/Storage/docker/`
 
 ### Key Services Outside Docker
 - **Cloudflared tunnel**: `cloudflared` systemd service
-- **Axis Monitor**: `/root/axis-monitor/` — systemd `axis-monitor.service`
+- **DiMase Monitor**: `/root/dimase-monitor/` — systemd `dimase-monitor.service`
 - **APK Server**: `apk-server.service` (Python http.server on port 8997)
 - **Podcast Rec API**: Python server on port 8998
 - **TigerVNC**: VNC server as user dimase on display :1 (port 5901)
@@ -93,14 +93,14 @@ All containers managed with Docker Compose. Data root: `/media/Storage/docker/`
 
 ### Subdomain Routing
 ```
-axis.dimaseinc.org       → CF tunnel → axis-hud (nginx-proxy)
+dimase.dimaseinc.org       → CF tunnel → dimase-hud (nginx-proxy)
 files.dimaseinc.org      → CF tunnel → file-browser
 portainer.dimaseinc.org  → CF tunnel → portainer
 neo-grafana.dimaseinc.org → CF tunnel → neo-grafana
 vnc.dimaseinc.org        → CF tunnel → noVNC (port 6080)
 map.dimaseinc.org        → CF tunnel → map-server
 downloads.dimaseinc.org  → CF tunnel → APK server (port 8997)
-monitor.dimaseinc.org    → CF tunnel → axis-monitor (port 9090)
+monitor.dimaseinc.org    → CF tunnel → dimase-monitor (port 9090)
 rec-api.dimaseinc.org    → CF tunnel → podcast rec API (port 8998)
 jellyfin.dimaseinc.org   → Direct (NOT through Docker nginx-proxy)
 ```
@@ -131,7 +131,7 @@ jellyfin.dimaseinc.org   → Direct (NOT through Docker nginx-proxy)
 - **D1 Database**: dimaseinc-learning (ID: af4b58c4-5553-4d4f-8af2-53cdf1c39e34) — bound as `DB`
 - **AI binding**: llama-3.1-8b-instruct (bound as `AI`)
 - **Wrangler Secrets**: JELLYFIN_API_KEY, TELEGRAM_CHAT_ID, PAYPAL_CLIENT_ID, PAYPAL_CLIENT_SECRET, PAYPAL_MODE, PAYPAL_PLAN_SITE, PAYPAL_PLAN_RDP, PAYPAL_PLAN_SELLER, PAYPAL_PLAN_RDP_SELLER, PAYPAL_PLAN_BUNDLE, CF_API_TOKEN, USB_AUTH_TOKEN, OWNER_SMS_GATEWAY, MESSENGER_PAGE_ACCESS_TOKEN, MESSENGER_VERIFY_TOKEN
-- **Key routes**: `/` (landing), `/login`, `/register`, `/subscribe`, `/member` (post-login dashboard — plan-gated features), `/cloud` (→ DiMaseHome), `/lms/*` (learning API), `/podcast.rss`, `/podcast/*`, `/axis/*` (AI chat), `/auth/usb` (USB login → /member), `/auth/usb-status` (poison check), `/auth/usb-toggle` (admin)
+- **Key routes**: `/` (landing), `/login`, `/register`, `/subscribe`, `/member` (post-login dashboard — plan-gated features), `/cloud` (→ DiMaseHome), `/lms/*` (learning API), `/podcast.rss`, `/podcast/*`, `/dimase/*` (AI chat), `/auth/usb` (USB login → /member), `/auth/usb-status` (poison check), `/auth/usb-toggle` (admin)
 - **Deploy command**: `cd /media/Storage/website/dimaseinc-website && npx wrangler deploy`
 
 ### Worker 2: dtrading-post
@@ -193,11 +193,11 @@ Locksmith database. Tables:
 
 ---
 
-## 6. AXIS NEXUS AI AGENT
+## 6. DIMASE NEXUS AI AGENT
 
 ### Overview
 Full ReAct agent loop (ACTION → INPUT → FINAL format). v3.0.0 (2026-03-02).
-- **Source**: `/media/Storage/server-flies/axis_nexus/`
+- **Source**: `/media/Storage/server-flies/dimase_nexus/`
 - **Port**: 8000, host network mode
 - **AI fallback chain**: CF Workers AI → Pollinations → Groq (all free)
 
@@ -207,33 +207,33 @@ Full ReAct agent loop (ACTION → INPUT → FINAL format). v3.0.0 (2026-03-02).
 ### Channels
 | Channel | URL/Details |
 |---------|------------|
-| Web chat | https://dimaseinc.org/axis/chat-ui |
+| Web chat | https://dimaseinc.org/dimase/chat-ui |
 | Telegram | @DiMaseIncbot |
-| CLI | `axis "message"` (on server) |
-| Facebook Messenger | /axis/messenger |
-| Twilio SMS | /axis/sms |
-| Twilio Voice | /axis/voice |
+| CLI | `dimase "message"` (on server) |
+| Facebook Messenger | /dimase/messenger |
+| Twilio SMS | /dimase/sms |
+| Twilio Voice | /dimase/voice |
 
 ---
 
-## 7. AXIS MONITOR (Self-Healing)
+## 7. DIMASE MONITOR (Self-Healing)
 
-- **Path**: `/root/axis-monitor/`
-- **Systemd**: `axis-monitor.service` (runs every 5min), `axis-model-scout.timer` (daily 06:00 UTC)
+- **Path**: `/root/dimase-monitor/`
+- **Systemd**: `dimase-monitor.service` (runs every 5min), `dimase-model-scout.timer` (daily 06:00 UTC)
 - **Port**: 9090, endpoint: `/health` (public)
 - **URL**: monitor.dimaseinc.org
 - **Purpose**: Monitors all services, auto-heals failures, Telegram alerts
 - **No Claude dependency**: uses CF Workers AI + Pollinations
 - **Free models**: 34 catalogued in `free_models.json`
-- **healer.py**: Auto-logs successful fixes to `/media/Storage/axis-knowledge/fixes.md`
+- **healer.py**: Auto-logs successful fixes to `/media/Storage/dimase-knowledge/fixes.md`
 
 ### Daily Crons
 | Time | Script | Purpose |
 |------|--------|---------|
-| 03:00 UTC | axis-preserve.py | KV backup |
-| 07:00 UTC | axis-research.py | AI research + Telegram |
-| 08:00 UTC | axis-knowledge-sync.timer | Sync fixes.md to all locations |
-| 10:00 UTC | axis-briefing.py | Server briefing to Telegram |
+| 03:00 UTC | dimase-preserve.py | KV backup |
+| 07:00 UTC | dimase-research.py | AI research + Telegram |
+| 08:00 UTC | dimase-knowledge-sync.timer | Sync fixes.md to all locations |
+| 10:00 UTC | dimase-briefing.py | Server briefing to Telegram |
 
 ---
 
@@ -292,7 +292,7 @@ Ventoy/
   ├── oci_key_buyvm_backup  # SSH key for server
   ├── connect.sh            # SSH to server (Linux/Mac)
   ├── connect.bat           # SSH to server (Windows)
-  └── axis.sh               # Axis AI CLI (Linux/Mac)
+  └── dimase.sh               # DiMase AI CLI (Linux/Mac)
 ```
 
 ### Session Mechanism Per Site
@@ -330,7 +330,7 @@ ssh root@209.141.36.104 'python3 /root/rotate_usb_token.py'
 | DiMaseHome | DiMase | Ruffieno | home.dimaseinc.org |
 | D-Trading Post Admin | dimaseinc@gmail.com | (PayPal/login) | role=admin in DB |
 | Locksmith Admin | DiMase | Ruffieno | /admin |
-| Axis AI CLI | n/a | n/a | `axis "msg"` on server |
+| DiMase AI CLI | n/a | n/a | `dimase "msg"` on server |
 | Microsoft/Live | mrcdimase@gmail.com | Ruffieno863 | Windows login |
 | Telegram Bot | @DiMaseIncbot | token: 8713733121:AAGCvSq... | chat ID: 7826090533 |
 
@@ -366,7 +366,7 @@ cloudflared service install
 ```bash
 # From USB/backup:
 mkdir -p /media/Storage/server-flies/apps
-# Copy dtrading-post, dimasehome, dimase-locksmith, axis_nexus
+# Copy dtrading-post, dimasehome, dimase-locksmith, dimase_nexus
 # Copy website/dimaseinc-website
 ```
 
@@ -400,12 +400,12 @@ cd /media/Storage/server-flies  # or wherever docker-compose.yml is
 docker-compose up -d
 ```
 
-### Step 9: Axis Monitor
+### Step 9: DiMase Monitor
 ```bash
-cd /root/axis-monitor
+cd /root/dimase-monitor
 pip3 install -r requirements.txt
-systemctl enable --now axis-monitor.service
-systemctl enable --now axis-model-scout.timer
+systemctl enable --now dimase-monitor.service
+systemctl enable --now dimase-model-scout.timer
 ```
 
 ### Step 10: USB Key Setup
@@ -480,4 +480,4 @@ ssh root@209.141.36.104 'python3 /root/rotate_usb_token.py'
 *This document should be updated after every infrastructure change. It lives at:*
 - *USB: `/Volumes/Ventoy/CLONE.md`*
 - *Local: `/home/dimase/.claude/projects/-home-dimase/memory/CLONE.md`*
-- *Server: `/media/Storage/axis-knowledge/CLONE.md`*
+- *Server: `/media/Storage/dimase-knowledge/CLONE.md`*

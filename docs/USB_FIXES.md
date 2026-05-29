@@ -13,78 +13,78 @@
 
 ---
 
-## axis-model-scout.service: ModuleNotFoundError httpx
-**Symptom:** `systemctl status axis-model-scout.service` shows `ModuleNotFoundError: No module named 'httpx'`
+## dimase-model-scout.service: ModuleNotFoundError httpx
+**Symptom:** `systemctl status dimase-model-scout.service` shows `ModuleNotFoundError: No module named 'httpx'`
 **Root cause:** `httpx` was installed via pip but the service ran before installation completed, OR pip install was done without `--break-system-packages` on Ubuntu 24.04 (PEP 668 protection).
 **Fix:** `pip3 install httpx --break-system-packages` (httpx 0.28.1 installs to `/usr/local/lib/python3.12/dist-packages/`). Script then ran cleanly — 29 free models catalogued, Telegram notified.
-**File:** `/root/axis-monitor/model_scout.py`
+**File:** `/root/dimase-monitor/model_scout.py`
 
 ---
 
-## axis-monitor: Portainer Healer Spam
-**Symptom:** axis-monitor logs showed healer hitting 2/3 retry attempts every 300s trying to restart "portainer" — `docker restart portainer` → "No such container"; `docker compose up portainer` → "no such service: portainer"
+## dimase-monitor: Portainer Healer Spam
+**Symptom:** dimase-monitor logs showed healer hitting 2/3 retry attempts every 300s trying to restart "portainer" — `docker restart portainer` → "No such container"; `docker compose up portainer` → "no such service: portainer"
 **Root cause:** "portainer" was listed in `DOCKER_CONTAINERS` in monitor.py and in `config.json` under `services.http`, but portainer is NOT a container in `docker-compose-live.yml`. It runs outside Docker compose (accessible at portainer.dimaseinc.org but managed separately).
 **Fix:** Removed "portainer" from `DOCKER_CONTAINERS` in `monitor.py` and from `services.http` in `config.json`. Monitor now reports 18/18 healthy.
-**Files:** `/root/axis-monitor/monitor.py`, `/root/axis-monitor/config.json`
+**Files:** `/root/dimase-monitor/monitor.py`, `/root/dimase-monitor/config.json`
 
 ---
 
-## axis-hud Frontend: esbuild EACCES Permission Denied
+## dimase-hud Frontend: esbuild EACCES Permission Denied
 **Symptom:** `npx vite build` failed with `spawn .../node_modules/@esbuild/linux-x64/bin/esbuild EACCES`
 **Root cause:** esbuild binary lost execute permission (likely from a file copy or mount operation that stripped execute bits).
-**Fix:** `chmod +x /media/Storage/server-flies/apps/axis-2.0/frontend/node_modules/@esbuild/linux-x64/bin/esbuild` then `chmod -R +x node_modules/.bin/`. Build succeeded (304.94 kB JS, 11.61s). Note: `frontend/dist/` is directly mounted into the axis-hud nginx container — no copy needed after build.
-**File:** `/media/Storage/server-flies/apps/axis-2.0/frontend/`
+**Fix:** `chmod +x /media/Storage/server-flies/apps/dimase-2.0/frontend/node_modules/@esbuild/linux-x64/bin/esbuild` then `chmod -R +x node_modules/.bin/`. Build succeeded (304.94 kB JS, 11.61s). Note: `frontend/dist/` is directly mounted into the dimase-hud nginx container — no copy needed after build.
+**File:** `/media/Storage/server-flies/apps/dimase-2.0/frontend/`
 
 ---
 
-## axis-nexus: "Inference Error: All connection attempts failed"
-**Symptom:** https://axis.dimaseinc.org chat showed "Inference Error: All connection attempts failed" on every message
+## dimase-nexus: "Inference Error: All connection attempts failed"
+**Symptom:** https://dimase.dimaseinc.org chat showed "Inference Error: All connection attempts failed" on every message
 **Root cause:** `nexus.py` was hardcoded to call Ollama at `localhost:11434`, but Ollama is NOT installed on the BuyVM VPS.
-**Fix:** Replaced all Ollama calls with `https://dimaseinc.org/axis/bot-chat` (CF Workers AI endpoint). Also fixed port `8001 → 8000` mismatch between `nexus.py` main() and Dockerfile EXPOSE + nginx proxy config.
-**Version:** axis-nexus rebuilt as v3.0.0 with full ReAct agent loop.
-**File:** `/media/Storage/server-flies/axis_nexus/nexus.py`
+**Fix:** Replaced all Ollama calls with `https://dimaseinc.org/dimase/bot-chat` (CF Workers AI endpoint). Also fixed port `8001 → 8000` mismatch between `nexus.py` main() and Dockerfile EXPOSE + nginx proxy config.
+**Version:** dimase-nexus rebuilt as v3.0.0 with full ReAct agent loop.
+**File:** `/media/Storage/server-flies/dimase_nexus/nexus.py`
 
 ---
 
-## axis-nexus v3.0.0: ReAct Agent Loop
+## dimase-nexus v3.0.0: ReAct Agent Loop
 **What was added:** Full agentic tool-use loop using ACTION/INPUT/FINAL text format (works with any LLM — no function calling API needed).
 **Tools available:** web_search (DuckDuckGo dual-API), fetch_url, shell_exec, file_read, file_write, docker_ops, remember (ChromaDB), recall (ChromaDB similarity), git_ops
 **AI fallback chain:** CF Workers AI (bot-chat) → Pollinations.ai (free GET API) → Groq (if key set)
 **Safety:** shell_exec has blocklist for destructive commands; file paths whitelist enforced
-**Files:** `/media/Storage/server-flies/axis_nexus/nexus.py`, `/media/Storage/server-flies/axis_nexus/tool_controller.py`
+**Files:** `/media/Storage/server-flies/dimase_nexus/nexus.py`, `/media/Storage/server-flies/dimase_nexus/tool_controller.py`
 
 ---
 
-## Axis AI: Hallucination / Fabricating Facts
-**Symptom:** Axis answered questions about current weather with made-up data, gave wrong info about Claude architecture
+## DiMase AI: Hallucination / Fabricating Facts
+**Symptom:** DiMase answered questions about current weather with made-up data, gave wrong info about Claude architecture
 **Root cause:** System prompt contained "never vague or generic" and "answer with actual information" — this pressured the model to invent plausible-sounding answers rather than admit uncertainty.
 **Fix:** Replaced with: "You do NOT have access to real-time data (no live weather, news, stock prices, or current events) — say so clearly when asked. Never invent specific facts or technical details you cannot verify."
 **File:** `/media/Storage/website/dimaseinc-website/src/worker.js` (system prompt section)
 
 ---
 
-## Axis AI Chat: "As the primary intelligence agent of DiMase Inc.,"
-**Symptom:** Every response from axis.dimaseinc.org started with "As the primary intelligence agent of DiMase Inc.," — repetitive, robotic
+## DiMase AI Chat: "As the primary intelligence agent of DiMase Inc.,"
+**Symptom:** Every response from dimase.dimaseinc.org started with "As the primary intelligence agent of DiMase Inc.," — repetitive, robotic
 **Root cause:** System prompt phrasing caused the model to use this as a framing opener for every reply.
 **Fix (frontend):** Added `filterResponse()` function to `App.jsx` that strips the phrase and common variants via regex before rendering.
 **Fix (backend):** System prompt updated to explicitly say not to use this opener.
-**File:** `/media/Storage/server-flies/apps/axis-2.0/frontend/src/App.jsx`
+**File:** `/media/Storage/server-flies/apps/dimase-2.0/frontend/src/App.jsx`
 
 ---
 
-## axis-hud: Auto-Scroll Missing
-**Symptom:** New messages in axis.dimaseinc.org chat panel did not scroll into view automatically
+## dimase-hud: Auto-Scroll Missing
+**Symptom:** New messages in dimase.dimaseinc.org chat panel did not scroll into view automatically
 **Fix:** Added `useRef` scroll anchor to `App.jsx`: `const messagesEndRef = useRef(null)` + `useEffect` watching `[messages, isProcessing]` + `<div ref={messagesEndRef} />` at bottom of message list.
-**File:** `/media/Storage/server-flies/apps/axis-2.0/frontend/src/App.jsx`
+**File:** `/media/Storage/server-flies/apps/dimase-2.0/frontend/src/App.jsx`
 
 ---
 
 ## APK Installation Failure (V1-only Signature)
-**Symptom:** Axis 2.0 APK downloaded but Android refused to install ("App not installed")
+**Symptom:** DiMase 2.0 APK downloaded but Android refused to install ("App not installed")
 **Root cause:** `jarsigner` only produces V1 (JAR) signatures. Modern Android requires V2 or V3 APK signatures.
 **Fix:** Re-signed with `uber-apk-signer.jar` which adds V2+V3 signatures automatically.
-**Command:** `java -jar /tmp/uber-apk-signer.jar -a axis-2.0-signed.apk --allowResign --ks /home/dimase/dimaseinc-release.jks --ksAlias dimaseinc-release --ksPass DiMaseInc2026 --ksKeyPass DiMaseInc2026 --skipZipAlign`
-**Also required:** Users must uninstall old Axis AI first if certificate changed (Android blocks signature downgrades).
+**Command:** `java -jar /tmp/uber-apk-signer.jar -a dimase-2.0-signed.apk --allowResign --ks /home/dimase/dimaseinc-release.jks --ksAlias dimaseinc-release --ksPass DiMaseInc2026 --ksKeyPass DiMaseInc2026 --skipZipAlign`
+**Also required:** Users must uninstall old DiMase AI first if certificate changed (Android blocks signature downgrades).
 
 ---
 
@@ -103,7 +103,7 @@
 
 ---
 
-## axis-monitor: Telegram Alerts Not Firing
+## dimase-monitor: Telegram Alerts Not Firing
 **Symptom:** Monitor detected failures but no Telegram messages were sent
 **Root cause:** `config.json` had `telegram.bot_token` (nested) but `monitor.py` looked for top-level `telegram_token` key.
 **Fix:** Added flattened `telegram_token` and `telegram_chat_id` keys directly at top level of `config.json`.
@@ -186,13 +186,13 @@
 
 ---
 
-## Axis AI: D-Trading Post Integration
-**What:** Axis can now query live D-Trading Post listings and stats
+## DiMase AI: D-Trading Post Integration
+**What:** DiMase can now query live D-Trading Post listings and stats
 **API endpoints added:**
 - `https://dtradingpost.dimaseinc.org/api/public?type=listings` — all active listings as JSON
 - `https://dtradingpost.dimaseinc.org/api/public?type=stats` — site stats (users, listings, revenue)
 - `https://dtradingpost.dimaseinc.org/api/public?type=listings&q=QUERY` — search listings
-**System prompt:** Updated in `/media/Storage/server-flies/axis_nexus/nexus.py` to include D-Trading Post API URLs. Axis uses fetch_url tool to get live data.
+**System prompt:** Updated in `/media/Storage/server-flies/dimase_nexus/nexus.py` to include D-Trading Post API URLs. DiMase uses fetch_url tool to get live data.
 
 ---
 
