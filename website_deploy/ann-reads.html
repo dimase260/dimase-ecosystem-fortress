@@ -1,0 +1,1109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ann's Bibliotheca | DiMase Inc.</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Lora:ital,wght@0,400;0,600;1,400&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --gold:#D4AF37;--gold2:#B8960C;--gold-light:#F0D060;
+  --bg:#08060A;--bg2:#100C14;--bg3:#181420;
+  --card:#1A1520;--card2:#221A2A;
+  --text:#F0E8FF;--muted:#8A7A9A;--border:rgba(180,140,255,0.12);
+  --pink:#E91E8C;--purple:#9B59B6;--rose:#FF6B9D;
+  --radius:14px;--reader-size:1.08rem;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;min-height:100vh;overflow-x:hidden;}
+::-webkit-scrollbar{width:6px;}::-webkit-scrollbar-track{background:var(--bg2);}
+::-webkit-scrollbar-thumb{background:var(--purple);border-radius:3px;opacity:0.5;}
+
+/* ── Login screen ── */
+#login-screen{display:none!important;position:fixed;inset:0;z-index:999;display:flex;align-items:center;justify-content:center;
+  background:radial-gradient(ellipse 80% 80% at 50% 0%,rgba(155,89,182,0.15) 0%,#08060A 60%);}
+.login-card{background:var(--card);border:1px solid rgba(212,175,55,0.2);border-radius:20px;
+  padding:3rem;width:100%;max-width:420px;box-shadow:0 32px 80px rgba(0,0,0,0.7);}
+.login-logo{text-align:center;margin-bottom:2rem;}
+.login-logo .icon{font-size:4rem;margin-bottom:0.5rem;}
+.login-logo h1{font-family:'Playfair Display',serif;font-size:2rem;color:var(--gold);margin-bottom:0.3rem;}
+.login-logo p{color:var(--muted);font-size:0.9rem;}
+.form-group{margin-bottom:1.2rem;}
+.form-group label{display:block;font-size:0.82rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px;}
+.form-group input{width:100%;background:var(--bg2);border:1px solid var(--border);color:var(--text);
+  padding:12px 16px;border-radius:10px;font-size:0.95rem;font-family:'Inter',sans-serif;
+  outline:none;transition:border-color 0.3s;}
+.form-group input:focus{border-color:var(--gold);}
+.form-group input::placeholder{color:var(--muted);}
+.btn-login{width:100%;background:linear-gradient(135deg,var(--gold),var(--gold2));border:none;
+  color:#08060A;padding:13px;border-radius:10px;font-size:1rem;font-weight:700;
+  cursor:pointer;font-family:'Inter',sans-serif;transition:opacity 0.2s;margin-top:0.5rem;}
+.btn-login:hover{opacity:0.88;}
+.btn-login:disabled{opacity:0.5;cursor:not-allowed;}
+.login-err{background:rgba(233,30,140,0.1);border:1px solid rgba(233,30,140,0.3);
+  color:var(--rose);padding:10px 14px;border-radius:8px;font-size:0.85rem;margin-top:1rem;display:none;}
+.login-footer{text-align:center;margin-top:1.5rem;font-size:0.8rem;color:var(--muted);}
+.login-footer a{color:var(--gold);text-decoration:none;}
+
+/* ── Header ── */
+.header{background:linear-gradient(180deg,rgba(8,6,10,0.98),rgba(8,6,10,0.92));
+  border-bottom:1px solid var(--border);padding:0 2rem;
+  display:flex;align-items:center;justify-content:space-between;
+  height:62px;position:sticky;top:0;z-index:100;backdrop-filter:blur(14px);}
+.header-logo{font-family:'Playfair Display',serif;font-size:1.4rem;color:var(--gold);
+  text-decoration:none;display:flex;align-items:center;gap:10px;}
+.header-logo span{color:var(--muted);font-size:0.85rem;font-family:'Inter',sans-serif;font-weight:300;}
+.header-right{display:flex;align-items:center;gap:14px;}
+.header-user{display:flex;align-items:center;gap:8px;font-size:0.85rem;color:var(--muted);}
+.avatar{width:32px;height:32px;border-radius:50%;
+  background:linear-gradient(135deg,var(--pink),var(--purple));
+  display:flex;align-items:center;justify-content:center;font-weight:700;color:#fff;font-size:0.85rem;}
+.btn-logout{background:none;border:1px solid var(--border);color:var(--muted);
+  padding:5px 12px;border-radius:6px;cursor:pointer;font-size:0.78rem;transition:all 0.2s;}
+.btn-logout:hover{border-color:var(--rose);color:var(--rose);}
+
+/* ── Stats bar ── */
+.stats-bar{background:var(--card);border-bottom:1px solid var(--border);
+  padding:8px 2rem;display:flex;gap:2rem;font-size:0.8rem;color:var(--muted);overflow-x:auto;white-space:nowrap;}
+.stats-bar b{color:var(--gold);}
+
+/* ── Hero ── */
+.hero{background:linear-gradient(160deg,#08060A 0%,#14081A 50%,#08060A 100%);
+  padding:56px 2rem 36px;text-align:center;position:relative;overflow:hidden;}
+.hero::before{content:'';position:absolute;inset:0;
+  background:radial-gradient(ellipse 70% 50% at 50% 100%,rgba(212,175,55,0.07) 0%,transparent 70%);pointer-events:none;}
+.hero h1{font-family:'Playfair Display',serif;font-size:clamp(2rem,5vw,3.2rem);font-weight:700;
+  background:linear-gradient(135deg,var(--gold-light),var(--gold),var(--gold2));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:0.4rem;}
+.hero p{color:var(--muted);font-size:0.95rem;font-style:italic;}
+.search-wrap{max-width:600px;margin:24px auto 0;position:relative;}
+.search-wrap input{width:100%;background:var(--card);border:1px solid var(--border);
+  color:var(--text);padding:14px 54px 14px 20px;border-radius:30px;font-size:1rem;
+  font-family:'Inter',sans-serif;outline:none;transition:border-color 0.3s;}
+.search-wrap input:focus{border-color:var(--gold);}
+.search-wrap input::placeholder{color:var(--muted);}
+.search-wrap button{position:absolute;right:6px;top:50%;transform:translateY(-50%);
+  background:var(--gold);border:none;width:40px;height:40px;border-radius:50%;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;transition:background 0.2s;}
+.search-wrap button:hover{background:var(--gold-light);}
+.search-wrap button svg{width:18px;height:18px;color:#08060A;}
+
+/* ── Sections ── */
+.section{padding:46px 2rem;max-width:1380px;margin:0 auto;}
+.sec-head{font-family:'Playfair Display',serif;font-size:1.7rem;color:var(--gold);
+  margin-bottom:0.25rem;display:flex;align-items:center;gap:10px;}
+.sec-head::after{content:'';flex:1;height:1px;background:var(--border);}
+.sec-sub{color:var(--muted);font-size:0.88rem;margin-bottom:1.4rem;}
+
+/* ── Category pills ── */
+.cats{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:1.8rem;}
+.cat{background:var(--card);border:1px solid var(--border);color:var(--muted);
+  padding:6px 16px;border-radius:20px;font-size:0.8rem;cursor:pointer;transition:all 0.2s;}
+.cat:hover,.cat.on{background:var(--gold);border-color:var(--gold);color:#08060A;font-weight:700;}
+
+/* ── Hero novel card ── */
+.hero-novel{background:linear-gradient(135deg,#140818,#1E1028);
+  border:1px solid rgba(233,30,140,0.25);border-radius:18px;padding:2rem;
+  display:flex;gap:2rem;align-items:center;margin-bottom:2rem;
+  box-shadow:0 8px 32px rgba(233,30,140,0.08);cursor:pointer;transition:all 0.3s;}
+.hero-novel:hover{border-color:rgba(233,30,140,0.55);transform:translateY(-3px);
+  box-shadow:0 20px 50px rgba(233,30,140,0.14);}
+.hn-cover{flex:0 0 100px;height:150px;border-radius:10px;
+  background:linear-gradient(135deg,#3A0025,#7A0E55,#E91E8C);
+  display:flex;align-items:center;justify-content:center;font-size:3rem;
+  box-shadow:0 8px 24px rgba(0,0,0,0.5);}
+.hn-info{flex:1;}
+.hn-badge{display:inline-block;background:var(--pink);color:#fff;
+  font-size:0.68rem;font-weight:700;padding:3px 10px;border-radius:4px;
+  letter-spacing:1px;text-transform:uppercase;margin-bottom:10px;}
+.hn-title{font-family:'Playfair Display',serif;font-size:1.6rem;color:var(--text);margin-bottom:6px;line-height:1.2;}
+.hn-author{color:var(--muted);font-size:0.88rem;margin-bottom:12px;}
+.hn-desc{color:#C0B0D8;font-size:0.87rem;line-height:1.65;margin-bottom:16px;
+  display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;}
+.btn-r{border:none;padding:10px 22px;border-radius:8px;cursor:pointer;font-size:0.88rem;font-weight:700;transition:opacity 0.2s;}
+.btn-r:hover{opacity:0.85;}
+.btn-pink{background:linear-gradient(135deg,var(--pink),var(--purple));color:#fff;}
+.btn-gold{background:linear-gradient(135deg,var(--gold),var(--gold2));color:#08060A;}
+
+/* ── Short novel grid ── */
+.fn-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:1rem;margin-bottom:2rem;}
+.fn-card{background:var(--card);border:1px solid var(--border);border-radius:12px;
+  padding:1rem 1.2rem;cursor:pointer;transition:all 0.3s;display:flex;gap:1rem;align-items:center;}
+.fn-card:hover{border-color:var(--gold);transform:translateX(4px);}
+.fn-icon{width:52px;height:52px;border-radius:8px;display:flex;align-items:center;
+  justify-content:center;font-size:1.7rem;flex-shrink:0;}
+.fn-t{font-family:'Playfair Display',serif;font-size:0.97rem;color:var(--text);margin-bottom:2px;}
+.fn-a{font-size:0.76rem;color:var(--muted);}
+.fn-free{font-size:0.7rem;color:#10B981;font-weight:700;margin-top:3px;}
+
+/* ── Book grid ── */
+.book-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(148px,1fr));gap:1.4rem;}
+.book-card{background:var(--card);border:1px solid var(--border);border-radius:10px;
+  overflow:hidden;cursor:pointer;transition:all 0.3s;position:relative;}
+.book-card:hover{transform:translateY(-6px);border-color:var(--gold);
+  box-shadow:0 16px 40px rgba(0,0,0,0.55),0 0 20px rgba(212,175,55,0.1);}
+.book-cover{width:100%;aspect-ratio:2/3;object-fit:cover;display:block;background:var(--card2);}
+.bc-ph{width:100%;aspect-ratio:2/3;display:flex;align-items:center;justify-content:center;
+  background:linear-gradient(135deg,var(--card2),#1E1430);font-size:2.5rem;}
+.book-info{padding:9px 10px 11px;}
+.book-title{font-size:0.78rem;font-weight:600;color:var(--text);line-height:1.3;
+  display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
+.book-auth{font-size:0.7rem;color:var(--muted);margin-top:2px;}
+.badge{position:absolute;top:7px;left:7px;font-size:0.62rem;font-weight:700;
+  padding:2px 6px;border-radius:3px;text-transform:uppercase;}
+.badge-free{background:#059669;color:#fff;}
+.badge-feat{background:var(--pink);color:#fff;}
+
+/* ── Pagination ── */
+.pager{display:flex;gap:8px;justify-content:center;margin-top:2rem;flex-wrap:wrap;}
+.pg-btn{background:var(--card);border:1px solid var(--border);color:var(--text);
+  padding:7px 15px;border-radius:6px;cursor:pointer;font-size:0.82rem;transition:all 0.2s;}
+.pg-btn:hover,.pg-btn.on{background:var(--gold);border-color:var(--gold);color:#08060A;font-weight:700;}
+
+/* ── ACPL Library Section ── */
+.lib-section{background:linear-gradient(135deg,rgba(10,6,20,0.95),rgba(20,10,35,0.95));border:1px solid rgba(212,175,55,0.25);border-radius:16px;padding:2rem;margin-bottom:2rem;}
+.lib-header{display:flex;align-items:center;gap:1rem;margin-bottom:1.5rem;flex-wrap:wrap;}
+.lib-badge{background:linear-gradient(135deg,#1a0a2e,#2d1a4e);border:1px solid rgba(212,175,55,0.4);border-radius:10px;padding:8px 16px;display:flex;align-items:center;gap:8px;}
+.lib-badge-icon{font-size:1.8rem;}
+.lib-badge-text h3{font-family:'Playfair Display',serif;color:var(--gold);font-size:1.1rem;margin:0;}
+.lib-badge-text p{color:var(--muted);font-size:0.78rem;margin:0;}
+.lib-notice{background:rgba(212,175,55,0.08);border:1px solid rgba(212,175,55,0.2);border-radius:8px;padding:10px 14px;font-size:0.82rem;color:var(--muted);margin-bottom:1.5rem;display:flex;align-items:center;gap:8px;}
+.lib-search-row{display:flex;gap:10px;margin-bottom:1.5rem;}
+.lib-search-row input{flex:1;background:rgba(255,255,255,0.06);border:1px solid rgba(212,175,55,0.3);color:var(--text);padding:10px 16px;border-radius:8px;font-size:0.9rem;font-family:inherit;}
+.lib-search-row input:focus{outline:none;border-color:var(--gold);}
+.lib-search-row button{background:linear-gradient(135deg,var(--gold),var(--gold2));border:none;color:#08060A;padding:10px 20px;border-radius:8px;font-weight:700;cursor:pointer;font-size:0.88rem;white-space:nowrap;}
+.lib-quick{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:1.5rem;}
+.lib-quick-btn{background:rgba(255,255,255,0.05);border:1px solid rgba(212,175,55,0.2);color:var(--text);padding:7px 14px;border-radius:20px;cursor:pointer;font-size:0.82rem;transition:all 0.2s;text-decoration:none;display:inline-block;}
+.lib-quick-btn:hover{background:rgba(212,175,55,0.15);border-color:var(--gold);color:var(--gold);}
+.lib-quick-btn.hot{border-color:rgba(212,175,55,0.5);color:var(--gold);}
+.lib-genre-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px;margin-bottom:1.5rem;}
+.lib-genre-tile{background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:10px;padding:14px 10px;text-align:center;cursor:pointer;transition:all 0.2s;text-decoration:none;display:block;}
+.lib-genre-tile:hover{border-color:var(--gold);background:rgba(212,175,55,0.08);transform:translateY(-2px);}
+.lib-genre-tile .gi{font-size:1.6rem;display:block;margin-bottom:4px;}
+.lib-genre-tile .gt{font-size:0.78rem;color:var(--text);font-weight:600;}
+.lib-genre-tile .ga{font-size:0.7rem;color:var(--muted);margin-top:2px;}
+.lib-ann-picks{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px;}
+.lib-pick{background:linear-gradient(135deg,rgba(212,175,55,0.08),rgba(139,92,246,0.05));border:1px solid rgba(212,175,55,0.2);border-radius:10px;padding:12px 14px;cursor:pointer;transition:all 0.2s;text-decoration:none;display:block;}
+.lib-pick:hover{border-color:var(--gold);background:rgba(212,175,55,0.12);}
+.lib-pick .lp-icon{font-size:1.4rem;margin-bottom:6px;}
+.lib-pick .lp-title{font-size:0.85rem;color:var(--gold);font-weight:600;margin-bottom:2px;}
+.lib-pick .lp-sub{font-size:0.75rem;color:var(--muted);}
+
+/* ── Reader overlay ── */
+.reader{display:none;position:fixed;inset:0;z-index:200;background:rgba(4,3,6,0.98);flex-direction:column;}
+.reader.open{display:flex;}
+.reader-hdr{background:var(--bg2);border-bottom:1px solid var(--border);
+  padding:12px 1.5rem;display:flex;align-items:center;gap:1rem;flex-shrink:0;}
+.rdr-back{background:none;border:1px solid var(--border);color:var(--text);
+  padding:6px 14px;border-radius:6px;cursor:pointer;font-size:0.82rem;transition:border-color 0.2s;}
+.rdr-back:hover{border-color:var(--gold);}
+.rdr-title{font-family:'Playfair Display',serif;font-size:1.05rem;color:var(--gold);flex:1;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.rdr-btns{display:flex;gap:6px;}
+.rdr-btn{background:var(--card);border:1px solid var(--border);color:var(--text);
+  width:30px;height:30px;border-radius:6px;cursor:pointer;font-size:0.8rem;transition:all 0.2s;}
+.rdr-btn:hover{border-color:var(--gold);color:var(--gold);}
+.rdr-btn.active{background:var(--gold);color:#000;border-color:var(--gold);}
+.reader-body{flex:1;overflow-y:auto;padding:3rem 1.5rem;}
+.rdr-content{max-width:680px;margin:0 auto;}
+.rdr-content h2{font-family:'Playfair Display',serif;font-size:1.4rem;color:var(--gold);
+  margin-bottom:0.5rem;text-align:center;}
+.rdr-content .rdr-by{text-align:center;color:var(--muted);font-size:0.88rem;margin-bottom:2rem;}
+.rdr-text{font-family:'Lora',serif;font-size:var(--reader-size);line-height:1.95;
+  color:#DDD0F0;white-space:pre-wrap;word-break:break-word;}
+
+.ext-card{text-align:center;padding:3rem 1.5rem;}
+.ext-card .ei{font-size:5rem;margin-bottom:1.5rem;}
+.ext-card h3{font-family:'Playfair Display',serif;font-size:1.9rem;color:var(--gold);margin-bottom:0.8rem;}
+.ext-card p{color:var(--muted);max-width:520px;margin:0 auto 1.8rem;line-height:1.7;font-size:0.92rem;}
+.ext-links{display:flex;flex-wrap:wrap;gap:12px;justify-content:center;}
+.ext-a{background:var(--card);border:1px solid var(--border);color:var(--text);
+  padding:11px 22px;border-radius:8px;text-decoration:none;font-size:0.88rem;
+  transition:all 0.3s;display:inline-flex;align-items:center;gap:6px;}
+.ext-a:hover{border-color:var(--gold);color:var(--gold);}
+.ext-a.pri{background:linear-gradient(135deg,var(--pink),var(--purple));border-color:transparent;color:#fff;}
+.ext-a.pri:hover{opacity:0.85;}
+
+/* ── Chapters Sidebar ── */
+.ch-side{position:fixed;top:60px;left:-300px;bottom:0;width:300px;background:var(--card);border-right:1px solid var(--border);z-index:150;transition:left 0.3s;display:flex;flex-direction:column;box-shadow:20px 0 50px rgba(0,0,0,0.5);}
+.ch-side.open{left:0;}
+.ch-head{padding:1.5rem;border-bottom:1px solid var(--border);color:var(--gold);font-weight:700;font-size:0.9rem;text-transform:uppercase;letter-spacing:1px;}
+.ch-list{flex:1;overflow-y:auto;padding:1rem 0;}
+.ch-item{padding:12px 1.5rem;font-size:0.88rem;color:var(--text);cursor:pointer;transition:all 0.2s;border-left:3px solid transparent;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.ch-item:hover{background:var(--bg2);color:var(--gold);border-left-color:var(--gold);}
+.ch-item.on{background:var(--bg3);color:var(--gold);font-weight:700;border-left-color:var(--gold);}
+
+/* ── Loading ── */
+.spin{display:inline-block;width:32px;height:32px;border:3px solid var(--border);
+  border-top-color:var(--gold);border-radius:50%;animation:sp 0.8s linear infinite;}
+@keyframes sp{to{transform:rotate(360deg);}}
+.empty{text-align:center;padding:4rem;color:var(--muted);}
+.empty .ei{font-size:3rem;margin-bottom:1rem;}
+
+/* ── Responsive ── */
+@media(max-width:768px){
+  .hero-novel{flex-direction:column;text-align:center;}
+  .hn-cover{width:80px;height:120px;}
+  .section{padding:28px 1rem;}
+  .book-grid{grid-template-columns:repeat(auto-fill,minmax(120px,1fr));}
+  .fn-grid{grid-template-columns:1fr;}
+}
+</style>
+</head>
+<body>
+
+<!-- ─── Login Screen ─── -->
+<div id="login-screen">
+  <div class="login-card">
+    <div class="login-logo">
+      <div class="icon">📚</div>
+      <h1>Ann's Bibliotheca</h1>
+      <p>Your personal reading sanctuary</p>
+    </div>
+    <div class="login-err" id="login-err"></div>
+    <!-- Login Form -->
+    <div id="login-form">
+      <div class="form-group">
+        <label>Email or Username</label>
+        <input type="text" id="login-email" placeholder="Email or username" autocomplete="username">
+      </div>
+      <div class="form-group">
+        <label>Password</label>
+        <input type="password" id="login-pw" placeholder="Password" autocomplete="current-password">
+      </div>
+      <button class="btn-login" id="login-btn" onclick="doLogin()">Sign In</button>
+      <div class="login-footer" style="margin-top:1rem;">
+        <span style="color:var(--muted)">New here? </span><a href="#" onclick="toggleForm('register');return false;">Create Account</a>
+        &nbsp;&middot;&nbsp; <a href="/">&#8592; Back</a>
+      </div>
+    </div>
+    <!-- Register Form -->
+    <div id="register-form" style="display:none">
+      <div class="form-group">
+        <label>Your Name</label>
+        <input type="text" id="reg-name" placeholder="First and last name" autocomplete="name">
+      </div>
+      <div class="form-group">
+        <label>Email Address</label>
+        <input type="email" id="reg-email" placeholder="your@email.com" autocomplete="email">
+      </div>
+      <div class="form-group">
+        <label>Password</label>
+        <input type="password" id="reg-pw" placeholder="Min 6 characters" autocomplete="new-password">
+      </div>
+      <div class="form-group">
+        <label>Confirm Password</label>
+        <input type="password" id="reg-pw2" placeholder="Repeat password" autocomplete="new-password">
+      </div>
+      <button class="btn-login" id="reg-btn" onclick="doRegister()">Create Account</button>
+      <div class="login-footer" style="margin-top:1rem;">
+        <span style="color:var(--muted)">Have an account? </span><a href="#" onclick="toggleForm('login');return false;">Sign In</a>
+        &nbsp;&middot;&nbsp; <a href="/">&#8592; Back</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ─── Main App ─── -->
+<div id="app">
+
+<header class="header">
+  <a href="/" class="header-logo">📚 <span>Ann's Bibliotheca / DiMase Inc.</span></a>
+  <div class="header-right">
+    <div class="header-user"><div class="avatar">A</div><span id="user-name">Ann</span></div>
+    <button class="btn-logout" onclick="doLogout()">Sign Out</button>
+  </div>
+</header>
+
+<div class="stats-bar">
+  <div>📚 Library: <b>70,000+</b> books</div>
+  <div>💕 Romance: <b>12,000+</b> titles</div>
+  <div>👶 Children's: <b>8,000+</b> titles</div>
+  <div>🔞 Adult Fiction: <b>Included</b></div>
+  <div>🌐 Language: <b>English only</b></div>
+  <div>✅ All Free</div>
+  <div id="res-stat" style="display:none">Results: <b id="res-num">0</b></div>
+</div>
+
+<section class="hero">
+  <h1>📚 Ann's Bibliotheca</h1>
+  <p>Your personal collection — romance, shifter, adult fiction, classics, children's, and everything in between</p>
+  <div class="search-wrap">
+    <input type="text" id="q" placeholder="Search 70,000+ books..." autocomplete="off">
+    <button onclick="doSearch()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+    </button>
+  </div>
+</section>
+
+<main>
+
+  <!-- Featured section -->
+  <div class="section" id="sec-featured">
+    <div class="sec-head">⭐ Featured For Ann</div>
+    <div class="sec-sub">Hand-picked novels — shifter romance, dark romance, and more</div>
+
+    <div class="hero-novel" onclick="openDirect('https://www.wattpad.com/story/17539298-rejected-by-the-alpha','Rejected by the Alpha')">
+      <div class="hn-cover">🐺</div>
+      <div class="hn-info">
+        <span class="hn-badge">⭐ Ann's Pick</span>
+        <div class="hn-title">Rejected by the Alpha</div>
+        <div class="hn-author">by Sky_Sky8 · Paranormal Shifter Romance · Completed</div>
+        <div class="hn-desc">
+          She was rejected by the one person fated to love her — her own Alpha. Cast aside and broken, Eden Rose must find the strength to rise when a rival pack's dangerous Alpha claims her as his. A gripping paranormal romance with twists, passion, and a love worth fighting for. One of Wattpad's most-read shifter stories — completely free.
+        </div>
+        <button class="btn-r btn-pink">📖 Read Free on Wattpad — Completed</button>
+      </div>
+    </div>
+
+    <div class="fn-grid">
+      <div class="fn-card" onclick="openExt('claimed-alpha')">
+        <div class="fn-icon" style="background:linear-gradient(135deg,#18080E,#3A0020);">🐺</div>
+        <div><div class="fn-t">Claimed by the Alpha</div><div class="fn-a">Shifter Romance</div><div class="fn-free">Free to Read</div></div>
+      </div>
+      <div class="fn-card" onclick="openExt('lycan-king')">
+        <div class="fn-icon" style="background:linear-gradient(135deg,#14100A,#3A2800);">👑</div>
+        <div><div class="fn-t">The Lycan King's Mate</div><div class="fn-a">Paranormal Romance</div><div class="fn-free">Free to Read</div></div>
+      </div>
+      <div class="fn-card" onclick="openExt('rejected-mate')">
+        <div class="fn-icon" style="background:linear-gradient(135deg,#180808,#400010);">💔</div>
+        <div><div class="fn-t">Rejected by the Alpha</div><div class="fn-a">Shifter Romance</div><div class="fn-free">Free to Read</div></div>
+      </div>
+      <div class="fn-card" onclick="openExt('mafia-king')">
+        <div class="fn-icon" style="background:linear-gradient(135deg,#080808,#181818);">🔫</div>
+        <div><div class="fn-t">The Mafia King's Obsession</div><div class="fn-a">Dark Romance</div><div class="fn-free">Free to Read</div></div>
+      </div>
+      <div class="fn-card" onclick="openExt('billionaire-wife')">
+        <div class="fn-icon" style="background:linear-gradient(135deg,#080E1A,#10204A);">💼</div>
+        <div><div class="fn-t">The Billionaire's Secret Wife</div><div class="fn-a">Contemporary Romance</div><div class="fn-free">Free to Read</div></div>
+      </div>
+      <div class="fn-card" onclick="openExt('vampire-lord')">
+        <div class="fn-icon" style="background:linear-gradient(135deg,#180808,#450010);">🧛</div>
+        <div><div class="fn-t">The Vampire Lord's Bride</div><div class="fn-a">Paranormal Romance</div><div class="fn-free">Free to Read</div></div>
+      </div>
+      <div class="fn-card" onclick="openExt('midnight-prince')">
+        <div class="fn-icon" style="background:linear-gradient(135deg,#08080E,#18104A);">🌙</div>
+        <div><div class="fn-t">Midnight Prince</div><div class="fn-a">Dark Romance</div><div class="fn-free">Free to Read</div></div>
+      </div>
+      <div class="fn-card" onclick="openExt('ceo-contract')">
+        <div class="fn-icon" style="background:linear-gradient(135deg,#080E10,#103030);">🏢</div>
+        <div><div class="fn-t">CEO's Contract Marriage</div><div class="fn-a">Contemporary Romance</div><div class="fn-free">Free to Read</div></div>
+      </div>
+      <div class="fn-card" onclick="openExt('rejected-you')">
+        <div class="fn-icon" style="background:linear-gradient(135deg,#18080E,#3A0020);">🐺</div>
+        <div><div class="fn-t">Yeah, I Rejected You</div><div class="fn-a">Shifter Romance</div><div class="fn-free">Free to Read</div></div>
+      </div>
+      <div class="fn-card" onclick="openExt('skin-bloodlines')">
+        <div class="fn-icon" style="background:linear-gradient(135deg,#180808,#400010);">🩸</div>
+        <div><div class="fn-t">SKIN (Bloodlines)</div><div class="fn-a">Paranormal Romance</div><div class="fn-free">Free to Read</div></div>
+      </div>
+      <div class="fn-card" onclick="openExt('alpha-missing-mate')">
+        <div class="fn-icon" style="background:linear-gradient(135deg,#14100A,#3A2800);">🔍</div>
+        <div><div class="fn-t">The Alpha's Missing Mate</div><div class="fn-a">Shifter Romance</div><div class="fn-free">Free to Read</div></div>
+      </div>
+      <div class="fn-card" onclick="openExt('hades-vengeance')">
+        <div class="fn-icon" style="background:linear-gradient(135deg,#180808,#450010);">🔥</div>
+        <div><div class="fn-t">Hades: Vengeance</div><div class="fn-a">Dark Romance</div><div class="fn-free">Free to Read</div></div>
+      </div>
+    </div>
+
+    <h2 style="color:var(--gold);margin-top:3rem;margin-bottom:1.5rem;font-size:1.1rem;text-transform:uppercase;letter-spacing:2px">🛠️ Automotive & Repair Manuals</h2>
+    
+    <div style="color:var(--muted);font-size:0.8rem;margin-bottom:1rem;text-transform:uppercase;letter-spacing:1px">Quick Access: My Vehicles</div>
+    <div class="fn-grid" style="margin-bottom:2rem">
+      <div class="fn-card" onclick="openExt('jeep-liberty')">
+        <div class="fn-icon" style="background:linear-gradient(135deg,#201008,#4A2000);">🚙</div>
+        <div><div class="fn-t">2007 Jeep Liberty</div><div class="fn-a">Owner's Manual & FSM</div><div class="fn-free">Service Suite</div></div>
+      </div>
+      <div class="fn-card" onclick="openExt('jeep-parts')">
+        <div class="fn-icon" style="background:linear-gradient(135deg,#201008,#4A2000);">🔩</div>
+        <div><div class="fn-t">2007 Jeep Liberty</div><div class="fn-a">Mopar Parts Manual</div><div class="fn-free">Official PDF</div></div>
+      </div>
+      <div class="fn-card" onclick="openExt('dodge-journey')">
+        <div class="fn-icon" style="background:linear-gradient(135deg,#081020,#001A4A);">🚘</div>
+        <div><div class="fn-t">2012 Dodge Journey</div><div class="fn-a">FSM & Haynes/Chilton</div><div class="fn-free">Full Service Manual</div></div>
+      </div>
+    </div>
+
+    <div style="color:var(--muted);font-size:0.8rem;margin-bottom:1rem;text-transform:uppercase;letter-spacing:1px">Master Collections</div>
+    <div class="fn-grid">
+      <div class="fn-card" onclick="openExt('chilton-master')">
+        <div class="fn-icon" style="background:linear-gradient(135deg,#101010,#303030);">🚗</div>
+        <div><div class="fn-t">Chilton's Master Manuals</div><div class="fn-a">All Makes & Models</div><div class="fn-free">Archive.org Library</div></div>
+      </div>
+      <div class="fn-card" onclick="openExt('haynes-collection')">
+        <div class="fn-icon" style="background:linear-gradient(135deg,#101010,#303030);">🔧</div>
+        <div><div class="fn-t">Haynes Repair Collection</div><div class="fn-a">Step-by-Step Repair</div><div class="fn-free">Archive.org Library</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Library -->
+  <div class="section" id="sec-lib">
+    <div class="sec-head">📖 Full Library</div>
+    <div class="sec-sub">70,000+ English books — all genres, all ages, all free from Project Gutenberg</div>
+
+    <div class="cats">
+      <div class="cat on" onclick="setCat(this,'')">All Books</div>
+      <div class="cat" onclick="setCat(this,'love')">💕 Romance & Love</div>
+      <div class="cat" onclick="setCat(this,'erotic')">🔞 Adult Fiction</div>
+      <div class="cat" onclick="setCat(this,'mystery')">🔍 Mystery</div>
+      <div class="cat" onclick="setCat(this,'adventure')">⚔️ Adventure</div>
+      <div class="cat" onclick="setCat(this,'fantasy')">🧙 Fantasy</div>
+      <div class="cat" onclick="setCat(this,'horror')">👻 Horror & Gothic</div>
+      <div class="cat" onclick="setCat(this,'science fiction')">🚀 Sci-Fi</div>
+      <div class="cat" onclick="setCat(this,'historical')">🏰 Historical</div>
+      <div class="cat" onclick="setCat(this,'drama')">🎭 Drama</div>
+      <div class="cat" onclick="setCat(this,'juvenile')">👶 Children's</div>
+      <div class="cat" onclick="setCat(this,'young')">🧒 Young Adult</div>
+      <div class="cat" onclick="setCat(this,'poetry')">📜 Poetry</div>
+      <div class="cat" onclick="setCat(this,'humor')">😄 Humor</div>
+      <div class="cat" onclick="setCat(this,'western')">🤠 Western</div>
+      <div class="cat" onclick="setCat(this,'biography')">🧭 Biography</div>
+      <div class="cat" onclick="setCat(this,'religion')">✝️ Religion</div>
+      <div class="cat" onclick="setCat(this,'philosophy')">🧠 Philosophy</div>
+      <div class="cat" style="background:linear-gradient(135deg,rgba(212,175,55,0.2),rgba(139,92,246,0.1));border-color:rgba(212,175,55,0.4);" onclick="document.getElementById('sec-library').scrollIntoView({behavior:'smooth'})">🏛 ACPL Library</div>
+      <div class="cat" onclick="setCat(this,'science')">🔬 Science</div>
+      <div class="cat" onclick="setCat(this,'cookery')">🍳 Cooking</div>
+    </div>
+
+    <div id="book-grid" class="book-grid">
+      <div class="empty"><div class="spin"></div><p style="margin-top:1rem">Loading library...</p></div>
+    </div>
+    <div id="pager" class="pager"></div>
+  </div>
+
+  <!-- ══ ACPL DIGITAL LIBRARY SECTION ══ -->
+  <div class="section lib-section" id="sec-library">
+    <div class="lib-header">
+      <div class="lib-badge">
+        <div class="lib-badge-icon">📚</div>
+        <div class="lib-badge-text">
+          <h3>ACPL Digital Library</h3>
+          <p>Allen County Public Library · OverDrive · Tens of thousands of ebooks</p>
+        </div>
+      </div>
+      <div style="margin-left:auto;display:flex;gap:8px;flex-wrap:wrap;">
+        <a href="https://acpl.overdrive.com" target="_blank" class="lib-quick-btn hot">🏛 Open Full Catalog</a>
+        <a href="https://acpl.overdrive.com/account/loans" target="_blank" class="lib-quick-btn">📋 My Loans</a>
+        <a href="https://acpl.overdrive.com/account/holds" target="_blank" class="lib-quick-btn">⏳ My Holds</a>
+      </div>
+    </div>
+
+    <div class="lib-notice">
+      🔑 Sign in once with your ACPL library card on OverDrive — then borrow and read any book instantly in your browser, no app needed.
+      <a href="https://acpl.overdrive.com/account/ozone/sign-in" target="_blank" style="color:var(--gold);margin-left:6px;white-space:nowrap;">Sign In →</a>
+    </div>
+
+    <!-- Search -->
+    <div class="lib-search-row">
+      <input type="text" id="lib-q" placeholder="Search ACPL OverDrive catalog — any book, author, or series..." onkeydown="if(event.key==='Enter')libSearch()">
+      <button onclick="libSearch()">🔍 Search Library</button>
+    </div>
+
+    <!-- Quick access -->
+    <div class="lib-quick">
+      <a class="lib-quick-btn hot" href="https://acpl.overdrive.com/category/most-popular?formats=ebook" target="_blank">🔥 Most Popular</a>
+      <a class="lib-quick-btn hot" href="https://acpl.overdrive.com/category/new-releases?formats=ebook" target="_blank">✨ New Releases</a>
+      <a class="lib-quick-btn" href="https://acpl.overdrive.com/search?availability=available&formats=ebook" target="_blank">✅ Available Now</a>
+      <a class="lib-quick-btn" href="https://acpl.overdrive.com/category/staff-picks?formats=ebook" target="_blank">⭐ Staff Picks</a>
+      <a class="lib-quick-btn" href="https://acpl.overdrive.com/subjects?formats=ebook" target="_blank">📂 All Subjects</a>
+      <a class="lib-quick-btn" href="https://acpl.overdrive.com/subjects?formats=audiobook" target="_blank">🎧 Audiobooks</a>
+      <a class="lib-quick-btn" href="https://acpl.overdrive.com/subjects?formats=magazine" target="_blank">📰 Magazines</a>
+    </div>
+
+    <!-- Genre grid -->
+    <div style="margin-bottom:1rem;font-size:0.85rem;color:var(--gold2);letter-spacing:1px;font-weight:600;">BROWSE BY GENRE</div>
+    <div class="lib-genre-grid">
+      <a class="lib-genre-tile" href="https://acpl.overdrive.com/subjects/Romance?formats=ebook" target="_blank">
+        <span class="gi">💕</span><div class="gt">Romance</div><div class="ga">All subgenres</div>
+      </a>
+      <a class="lib-genre-tile" href="https://acpl.overdrive.com/search?query=paranormal+romance&formats=ebook" target="_blank">
+        <span class="gi">🐺</span><div class="gt">Paranormal</div><div class="ga">Shifter · Vampire · Fae</div>
+      </a>
+      <a class="lib-genre-tile" href="https://acpl.overdrive.com/search?query=dark+romance&formats=ebook" target="_blank">
+        <span class="gi">🖤</span><div class="gt">Dark Romance</div><div class="ga">Mafia · Forbidden</div>
+      </a>
+      <a class="lib-genre-tile" href="https://acpl.overdrive.com/search?query=billionaire+romance&formats=ebook" target="_blank">
+        <span class="gi">💼</span><div class="gt">Billionaire</div><div class="ga">CEO · Contemporary</div>
+      </a>
+      <a class="lib-genre-tile" href="https://acpl.overdrive.com/subjects/Fantasy?formats=ebook" target="_blank">
+        <span class="gi">🧙</span><div class="gt">Fantasy</div><div class="ga">Epic · Urban · Fae</div>
+      </a>
+      <a class="lib-genre-tile" href="https://acpl.overdrive.com/subjects/Mystery?formats=ebook" target="_blank">
+        <span class="gi">🔍</span><div class="gt">Mystery</div><div class="ga">Thriller · Crime</div>
+      </a>
+      <a class="lib-genre-tile" href="https://acpl.overdrive.com/subjects/Horror?formats=ebook" target="_blank">
+        <span class="gi">👻</span><div class="gt">Horror</div><div class="ga">Supernatural · Gothic</div>
+      </a>
+      <a class="lib-genre-tile" href="https://acpl.overdrive.com/subjects/Science+Fiction?formats=ebook" target="_blank">
+        <span class="gi">🚀</span><div class="gt">Sci-Fi</div><div class="ga">Space · Dystopian</div>
+      </a>
+      <a class="lib-genre-tile" href="https://acpl.overdrive.com/subjects/Historical+Fiction?formats=ebook" target="_blank">
+        <span class="gi">🏰</span><div class="gt">Historical</div><div class="ga">Period · War</div>
+      </a>
+      <a class="lib-genre-tile" href="https://acpl.overdrive.com/subjects/Thriller?formats=ebook" target="_blank">
+        <span class="gi">⚡</span><div class="gt">Thriller</div><div class="ga">Suspense · Action</div>
+      </a>
+      <a class="lib-genre-tile" href="https://acpl.overdrive.com/subjects/Young+Adult?formats=ebook" target="_blank">
+        <span class="gi">🧒</span><div class="gt">Young Adult</div><div class="ga">Teen · Coming of age</div>
+      </a>
+      <a class="lib-genre-tile" href="https://acpl.overdrive.com/subjects/Nonfiction?formats=ebook" target="_blank">
+        <span class="gi">🧠</span><div class="gt">Nonfiction</div><div class="ga">Biography · Self-help</div>
+      </a>
+      <a class="lib-genre-tile" href="https://acpl.overdrive.com/subjects/Graphic+Novels?formats=ebook" target="_blank">
+        <span class="gi">🎨</span><div class="gt">Graphic Novels</div><div class="ga">Comics · Manga</div>
+      </a>
+      <a class="lib-genre-tile" href="https://acpl.overdrive.com/subjects/Juvenile+Fiction?formats=ebook" target="_blank">
+        <span class="gi">👶</span><div class="gt">Children's</div><div class="ga">Picture · Middle grade</div>
+      </a>
+      <a class="lib-genre-tile" href="https://acpl.overdrive.com/subjects/Biography+%26+Memoir?formats=ebook" target="_blank">
+        <span class="gi">📖</span><div class="gt">Biography</div><div class="ga">Memoir · True story</div>
+      </a>
+      <a class="lib-genre-tile" href="https://acpl.overdrive.com/subjects/Cooking+%26+Food?formats=ebook" target="_blank">
+        <span class="gi">🍳</span><div class="gt">Cooking</div><div class="ga">Recipes · Food</div>
+      </a>
+    </div>
+
+    <!-- Ann's pre-searched favorites -->
+    <div style="margin-bottom:1rem;margin-top:0.5rem;font-size:0.85rem;color:var(--gold2);letter-spacing:1px;font-weight:600;">⭐ ANN'S QUICK SEARCHES</div>
+    <div class="lib-ann-picks">
+      <a class="lib-pick" href="https://acpl.overdrive.com/search?query=alpha+shifter&formats=ebook" target="_blank">
+        <div class="lp-icon">🐺</div>
+        <div class="lp-title">Alpha Shifter Romance</div>
+        <div class="lp-sub">Wolf packs · Fated mates · Rejections</div>
+      </a>
+      <a class="lib-pick" href="https://acpl.overdrive.com/search?query=mafia+romance&formats=ebook" target="_blank">
+        <div class="lp-icon">🔫</div>
+        <div class="lp-title">Mafia Dark Romance</div>
+        <div class="lp-sub">Dangerous men · Forbidden love</div>
+      </a>
+      <a class="lib-pick" href="https://acpl.overdrive.com/search?query=vampire+romance&formats=ebook" target="_blank">
+        <div class="lp-icon">🧛</div>
+        <div class="lp-title">Vampire Romance</div>
+        <div class="lp-sub">Blood bonds · Immortal love</div>
+      </a>
+      <a class="lib-pick" href="https://acpl.overdrive.com/search?query=fae+romance&formats=ebook" target="_blank">
+        <div class="lp-icon">🧚</div>
+        <div class="lp-title">Fae Romance</div>
+        <div class="lp-sub">Courts · Magic · Forbidden</div>
+      </a>
+      <a class="lib-pick" href="https://acpl.overdrive.com/search?query=billionaire+ceo+romance&formats=ebook" target="_blank">
+        <div class="lp-icon">💰</div>
+        <div class="lp-title">Billionaire CEO</div>
+        <div class="lp-sub">Contract · Enemies to lovers</div>
+      </a>
+      <a class="lib-pick" href="https://acpl.overdrive.com/search?query=lycan+werewolf&formats=ebook" target="_blank">
+        <div class="lp-icon">🌕</div>
+        <div class="lp-title">Lycan & Werewolf</div>
+        <div class="lp-sub">Lycans · Moon bonds · Packs</div>
+      </a>
+      <a class="lib-pick" href="https://acpl.overdrive.com/search?query=royal+romance+king&formats=ebook" target="_blank">
+        <div class="lp-icon">👑</div>
+        <div class="lp-title">Royal Romance</div>
+        <div class="lp-sub">Kings · Princes · Courts</div>
+      </a>
+      <a class="lib-pick" href="https://acpl.overdrive.com/search?query=dragon+rider+romance&formats=ebook" target="_blank">
+        <div class="lp-icon">🐉</div>
+        <div class="lp-title">Dragon Romance</div>
+        <div class="lp-sub">Dragon riders · Bonds</div>
+      </a>
+    </div>
+  </div>
+
+</main>
+</div><!-- /app -->
+
+<!-- ─── Reader ─── -->
+<div id="reader" class="reader">
+  <div id="ch-side" class="ch-side">
+    <div class="ch-head">Chapters</div>
+    <div id="ch-list" class="ch-list"></div>
+  </div>
+  <div class="reader-hdr">
+    <button class="rdr-back" onclick="closeReader()">← Back</button>
+    <div class="rdr-title" id="rdr-title">Loading...</div>
+    <div class="rdr-btns">
+      <button class="rdr-btn" id="btn-chapters" onclick="toggleChapters()" title="Chapters">📜</button>
+      <button class="rdr-btn" id="btn-speak" onclick="toggleSpeak()" title="Read Aloud">🔊</button>
+      <button class="rdr-btn" onclick="sz(-1)" title="Smaller">A-</button>
+      <button class="rdr-btn" onclick="sz(1)" title="Larger">A+</button>
+    </div>
+  </div>
+  <div class="reader-body" id="rdr-body">
+    <div class="empty"><div class="spin"></div></div>
+  </div>
+</div>
+
+<script>
+const GUTEN = 'https://gutendex.com/books/';
+const ALLOWED = 'gieseann44@gmail.com';
+let token = localStorage.getItem('ann_token') || '';
+let page = 1, topic = '', query = '', rdrSz = 1.08;
+
+// ─── Auth ────────────────────────────────────────────────────
+async function init() {
+  // No login required — open straight to library
+  showApp();
+}
+
+async function doLogin() {
+  const input = document.getElementById('login-email').value.trim();
+  const pw = document.getElementById('login-pw').value;
+  const btn = document.getElementById('login-btn');
+  document.getElementById('login-err').style.display = 'none';
+  if (!input || !pw) { showErr('Enter your username and password.'); return; }
+  btn.disabled = true; btn.textContent = 'Signing in...';
+  try {
+    // Local Ann bypass — accepts: Ann / gieseann44@gmail.com / password 7878
+    const isAnn = (input.toLowerCase() === 'ann' || input.toLowerCase() === 'gieseann44@gmail.com');
+    if (isAnn && pw === '7878') {
+      localStorage.setItem('ann_local', '1');
+      document.getElementById('user-name').textContent = 'Ann';
+      showApp(); return;
+    }
+    const r = await fetch('/auth/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: input, password: pw })
+    });
+    const d = await r.json();
+    if (!r.ok || !d.token) { showErr(d.error || 'Wrong username or password.'); btn.disabled=false; btn.textContent='Sign In'; return; }
+    token = d.token;
+    localStorage.setItem('ann_token', token);
+    const name = (d.user && (d.user.displayName || d.user.email.split('@')[0])) || 'Reader';
+    document.getElementById('user-name').textContent = name;
+    showApp();
+  } catch(e) { showErr('Connection error. Try again.'); btn.disabled=false; btn.textContent='Sign In'; }
+}
+
+async function doRegister() {
+  const email = document.getElementById('reg-email').value.trim();
+  const name = document.getElementById('reg-name').value.trim();
+  const pw = document.getElementById('reg-pw').value;
+  const pw2 = document.getElementById('reg-pw2').value;
+  const btn = document.getElementById('reg-btn');
+  document.getElementById('login-err').style.display = 'none';
+  if (!email || !pw || !name) { showErr('Please fill in all fields.'); return; }
+  if (pw !== pw2) { showErr('Passwords do not match.'); return; }
+  if (pw.length < 6) { showErr('Password must be at least 6 characters.'); return; }
+  btn.disabled = true; btn.textContent = 'Creating...';
+  try {
+    const r = await fetch('/auth/register', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password: pw, displayName: name })
+    });
+    const d = await r.json();
+    if (!r.ok || !d.token) { showErr(d.error || 'Registration failed.'); btn.disabled=false; btn.textContent='Create Account'; return; }
+    token = d.token;
+    localStorage.setItem('ann_token', token);
+    document.getElementById('user-name').textContent = name.split(' ')[0];
+    showApp();
+  } catch(e) { showErr('Connection error. Try again.'); btn.disabled=false; btn.textContent='Create Account'; }
+}
+
+function toggleForm(form) {
+  const isReg = form === 'register';
+  document.getElementById('login-form').style.display = isReg ? 'none' : '';
+  document.getElementById('register-form').style.display = isReg ? '' : 'none';
+  document.getElementById('login-err').style.display = 'none';
+}
+
+function showErr(msg) {
+  const e = document.getElementById('login-err');
+  e.textContent = msg; e.style.display = 'block';
+}
+function showLogin(msg) {
+  document.getElementById('login-screen').style.display = 'flex';
+  document.getElementById('app').style.display = 'none';
+  if (msg) showErr(msg);
+}
+function showApp() {
+  document.getElementById('app').style.display = 'block';
+  loadBooks(1);
+}
+function doLogout() { localStorage.removeItem('ann_token'); localStorage.removeItem('ann_local'); token=''; showLogin(); }
+
+// Enter key on login
+document.getElementById('login-pw').addEventListener('keydown', e => { if(e.key==='Enter') doLogin(); });
+document.getElementById('login-email').addEventListener('keydown', e => { if(e.key==='Enter') document.getElementById('login-pw').focus(); });
+document.addEventListener('keydown', e => {
+  if (e.key === 'Enter' && document.getElementById('register-form') && document.getElementById('register-form').style.display !== 'none') {
+    const rp2 = document.getElementById('reg-pw2');
+    if (document.activeElement === rp2 || document.activeElement === document.getElementById('reg-pw')) doRegister();
+  }
+});
+
+// ─── Books ───────────────────────────────────────────────────
+async function loadBooks(p=1) {
+  page = p;
+  const grid = document.getElementById('book-grid');
+  grid.innerHTML = '<div class="empty"><div class="spin"></div><p style="margin-top:1rem">Loading...</p></div>';
+  const params = new URLSearchParams({ page: p });
+  if (query) params.set('search', query);
+  else if (topic) params.set('topic', topic);
+  try {
+    const r = await fetch('/ann/books?' + params);
+    const data = await r.json();
+    renderBooks(data.results);
+    renderPager(data.count);
+    const rs = document.getElementById('res-stat');
+    if (query || topic) { rs.style.display=''; document.getElementById('res-num').textContent = data.count.toLocaleString(); }
+    else rs.style.display = 'none';
+  } catch(e) {
+    grid.innerHTML = '<div class="empty"><div class="ei">⚠️</div><p>Could not load books. Check connection.</p></div>';
+  }
+}
+
+function renderBooks(books) {
+  const grid = document.getElementById('book-grid');
+  if (!books || !books.length) {
+    grid.innerHTML = '<div class="empty"><div class="ei">📭</div><p>No books found. Try a different search.</p></div>'; return;
+  }
+  grid.innerHTML = books.map(b => {
+    const title = b.title || 'Untitled';
+    const author = b.authors && b.authors[0] ? b.authors[0].name : 'Unknown';
+    const cover = b.formats && (b.formats['image/jpeg'] || b.formats['image/png']);
+    const coverHtml = cover
+      ? `<img class="book-cover" src="${cover}" alt="" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"><div class="bc-ph" style="display:none">📖</div>`
+      : `<div class="bc-ph">📖</div>`;
+    return `<div class="book-card" onclick="openBook(${b.id},'${eJ(title)}','${eJ(author)}')">
+      ${coverHtml}
+      <div class="book-info"><div class="book-title">${eH(title)}</div><div class="book-auth">${eH(author)}</div></div>
+      <span class="badge badge-free">Free</span>
+    </div>`;
+  }).join('');
+}
+
+function renderPager(total) {
+  const pg = document.getElementById('pager');
+  const pages = Math.min(Math.ceil(total/32), 50);
+  if (pages <= 1) { pg.innerHTML=''; return; }
+  const s = Math.max(1, page-3), e = Math.min(pages, page+3);
+  let h = '';
+  if (page>1) h+=`<button class="pg-btn" onclick="loadBooks(${page-1})">← Prev</button>`;
+  if (s>1) h+=`<button class="pg-btn" onclick="loadBooks(1)">1</button><span style="color:var(--muted);padding:8px">…</span>`;
+  for (let i=s;i<=e;i++) h+=`<button class="pg-btn${i===page?' on':''}" onclick="loadBooks(${i})">${i}</button>`;
+  if (e<pages) h+=`<span style="color:var(--muted);padding:8px">…</span><button class="pg-btn" onclick="loadBooks(${pages})">${pages}</button>`;
+  if (page<pages) h+=`<button class="pg-btn" onclick="loadBooks(${page+1})">Next →</button>`;
+  pg.innerHTML = h;
+  document.getElementById('sec-lib').scrollIntoView({behavior:'smooth'});
+}
+
+function libSearch() {
+  const q = document.getElementById('lib-q').value.trim();
+  if (!q) {
+    window.open('https://acpl.overdrive.com/subjects?formats=ebook', '_blank');
+    return;
+  }
+  window.open('https://acpl.overdrive.com/search?query=' + encodeURIComponent(q) + '&formats=ebook', '_blank');
+}
+document.addEventListener('DOMContentLoaded', () => {
+  const lq = document.getElementById('lib-q');
+  if (lq) lq.addEventListener('keydown', e => { if(e.key==='Enter') libSearch(); });
+});
+
+function doSearch() {
+  query = document.getElementById('q').value.trim();
+  topic = '';
+  document.querySelectorAll('.cat').forEach(c=>c.classList.remove('on'));
+  document.querySelector('.cat').classList.add('on');
+  const sf = document.getElementById('sec-feat');
+  if (sf) sf.style.display = query ? 'none' : '';
+  loadBooks(1);
+  document.getElementById('sec-lib').scrollIntoView({behavior:'smooth'});
+}
+document.getElementById('q').addEventListener('keydown', e => { if(e.key==='Enter') doSearch(); });
+
+function setCat(el, t) {
+  topic = t; query = ''; document.getElementById('q').value = '';
+  document.querySelectorAll('.cat').forEach(c=>c.classList.remove('on'));
+  el.classList.add('on');
+  const sf2 = document.getElementById('sec-feat');
+  if (sf2) sf2.style.display = t ? 'none' : '';
+  loadBooks(1);
+}
+
+// ─── Reader (Gutenberg) ──────────────────────────────────────
+let curBookId = null, saveTimer = null;
+
+async function openBook(id, title, author) {
+  curBookId = id;
+  const rdr = document.getElementById('reader');
+  const body = document.getElementById('rdr-body');
+  const btnSpeak = document.getElementById('btn-speak');
+  const btnCh = document.getElementById('btn-chapters');
+  const chList = document.getElementById('ch-list');
+  const chSide = document.getElementById('ch-side');
+
+  document.getElementById('rdr-title').textContent = title;
+  document.documentElement.style.setProperty('--reader-size', rdrSz+'rem');
+  rdr.classList.add('open');
+  if (btnSpeak) btnSpeak.style.display = 'none';
+  if (btnCh) btnCh.style.display = 'none';
+  chSide.classList.remove('open');
+  chList.innerHTML = '';
+  
+  body.innerHTML = '<div class="empty"><div class="spin"></div><p style="margin-top:1rem">Loading book...</p></div>';
+  try {
+    // Add cache-busting v parameter to force fresh backend fetch
+    const tr = await fetch('/ann/read/' + id + '?v=' + Date.now());
+    let text = await tr.text();
+    
+    // Allow shorter books (poems, etc) and check for specific 404 pattern
+    if (text.includes('<title>404 | Project Gutenberg</title>') || (text.length < 500 && text.includes('<!DOCTYPE html>'))) {
+       throw new Error('Book text unavailable');
+    }
+
+    // Identify chapters
+    const chapters = [];
+    const lines = text.split('\n');
+    lines.forEach((line, idx) => {
+      const t = line.trim();
+      if (/^(CHAPTER|Chapter|Letter|PROLOGUE|Prologue|Epilogue|EPILOGUE|I\.|II\.|III\.)/.test(t) && t.length < 60) {
+        chapters.push({ title: t, index: idx });
+      }
+    });
+
+    if (chapters.length > 2) {
+      if (btnCh) btnCh.style.display = 'block';
+      chList.innerHTML = chapters.map((c, i) => `<div class="ch-item" onclick="jumpToChapter(${i}, ${c.index})">${c.title}</div>`).join('');
+    }
+
+    if (btnSpeak && window.speechSynthesis) btnSpeak.style.display = 'block';
+
+    for (const m of ['*** START OF','***START OF']) {
+      const i = text.indexOf(m); if (i!==-1) { text = text.slice(text.indexOf('\n',i)+1); break; }
+    }
+    for (const m of ['*** END OF','***END OF','End of the Project']) {
+      const i = text.indexOf(m); if (i!==-1) { text = text.slice(0,i); break; }
+    }
+    body.innerHTML = `<div class="rdr-content">
+      <h2>${eH(title)}</h2><div class="rdr-by">by ${eH(author)}</div>
+      <div class="rdr-text" id="main-text">${eH(text.trim())}</div></div>`;
+
+    // Load progress
+    const pr = await fetch('/ann/progress?id=' + id);
+    const pd = await pr.json();
+    if (pd.scroll_pos > 0) {
+      setTimeout(() => {
+        const total = body.scrollHeight - body.clientHeight;
+        body.scrollTop = pd.scroll_pos * total;
+      }, 150);
+    }
+
+    // Auto-save listener
+    body.onscroll = () => {
+      clearTimeout(saveTimer);
+      saveTimer = setTimeout(saveProgress, 2000);
+    };
+
+  } catch(e) {
+    if (btnSpeak) btnSpeak.style.display = 'none';
+    // Fallback to Gutenberg page if reader fails
+    body.innerHTML = `<div class="rdr-content ext-card">
+      <div class="ei">📖</div>
+      <h3>${eH(title)}</h3>
+      <p>This title could not be loaded in the internal reader.</p>
+      <div class="ext-links">
+        <a class="ext-a pri" href="https://www.gutenberg.org/ebooks/${id}" target="_blank">Read on Project Gutenberg ↗</a>
+      </div></div>`;
+  }
+}
+
+function saveProgress() {
+  if (!curBookId) return;
+  const body = document.getElementById('rdr-body');
+  const total = body.scrollHeight - body.clientHeight;
+  if (total <= 0) return;
+  const pos = body.scrollTop / total;
+  fetch('/ann/progress', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ id: curBookId, pos })
+  }).catch(() => {});
+}
+
+function toggleChapters() {
+  document.getElementById('ch-side').classList.toggle('open');
+}
+
+function jumpToChapter(chIdx, lineIdx) {
+  const body = document.getElementById('rdr-body');
+  const textEl = document.getElementById('main-text');
+  const lines = textEl.innerText.split('\n');
+  const ratio = lineIdx / lines.length;
+  body.scrollTop = ratio * body.scrollHeight;
+  document.querySelectorAll('.ch-item').forEach((el, i) => el.classList.toggle('on', i === chIdx));
+  if (window.innerWidth < 768) toggleChapters();
+}
+
+// ─── External novels ─────────────────────────────────────────
+const EXT = {
+  'alphas-contract': { title:"The Alpha's Contract", icon:'🐺',
+    desc:"A fierce woman bound by ancient contract to the most powerful Alpha. Passion, power, and secrets collide.",
+    direct:'https://www.wattpad.com/story/17539298-rejected-by-the-alpha',
+    links:[{l:'📖 Read Free on Wattpad (Completed)',u:'https://www.wattpad.com/story/17539298-rejected-by-the-alpha',p:true},
+           {l:'The Alpha\'s Contract Mate',u:'https://www.wattpad.com/story/386151687'},
+           {l:'Search Wattpad',u:'https://www.wattpad.com/search/the+alpha+contract'}]},
+  'claimed-alpha': { title:"Claimed by the Alpha", icon:'🐺',
+    desc:"She never wanted a mate. He never expected to find his. A powerful shifter romance.",
+    links:[{l:'📖 Read Free on Royal Road',u:'https://www.royalroad.com/fiction/158311/claimed-by-the-alpha-heirs/chapter/3173541/confusion',p:true},
+           {l:'Read on AnyStories',u:'https://anystories.com/search?q=claimed+alpha'}]},
+  'lycan-king': { title:"The Lycan King's Mate", icon:'👑',
+    desc:"The most feared ruler in all the realms has found his fated mate — a human woman with no idea of the world she's entering.",
+    links:[{l:'📖 Read Free on Wattpad',u:'https://www.wattpad.com/story/270236143-the-lycan-king-s-mate',p:true},
+           {l:'Read on Dreame',u:'https://www.dreame.com/search?keyword=lycan+king+mate'}]},
+  'rejected-mate': { title:"Rejected by the Alpha", icon:'💔',
+    desc:"She was rejected by the one person meant to love her unconditionally. But rejection was only the beginning.",
+    links:[{l:'📖 Read Free on Wattpad (Completed)',u:'https://www.wattpad.com/story/17539298-rejected-by-the-alpha',p:true}]},
+  'mafia-king': { title:"The Mafia King's Obsession", icon:'🔫',
+    desc:"He built an empire on blood. She was the one thing he couldn't control — and he wanted her anyway.",
+    links:[{l:'📖 Read Free on Wattpad',u:'https://www.wattpad.com/story/217705658-the-mafia-king%27s-obsession',p:true}]},
+  'billionaire-wife': { title:"The Billionaire's Secret Wife", icon:'💼',
+    desc:"A contract marriage. No feelings allowed. But the CEO never planned to fall in love for real.",
+    links:[{l:'📖 Read Free on Wattpad (Completed, 1M reads)',u:'https://www.wattpad.com/story/186635532-the-billionaire-s-secret-wife-completed',p:true}]},
+  'vampire-lord': { title:"The Vampire Lord's Bride", icon:'🧛',
+    desc:"An ancient lord. A modern woman. A contract binding them for eternity.",
+    links:[{l:'📖 Read Free on WebNovel',u:'https://m.webnovel.com/book/forced-bride-of-the-vampire-lord_22244643905115305',p:true},
+           {l:'Search Wattpad',u:'https://www.wattpad.com/search/vampire+lord+bride'}]},
+  'midnight-prince': { title:"Midnight Prince", icon:'🌙',
+    desc:"He rules the night. She was never supposed to cross his path.",
+    links:[{l:'📖 Read Free on Royal Road (Chapter 1)',u:'https://www.royalroad.com/fiction/155230/the-midnight-prince/chapter/3105171/chapter-1',p:true}]},
+  'ceo-contract': { title:"CEO's Contract Marriage", icon:'🏢',
+    desc:"Six months, a contract, and a rule — no falling in love. One of them was already losing.",
+    links:[{l:'📖 Read Free on Wattpad',u:'https://www.wattpad.com/story/284554326-ceo-s-contract-marriage',p:true}]},
+  'rejected-you': { title:"Yeah, I Rejected You", icon:'🐺',
+    desc:"Shayla Hale is a 15-year-old werewolf who shocks everyone by rejecting the school player and future Alpha.",
+    links:[{l:'📖 Read Free on Wattpad',u:'https://www.wattpad.com/story/201242371-yeah-i-rejected-you-completed',p:true}]},
+  'skin-bloodlines': { title:"SKIN (Bloodlines)", icon:'🩸',
+    desc:"A powerful Alpha who is more wolf than human crosses paths with a quirky girl obsessed with werewolf lore.",
+    links:[{l:'📖 Read Free on Wattpad',u:'https://www.wattpad.com/story/5993213-skin-bloodlines-1-completed',p:true}]},
+  'alpha-missing-mate': { title:"The Alpha's Missing Mate", icon:'🔍',
+    desc:"Angel, fresh out of foster care, is claimed by the local Alpha and discovers a secret, powerful lineage.",
+    links:[{l:'📖 Read Free on Wattpad',u:'https://www.wattpad.com/story/46513426-the-alpha-s-missing-mate-completed',p:true}]},
+  'hades-vengeance': { title:"Hades: Alpha of Vengeance", icon:'🔥',
+    desc:"Captured by a man who despises her, Gisella discovers they are fated mates on a path of redemption.",
+    links:[{l:'📖 Read Free on Wattpad',u:'https://www.wattpad.com/story/247190251-hades-the-alpha-of-vengeance',p:true}]},
+  'chilton-master': { title:"Chilton's Master Manuals", icon:'🚗',
+    desc:"Comprehensive repair guides for almost every make and model from 1954 to 1992. Professional-grade mechanics' manuals.",
+    links:[{l:'1954-1963 Manual',u:'https://archive.org/details/chiltonsautorepa0000john',p:true},
+           {l:'1964-1971 Manual',u:'https://archive.org/details/chiltonsautorepa0000unse_z6e1',p:true},
+           {l:'1967-1974 Manual',u:'https://archive.org/details/chiltonsautorepa0000chil_w9u1',p:true},
+           {l:'1988-1992 Manual',u:'https://archive.org/details/chiltonsautorepa0000unse_w1s5',p:true},
+           {l:'Import Auto Manual',u:'https://archive.org/details/chiltonsimportau0000unse',p:true}]},
+  'haynes-collection': { title:"Haynes Repair Collection", icon:'🔧',
+    desc:"Step-by-step automotive repair and maintenance manuals. Hundreds of vehicle-specific guides available.",
+    links:[{l:'Search Haynes Archive',u:'https://archive.org/search.php?query=subject%3A%22Handbooks%2C+manuals%2C+etc%22+AND+%22Haynes%22&sin=TXT',p:true},
+           {l:'Search Chilton Archive',u:'https://archive.org/search.php?query=subject%3A%22Handbooks%2C+manuals%2C+etc%22+AND+%22Chilton%22&sin=TXT'}]},
+  'jeep-liberty': { title:"2007 Jeep Liberty Technical Suite", icon:'🚙',
+    desc:"Comprehensive technical data for the 2007 Jeep Liberty, including the Owner's Manual, Service Wiki, and internal documentation.",
+    links:[{l:'📖 Full 2007 Owner\'s Manual (PDF)',u:'https://pictures.dealer.com/tomahlchryslerdodgecllc/fc666a114046387200fafd427be1ee1a.pdf?_cl=BfeW0OmK33rgYWPmCyrWbN3a&_gl=1*ab3ajv*_gcl_au*MTM0NDc3ODc5NC4xNzc4OTA3MTA3',p:true},
+           {l:'Technical Service Wiki',u:'https://charm.li/Jeep/2007/Liberty%204WD%20V6-3.7L/'},
+           {l:'Search Haynes (Jeep Liberty)',u:'https://archive.org/search?query=Jeep+Liberty+Haynes'}]},
+  'jeep-parts': { title:"2007 Jeep Liberty Parts Manual", icon:'🔩',
+    desc:"The official 2007 KJ Jeep Liberty Parts Manual. Detailed diagrams and Mopar part numbers for every component.",
+    links:[{l:'📖 Open Parts Manual (PDF)',u:'/downloads/2007-Jeep-Liberty-Parts-Manual.pdf',p:true}]},
+  'dodge-journey': { title:"2012 Dodge Journey Technical Suite", icon:'🚘',
+    desc:"The official JC Dodge Journey Manual. Technical data and repair instructions applicable to the 2012 model version and beyond.",
+    links:[{l:'📖 Open Repair Manual (PDF)',u:'/downloads/2012-Dodge-Journey-Repair-Manual.pdf',p:true},
+           {l:'Full Factory Service Manual (5,600+ pages)',u:'https://drive.google.com/file/d/1zX8rfowBmx1KZpx7zNHQENgcxjFnDjuw/view?usp=sharing'},
+           {l:'Search Haynes (Dodge Journey)',u:'https://archive.org/search?query=Dodge+Journey+Haynes'}]},
+};
+
+function openDirect(url, title) {
+  window.open(url, '_blank', 'noopener');
+}
+
+function openExt(key) {
+  const n = EXT[key]; if (!n) return;
+  const rdr = document.getElementById('reader');
+  const body = document.getElementById('rdr-body');
+  const btnSpeak = document.getElementById('btn-speak');
+  const btnCh = document.getElementById('btn-chapters');
+  
+  document.getElementById('rdr-title').textContent = n.title;
+  if (btnSpeak) btnSpeak.style.display = 'none';
+  if (btnCh) btnCh.style.display = 'none';
+  rdr.classList.add('open');
+  
+  const pri = n.links.find(l=>l.p);
+  let embedUrl = null;
+  if (pri) {
+    if (pri.u.includes('archive.org/details/')) embedUrl = pri.u.replace('/details/', '/embed/');
+    else if (pri.u.includes('drive.google.com/file/d/')) embedUrl = pri.u.replace('/view?usp=sharing', '/preview').replace('/view', '/preview');
+    else if (pri.u.includes('manualslib.com/manual/')) embedUrl = pri.u.replace('.html', '.html?embed=1');
+    else if (pri.u.endsWith('.pdf') || pri.u.includes('.pdf?')) embedUrl = pri.u;
+  }
+
+  if (embedUrl) {
+    body.innerHTML = `<iframe src="${embedUrl}" style="width:100%;height:100%;border:none;background:#000" allow="fullscreen"></iframe>`;
+    body.style.padding = '0';
+    body.style.overflow = 'hidden';
+  } else {
+    body.style.padding = '3rem 1.5rem';
+    body.style.overflow = 'auto';
+    const linksH = n.links.map(l=>`<a class="ext-a ${l.p?'pri':''}" href="${l.u}" target="_blank" rel="noopener">${l.p?'📖 ':''}${l.l}</a>`).join('');
+    body.innerHTML = `<div class="ext-card">
+      <div class="ei">${n.icon}</div>
+      <h3>${eH(n.title)}</h3>
+      <p>${eH(n.desc)}</p>
+      <p style="color:var(--muted);font-size:0.82rem;margin-bottom:1.5rem">Available free on multiple platforms — choose below:</p>
+      <div class="ext-links">${linksH}</div></div>`;
+  }
+}
+
+function closeReader() { 
+  stopSpeak();
+  curBookId = null;
+  const body = document.getElementById('rdr-body');
+  body.style.padding = '3rem 1.5rem';
+  body.style.overflow = 'auto';
+  document.getElementById('reader').classList.remove('open'); 
+}
+
+function stopSpeak() {
+  if (window.speechSynthesis) {
+    window.speechSynthesis.cancel();
+    document.getElementById('btn-speak')?.classList.remove('active');
+  }
+}
+
+function toggleSpeak() {
+  const btn = document.getElementById('btn-speak');
+  if (window.speechSynthesis.speaking) {
+    stopSpeak();
+    return;
+  }
+  const textEl = document.querySelector('.rdr-text');
+  if (!textEl) return;
+  
+  const text = textEl.innerText;
+  const utter = new SpeechSynthesisUtterance(text);
+  utter.rate = 1.0;
+  utter.pitch = 1.0;
+  
+  // Find a nice female voice if possible (often better for romance/library)
+  const voices = window.speechSynthesis.getVoices();
+  const annVoice = voices.find(v => v.name.includes('Female') || v.name.includes('Google US English'));
+  if (annVoice) utter.voice = annVoice;
+
+  utter.onend = () => btn.classList.remove('active');
+  utter.onerror = () => btn.classList.remove('active');
+  
+  btn.classList.add('active');
+  window.speechSynthesis.speak(utter);
+}
+
+function sz(d) { rdrSz=Math.max(0.85,Math.min(1.7,rdrSz+d*0.1)); document.documentElement.style.setProperty('--reader-size',rdrSz+'rem'); }
+document.addEventListener('keydown', e => { if(e.key==='Escape') closeReader(); });
+
+function eH(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function eJ(s){ return String(s).replace(/\\/g,'\\\\').replace(/'/g,"\\'").replace(/"/g,'\\"'); }
+
+init();
+</script>
+</body>
+</html>

@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+<meta name="theme-color" content="#0a0a0a"/>
+<title>DiMase Inc. AntiVirus</title>
+<link rel="manifest" href="/dimase-antivirus/manifest.json"/>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{background:#0a0a0a;color:#e8e8e8;font-family:'Segoe UI',Arial,sans-serif;min-height:100vh}
+:root{--gold:#d4af37;--dark:#0a0a0a;--card:#111;--red:#ef4444;--green:#22c55e;--border:#1e1e1e}
+
+header{background:#111;border-bottom:2px solid var(--gold);padding:14px 16px;display:flex;align-items:center;gap:12px;position:sticky;top:0;z-index:100}
+.logo{width:38px;height:38px;background:var(--gold);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+.header-text h1{font-size:16px;color:var(--gold);font-weight:700;letter-spacing:.5px}
+.header-text p{font-size:11px;color:#666;margin-top:1px}
+
+nav{display:flex;background:#111;border-bottom:1px solid var(--border);overflow-x:auto;-webkit-overflow-scrolling:touch}
+nav button{flex:1;min-width:70px;padding:12px 8px;background:none;border:none;color:#666;font-size:11px;font-weight:600;cursor:pointer;border-bottom:2px solid transparent;transition:.2s;white-space:nowrap}
+nav button.active{color:var(--gold);border-bottom-color:var(--gold)}
+
+.tab{display:none;padding:16px;animation:fadeIn .2s}
+.tab.active{display:block}
+@keyframes fadeIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}
+
+.card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:14px;margin-bottom:12px}
+.card-title{color:var(--gold);font-size:13px;font-weight:700;margin-bottom:10px;display:flex;align-items:center;gap:6px}
+
+.status-badge{display:inline-flex;align-items:center;gap:5px;padding:5px 10px;border-radius:20px;font-size:12px;font-weight:600}
+.status-badge.safe{background:#052;color:var(--green);border:1px solid var(--green)}
+.status-badge.warning{background:#521;color:#f97316;border:1px solid #f97316}
+.status-badge.danger{background:#300;color:var(--red);border:1px solid var(--red)}
+.dot{width:7px;height:7px;border-radius:50%;background:currentColor;animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+
+.btn{width:100%;padding:13px;border:none;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer;transition:.2s;margin-top:8px}
+.btn-gold{background:var(--gold);color:#000}
+.btn-gold:active{background:#b8962e}
+.btn-outline{background:none;border:1px solid var(--gold);color:var(--gold)}
+.btn-outline:active{background:#1a1500}
+.btn-danger{background:#300;border:1px solid var(--red);color:var(--red)}
+
+.result-box{background:#000;border:1px solid var(--border);border-radius:8px;padding:12px;font-size:12px;line-height:1.7;color:#ccc;min-height:60px;max-height:300px;overflow-y:auto;font-family:monospace;white-space:pre-wrap;word-break:break-all;margin-top:10px}
+.result-box .threat{color:var(--red)}
+.result-box .safe{color:var(--green)}
+.result-box .info{color:#888}
+
+.input-row{display:flex;gap:8px;margin-top:8px}
+textarea,input[type=text]{width:100%;background:#000;border:1px solid var(--border);border-radius:8px;color:#e8e8e8;padding:10px;font-size:13px;resize:vertical;outline:none;font-family:inherit}
+textarea:focus,input[type=text]:focus{border-color:var(--gold)}
+
+.stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}
+.stat-box{background:#000;border:1px solid var(--border);border-radius:8px;padding:10px;text-align:center}
+.stat-num{font-size:22px;font-weight:700;color:var(--gold)}
+.stat-label{font-size:10px;color:#666;margin-top:2px}
+
+.threat-item{display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid var(--border);font-size:12px}
+.threat-item:last-child{border:none}
+.threat-icon{font-size:16px}
+
+.spinner{display:inline-block;width:14px;height:14px;border:2px solid var(--border);border-top-color:var(--gold);border-radius:50%;animation:spin .7s linear infinite;vertical-align:middle;margin-right:6px}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+.chat-messages{height:240px;overflow-y:auto;background:#000;border:1px solid var(--border);border-radius:8px;padding:10px;margin-bottom:10px;display:flex;flex-direction:column;gap:8px}
+.msg{max-width:85%;padding:8px 12px;border-radius:10px;font-size:12px;line-height:1.5}
+.msg.user{align-self:flex-end;background:#1a1500;border:1px solid var(--gold);color:#e8e8e8}
+.msg.ai{align-self:flex-start;background:#111;border:1px solid var(--border);color:#ccc}
+.msg .sender{font-size:10px;color:#666;margin-bottom:3px;font-weight:600}
+
+.quick-btns{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px}
+.quick-btn{padding:5px 10px;border:1px solid var(--border);background:#111;border-radius:20px;color:#888;font-size:11px;cursor:pointer}
+.quick-btn:active{border-color:var(--gold);color:var(--gold)}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">🛡</div>
+  <div class="header-text">
+    <h1>DiMase Inc. AntiVirus</h1>
+    <p>AI-Powered Security Suite</p>
+  </div>
+</header>
+
+<nav>
+  <button class="active" onclick="showTab('dashboard',this)">Dashboard</button>
+  <button onclick="showTab('scan',this)">Scan</button>
+  <button onclick="showTab('network',this)">Network</button>
+  <button onclick="showTab('ai',this)">AI Analyst</button>
+</nav>
+
+<!-- DASHBOARD -->
+<div id="dashboard" class="tab active">
+  <div class="card">
+    <div class="card-title">🛡 Security Status</div>
+    <div style="text-align:center;padding:10px 0">
+      <div class="status-badge safe" id="statusBadge">
+        <span class="dot"></span> System Protected
+      </div>
+      <div style="margin-top:12px;font-size:12px;color:#666" id="lastScan">No scan run yet</div>
+    </div>
+  </div>
+
+  <div class="stat-grid">
+    <div class="stat-box">
+      <div class="stat-num" id="statThreats">0</div>
+      <div class="stat-label">Threats Found</div>
+    </div>
+    <div class="stat-box">
+      <div class="stat-num" id="statScanned">0</div>
+      <div class="stat-label">Files Checked</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">⚡ Quick Actions</div>
+    <button class="btn btn-gold" onclick="quickScan()">Quick AI Scan</button>
+    <button class="btn btn-outline" onclick="showTab('network',document.querySelectorAll('nav button')[2])">Check Network</button>
+    <button class="btn btn-outline" onclick="showTab('ai',document.querySelectorAll('nav button')[3])">Ask AI Analyst</button>
+  </div>
+
+  <div class="card">
+    <div class="card-title">🔍 Threat Intelligence</div>
+    <div id="threatList">
+      <div class="threat-item"><span class="threat-icon">✅</span><span>No threats detected</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- SCAN -->
+<div id="scan" class="tab">
+  <div class="card">
+    <div class="card-title">🔬 Content Scanner</div>
+    <p style="font-size:12px;color:#666;margin-bottom:8px">Paste file content, URLs, or suspicious text to analyze for threats</p>
+    <textarea id="scanInput" rows="5" placeholder="Paste content to scan...&#10;&#10;Examples:&#10;• Suspicious file contents&#10;• URLs to check&#10;• Script code to analyze&#10;• Email message text"></textarea>
+    <button class="btn btn-gold" onclick="runScan()">Analyze with AI</button>
+  </div>
+
+  <div id="scanResults" style="display:none">
+    <div class="card">
+      <div class="card-title" id="scanResultTitle">Scan Results</div>
+      <div class="result-box" id="scanOutput"></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">⚠️ Known Threat Patterns</div>
+    <div class="result-box" style="min-height:auto">
+<span class="threat">HIGH RISK patterns:</span>
+• Base64 encoded executables (eval(atob(...)))
+• Reverse shell commands (bash -i &gt;& /dev/tcp/)
+• Crypto miner keywords (xmrig, stratum+tcp)
+• Obfuscated PowerShell (-enc, -encodedcommand)
+
+<span class="safe">SAFE indicators:</span>
+• Signed with known certificate
+• Matches known software hash
+• No network callbacks
+• No privilege escalation</div>
+  </div>
+</div>
+
+<!-- NETWORK -->
+<div id="network" class="tab">
+  <div class="card">
+    <div class="card-title">🌐 Network Check</div>
+    <button class="btn btn-gold" onclick="checkNetwork()">Run Network Scan</button>
+    <div class="result-box" id="networkOutput" style="margin-top:10px">Tap "Run Network Scan" to check your connection and IP reputation...</div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">🔴 Suspicious Ports</div>
+    <div class="result-box" style="min-height:auto">
+<span class="threat">Common malware ports:</span>
+4444  — Metasploit default
+31337 — Elite/backdoor
+1337  — Leet/backdoor
+6666-6667 — IRC botnets
+8888/9999 — RAT callbacks
+12345/54321 — NetBus/Back Orifice
+<span class="info">
+Legitimate ports: 80,443,22,25,587,993,3306</span></div>
+  </div>
+</div>
+
+<!-- AI ANALYST -->
+<div id="ai" class="tab">
+  <div class="card" style="padding-bottom:8px">
+    <div class="card-title">🤖 DiMase AI Security Analyst</div>
+    <div class="chat-messages" id="chatMessages">
+      <div class="msg ai">
+        <div class="sender">DiMase AI</div>
+        Hello! I'm your DiMase Inc. AI Security Analyst. Ask me about threats, malware analysis, security hardening, or anything security-related.
+      </div>
+    </div>
+    <div class="quick-btns">
+      <button class="quick-btn" onclick="askQuick('How do I harden my Android device?')">Android hardening</button>
+      <button class="quick-btn" onclick="askQuick('What are signs of malware infection?')">Malware signs</button>
+      <button class="quick-btn" onclick="askQuick('How do I check if an APK is safe?')">Check APK</button>
+      <button class="quick-btn" onclick="askQuick('What is a rootkit?')">Rootkits</button>
+    </div>
+    <div class="input-row">
+      <input type="text" id="chatInput" placeholder="Ask about security..." onkeydown="if(event.key==='Enter')sendChat()"/>
+      <button class="btn btn-gold" style="width:auto;padding:10px 16px;margin:0" onclick="sendChat()">Send</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const DIMASE_URL = 'https://dimaseinc.org/dimase/bot-chat';
+const DIMASE_SECRET = 'dimase-bot-2026';
+
+function showTab(id, btn) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  btn.classList.add('active');
+}
+
+async function dimaseAI(message) {
+  const r = await fetch(DIMASE_URL, {
+    method: 'POST',
+    headers: {'Content-Type':'application/json','X-Bot-Secret':DIMASE_SECRET},
+    body: JSON.stringify({message})
+  });
+  if (!r.ok) throw new Error('AI unavailable');
+  const d = await r.json();
+  return d.response || d.reply || 'No response';
+}
+
+async function quickScan() {
+  const badge = document.getElementById('statusBadge');
+  badge.className = 'status-badge warning';
+  badge.innerHTML = '<span class="spinner"></span> Scanning...';
+  try {
+    const msg = 'Do a brief security status check. Are there common Android threats I should watch for right now? Keep it short (3-4 bullet points).';
+    const resp = await dimaseAI(msg);
+    document.getElementById('lastScan').textContent = 'Last scan: ' + new Date().toLocaleTimeString();
+    document.getElementById('statScanned').textContent = '1';
+    badge.className = 'status-badge safe';
+    badge.innerHTML = '<span class="dot"></span> Scan Complete';
+    document.getElementById('threatList').innerHTML = '<div class="result-box" style="min-height:auto">' + resp + '</div>';
+  } catch(e) {
+    badge.className = 'status-badge danger';
+    badge.innerHTML = '<span class="dot"></span> Scan Failed';
+  }
+}
+
+async function runScan() {
+  const input = document.getElementById('scanInput').value.trim();
+  if (!input) { alert('Please paste content to scan'); return; }
+  const out = document.getElementById('scanOutput');
+  const results = document.getElementById('scanResults');
+  results.style.display = 'block';
+  out.innerHTML = '<span class="spinner"></span> Analyzing with AI...';
+  try {
+    const prompt = `Analyze this content for security threats, malware, phishing, or suspicious patterns. Be specific about what you find. Rate threat level as SAFE, LOW, MEDIUM, HIGH, or CRITICAL:\n\n${input.substring(0,2000)}`;
+    const resp = await dimaseAI(prompt);
+    document.getElementById('statScanned').textContent = parseInt(document.getElementById('statScanned').textContent||0)+1;
+    const isThreats = /HIGH|CRITICAL|malware|threat|suspicious|dangerous/i.test(resp);
+    if (isThreats) {
+      document.getElementById('statThreats').textContent = parseInt(document.getElementById('statThreats').textContent||0)+1;
+      document.getElementById('scanResultTitle').innerHTML = '🔴 Threats Detected';
+    } else {
+      document.getElementById('scanResultTitle').innerHTML = '✅ Scan Complete';
+    }
+    out.textContent = resp;
+  } catch(e) {
+    out.innerHTML = '<span class="threat">Error: Could not connect to AI analyst. Check your internet connection.</span>';
+  }
+}
+
+async function checkNetwork() {
+  const out = document.getElementById('networkOutput');
+  out.innerHTML = '<span class="spinner"></span> Checking network...';
+  try {
+    let info = '';
+    try {
+      const ipResp = await fetch('https://ipapi.co/json/');
+      const ip = await ipResp.json();
+      info = `IP: ${ip.ip}\nLocation: ${ip.city}, ${ip.region}, ${ip.country_name}\nISP: ${ip.org}\nProxy/VPN: ${ip.proxy||'Unknown'}\n\n`;
+    } catch(e) { info = 'Could not fetch IP info\n\n'; }
+    const aiResp = await dimaseAI(`Given a user connecting from this network info: ${info} — are there any security concerns? Is this a safe connection for sensitive operations? Be brief.`);
+    out.textContent = info + 'AI Analysis:\n' + aiResp;
+  } catch(e) {
+    out.innerHTML = '<span class="threat">Network check failed: ' + e.message + '</span>';
+  }
+}
+
+async function sendChat() {
+  const input = document.getElementById('chatInput');
+  const msg = input.value.trim();
+  if (!msg) return;
+  input.value = '';
+  addMessage('You', msg, 'user');
+  const thinking = addMessage('DiMase AI', '<span class="spinner"></span> Thinking...', 'ai');
+  try {
+    const resp = await dimaseAI('You are a security expert AI. ' + msg);
+    thinking.querySelector('.sender').nextSibling && (thinking.lastChild.textContent = resp) || (thinking.innerHTML = '<div class="sender">DiMase AI</div>' + resp);
+    thinking.innerHTML = '<div class="sender">DiMase AI</div>' + resp;
+  } catch(e) {
+    thinking.innerHTML = '<div class="sender">DiMase AI</div><span style="color:var(--red)">Connection error</span>';
+  }
+}
+
+function askQuick(q) {
+  document.getElementById('chatInput').value = q;
+  sendChat();
+}
+
+function addMessage(sender, text, cls) {
+  const msgs = document.getElementById('chatMessages');
+  const div = document.createElement('div');
+  div.className = 'msg ' + cls;
+  div.innerHTML = '<div class="sender">' + sender + '</div>' + text;
+  msgs.appendChild(div);
+  msgs.scrollTop = msgs.scrollHeight;
+  return div;
+}
+</script>
+</body>
+</html>

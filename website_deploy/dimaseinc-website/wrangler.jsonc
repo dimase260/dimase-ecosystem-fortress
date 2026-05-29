@@ -1,0 +1,24 @@
+{
+  "name": "dimaseinc-website",
+  "main": "src/worker.js",
+  "compatibility_date": "2025-01-01",
+  "workers_dev": true,
+  "routes": [
+    { "pattern": "dimaseinc.org/*", "zone_name": "dimaseinc.org" },
+    { "pattern": "www.dimaseinc.org/*", "zone_name": "dimaseinc.org" }
+  ],
+  "assets": {
+    "directory": "./",
+    "binding": "ASSETS"
+  },
+  "ai": {
+    "binding": "AI"
+  },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "dimaseinc-learning",
+      "database_id": "af4b58c4-5553-4d4f-8af2-53cdf1c39e34"
+    }
+  ]
+}

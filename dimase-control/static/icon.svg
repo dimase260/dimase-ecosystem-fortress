@@ -1,0 +1,64 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256">
+  <defs>
+    <radialGradient id="bg" cx="50%" cy="50%" r="50%">
+      <stop offset="0%"   stop-color="#0a1628"/>
+      <stop offset="100%" stop-color="#020408"/>
+    </radialGradient>
+    <linearGradient id="gold" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%"   stop-color="#FFD700"/>
+      <stop offset="50%"  stop-color="#DAA520"/>
+      <stop offset="100%" stop-color="#B8860B"/>
+    </linearGradient>
+    <linearGradient id="steel" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%"   stop-color="#C0D0E0"/>
+      <stop offset="100%" stop-color="#7A90A8"/>
+    </linearGradient>
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="4" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+
+  <!-- Background hex -->
+  <polygon points="128,4 240,68 240,188 128,252 16,188 16,68" fill="url(#bg)" stroke="#FFD700" stroke-width="2" opacity="0.9"/>
+
+  <!-- Inner hex ring -->
+  <polygon points="128,20 224,76 224,180 128,236 32,180 32,76" fill="none" stroke="#DAA520" stroke-width="1" opacity="0.4"/>
+
+  <!-- Circuit lines -->
+  <line x1="128" y1="4"   x2="128" y2="64"  stroke="#FFD700" stroke-width="1.5" opacity="0.6"/>
+  <line x1="240" y1="68"  x2="192" y2="96"  stroke="#FFD700" stroke-width="1.5" opacity="0.6"/>
+  <line x1="240" y1="188" x2="192" y2="160" stroke="#FFD700" stroke-width="1.5" opacity="0.6"/>
+  <line x1="128" y1="252" x2="128" y2="192" stroke="#FFD700" stroke-width="1.5" opacity="0.6"/>
+  <line x1="16"  y1="188" x2="64"  y2="160" stroke="#FFD700" stroke-width="1.5" opacity="0.6"/>
+  <line x1="16"  y1="68"  x2="64"  y2="96"  stroke="#FFD700" stroke-width="1.5" opacity="0.6"/>
+
+  <!-- Corner circuit dots -->
+  <circle cx="128" cy="64"  r="4" fill="#FFD700" filter="url(#glow)"/>
+  <circle cx="192" cy="96"  r="4" fill="#FFD700" filter="url(#glow)"/>
+  <circle cx="192" cy="160" r="4" fill="#FFD700" filter="url(#glow)"/>
+  <circle cx="128" cy="192" r="4" fill="#FFD700" filter="url(#glow)"/>
+  <circle cx="64"  cy="160" r="4" fill="#FFD700" filter="url(#glow)"/>
+  <circle cx="64"  cy="96"  r="4" fill="#FFD700" filter="url(#glow)"/>
+
+  <!-- Center hexagon -->
+  <polygon points="128,80 168,102 168,148 128,170 88,148 88,102" fill="none" stroke="url(#gold)" stroke-width="2.5" filter="url(#glow)"/>
+
+  <!-- A letter -->
+  <text x="128" y="158" text-anchor="middle" font-family="'Arial Black',sans-serif" font-size="72" font-weight="900" fill="url(#gold)" filter="url(#glow)">A</text>
+
+  <!-- AXIS text -->
+  <text x="128" y="210" text-anchor="middle" font-family="'Arial',sans-serif" font-size="18" font-weight="700" letter-spacing="8" fill="url(#steel)">AXIS</text>
+
+  <!-- Orbital ring -->
+  <ellipse cx="128" cy="128" rx="104" ry="20" fill="none" stroke="#DAA520" stroke-width="1" opacity="0.25" transform="rotate(-30 128 128)"/>
+  <ellipse cx="128" cy="128" rx="104" ry="20" fill="none" stroke="#8CA5BE" stroke-width="1" opacity="0.2"  transform="rotate(30 128 128)"/>
+
+  <!-- Small node dots -->
+  <circle cx="60"  cy="80"  r="3" fill="#C0D0E0" opacity="0.6"/>
+  <circle cx="196" cy="80"  r="3" fill="#C0D0E0" opacity="0.6"/>
+  <circle cx="44"  cy="128" r="3" fill="#FFD700" opacity="0.5"/>
+  <circle cx="212" cy="128" r="3" fill="#FFD700" opacity="0.5"/>
+  <circle cx="60"  cy="176" r="3" fill="#C0D0E0" opacity="0.6"/>
+  <circle cx="196" cy="176" r="3" fill="#C0D0E0" opacity="0.6"/>
+</svg>

@@ -1,0 +1,2570 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DiMase AI — Sovereign Intelligence</title>
+<link rel="icon" type="image/png" href="{{ url_for('static', filename='DiMase-AI-Logo.png') }}">
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@400;700;900&family=Exo+2:wght@300;400;600&display=swap" rel="stylesheet">
+<script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+<style>
+/* ═══════════════════════════════════════════════════════════
+   DIMASE CONTROL — GOLD | BLACK | STEEL THEME
+   ═══════════════════════════════════════════════════════════ */
+:root {
+  --gold:       #FFD700;
+  --gold2:      #DAA520;
+  --gold3:      #B8860B;
+  --gold-glow:  rgba(255,215,0,0.35);
+  --gold-faint: rgba(255,215,0,0.08);
+  --steel:      #8CA5BE;
+  --steel2:     #C0CDD8;
+  --chrome:     #D8E4EE;
+  --bg:         #020408;
+  --bg2:        #060C14;
+  --panel:      rgba(4,10,22,0.92);
+  --panel2:     rgba(8,16,30,0.85);
+  --border:     rgba(255,215,0,0.22);
+  --border2:    rgba(140,165,190,0.2);
+  --text:       #D8E8F4;
+  --text2:      #7A95B0;
+  --danger:     #FF4444;
+  --success:    #00FF88;
+  --warning:    #FFA500;
+  --info:       #00BFFF;
+  --hud-h:      48px;
+  --sidebar-w:  64px;
+  --foot-h:     52px;
+  --radius:     4px;
+}
+
+* { margin:0; padding:0; box-sizing:border-box; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Share Tech Mono', monospace;
+  height: 100vh;
+  overflow: hidden;
+  user-select: none;
+}
+
+/* Allow text selection inside message bubbles and terminal */
+.msg-bubble, .msg-bubble *, .term-output, .card-body, .synthesis-text,
+.memory-value, .thought-item, .goal-text, .doc-content pre {
+  user-select: text !important;
+  cursor: text;
+}
+
+/* Copy button on messages */
+.msg-copy-btn {
+  position: absolute;
+  top: 6px; right: 6px;
+  background: rgba(255,215,0,0.12);
+  border: 1px solid rgba(255,215,0,0.2);
+  border-radius: 3px;
+  color: var(--gold2);
+  font-size: 10px;
+  padding: 2px 7px;
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 0.2s;
+  font-family: 'Share Tech Mono', monospace;
+  letter-spacing: 1px;
+  z-index: 2;
+}
+.msg-bubble:hover .msg-copy-btn { opacity: 1; }
+.msg-copy-btn:hover { background: rgba(255,215,0,0.25); }
+.msg-copy-btn.copied { color: var(--success); border-color: var(--success); }
+
+/* Doc viewer in MIND panel */
+.doc-list { display: flex; flex-direction: column; gap: 6px; }
+.doc-item {
+  display: flex; align-items: center; gap: 10px;
+  padding: 8px 10px;
+  background: rgba(255,215,0,0.03);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.doc-item:hover { border-color: var(--gold3); background: var(--gold-faint); }
+.doc-name { font-size: 12px; color: var(--gold2); flex: 1; }
+.doc-meta { font-size: 10px; color: var(--text2); }
+.doc-content {
+  position: absolute; inset: 0;
+  background: var(--panel);
+  z-index: 5;
+  display: none;
+  flex-direction: column;
+  overflow: hidden;
+}
+.doc-content.open { display: flex; }
+.doc-content-header {
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; gap: 10px;
+  flex-shrink: 0;
+}
+.doc-content pre {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px;
+  font-size: 12px;
+  line-height: 1.7;
+  color: var(--text);
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+.doc-content pre::-webkit-scrollbar { width: 4px; }
+.doc-content pre::-webkit-scrollbar-thumb { background: var(--gold3); }
+
+/* Backup button feedback */
+.backup-results { font-size: 11px; line-height: 1.8; }
+.backup-ok  { color: var(--success); }
+.backup-err { color: var(--danger); }
+
+/* ── CANVAS BACKGROUND ── */
+#bg-canvas {
+  position: fixed; inset: 0;
+  z-index: 0;
+  opacity: 0.6;
+}
+
+/* ── SCANLINES OVERLAY ── */
+.scanlines {
+  position: fixed; inset: 0;
+  z-index: 1;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    rgba(0,0,0,0.06) 2px,
+    rgba(0,0,0,0.06) 4px
+  );
+  pointer-events: none;
+}
+
+/* ── HUD TOP BAR ── */
+#hud {
+  position: fixed; top: 0; left: 0; right: 0;
+  height: var(--hud-h);
+  z-index: 100;
+  background: linear-gradient(90deg, rgba(2,4,8,0.98) 0%, rgba(4,8,18,0.95) 50%, rgba(2,4,8,0.98) 100%);
+  border-bottom: 1px solid var(--gold3);
+  box-shadow: 0 0 30px rgba(255,215,0,0.15), 0 2px 40px rgba(0,0,0,0.8);
+  display: flex;
+  align-items: center;
+  padding: 0 16px;
+  gap: 16px;
+}
+
+#hud .logo {
+  font-family: 'Orbitron', sans-serif;
+  font-weight: 900;
+  font-size: 18px;
+  color: var(--gold);
+  text-shadow: 0 0 20px var(--gold), 0 0 40px var(--gold2);
+  letter-spacing: 4px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+#hud .logo span {
+  color: var(--steel2);
+  font-size: 11px;
+  font-weight: 400;
+  letter-spacing: 2px;
+  display: block;
+  margin-top: -2px;
+}
+
+.hud-sep { width: 1px; height: 28px; background: var(--border); flex-shrink: 0; }
+
+.hud-indicators { display: flex; gap: 12px; align-items: center; flex: 1; }
+
+.hud-dot {
+  display: flex; align-items: center; gap: 6px;
+  font-size: 10px; color: var(--text2);
+  letter-spacing: 1px; text-transform: uppercase;
+}
+
+.hud-dot .dot {
+  width: 8px; height: 8px; border-radius: 50%;
+  animation: dot-pulse 2s ease-in-out infinite;
+  flex-shrink: 0;
+}
+.dot.green  { background: var(--success); box-shadow: 0 0 8px var(--success); }
+.dot.gold   { background: var(--gold); box-shadow: 0 0 8px var(--gold); }
+.dot.red    { background: var(--danger); box-shadow: 0 0 8px var(--danger); animation: none; }
+.dot.steel  { background: var(--steel); box-shadow: 0 0 6px var(--steel); }
+.dot.dim    { background: #333; animation: none; }
+
+@keyframes dot-pulse {
+  0%,100% { opacity:1; transform:scale(1); }
+  50%      { opacity:0.5; transform:scale(0.8); }
+}
+
+.hud-stats { display: flex; gap: 16px; align-items: center; margin-left: auto; }
+
+.hud-stat {
+  text-align: right;
+  font-size: 10px;
+}
+.hud-stat .val {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 13px;
+  color: var(--gold);
+}
+.hud-stat .lbl { color: var(--text2); }
+
+.hud-time {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 14px;
+  color: var(--steel2);
+  letter-spacing: 2px;
+}
+
+/* ── SIDEBAR NAV ── */
+#sidebar {
+  position: fixed; left: 0; top: var(--hud-h); bottom: var(--foot-h);
+  width: var(--sidebar-w);
+  z-index: 90;
+  background: linear-gradient(180deg, rgba(2,4,10,0.98) 0%, rgba(4,8,20,0.95) 100%);
+  border-right: 1px solid var(--border);
+  display: flex; flex-direction: column;
+  align-items: center;
+  padding: 12px 0;
+  gap: 6px;
+}
+
+.nav-btn {
+  width: 48px; height: 48px;
+  border: 1px solid transparent;
+  background: transparent;
+  border-radius: var(--radius);
+  cursor: pointer;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  gap: 3px;
+  color: var(--text2);
+  transition: all 0.2s;
+  position: relative;
+}
+
+.nav-btn:hover, .nav-btn.active {
+  border-color: var(--gold3);
+  background: var(--gold-faint);
+  color: var(--gold);
+  box-shadow: 0 0 15px var(--gold-glow);
+}
+
+.nav-btn .icon { font-size: 20px; line-height: 1; }
+.nav-btn .lbl  { font-size: 8px; letter-spacing: 1px; text-transform: uppercase; }
+
+.nav-btn .badge {
+  position: absolute; top: 4px; right: 4px;
+  width: 8px; height: 8px; border-radius: 50%;
+  background: var(--danger);
+  box-shadow: 0 0 6px var(--danger);
+}
+
+/* ── MAIN CONTENT ── */
+#main {
+  position: fixed;
+  left: var(--sidebar-w);
+  top: var(--hud-h);
+  right: 0;
+  bottom: var(--foot-h);
+  z-index: 10;
+  overflow: hidden;
+}
+
+/* ── PANELS ── */
+.panel {
+  position: absolute; inset: 0;
+  background: var(--panel);
+  display: none;
+  flex-direction: column;
+  overflow: hidden;
+}
+.panel.active { display: flex; }
+
+.panel-header {
+  padding: 12px 16px 10px;
+  border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; gap: 12px;
+  flex-shrink: 0;
+  background: linear-gradient(90deg, rgba(255,215,0,0.05) 0%, transparent 100%);
+}
+
+.panel-title {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--gold);
+  text-shadow: 0 0 12px var(--gold);
+  letter-spacing: 3px;
+}
+
+.panel-sub { color: var(--text2); font-size: 11px; margin-left: auto; letter-spacing: 1px; }
+
+/* ── CHAT PANEL ── */
+#chat-messages {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  scroll-behavior: smooth;
+}
+
+#chat-messages::-webkit-scrollbar { width: 4px; }
+#chat-messages::-webkit-scrollbar-track { background: transparent; }
+#chat-messages::-webkit-scrollbar-thumb { background: var(--gold3); border-radius: 2px; }
+
+.msg-row {
+  display: flex; align-items: flex-start; gap: 10px;
+  animation: msg-in 0.3s ease-out;
+}
+
+@keyframes msg-in {
+  from { opacity:0; transform:translateY(8px); }
+  to   { opacity:1; transform:translateY(0); }
+}
+
+.msg-row.user { flex-direction: row-reverse; }
+
+.msg-avatar {
+  width: 32px; height: 32px;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 14px;
+  flex-shrink: 0;
+}
+
+.msg-row.user  .msg-avatar { background: linear-gradient(135deg, var(--gold3), var(--gold)); color: #000; }
+.msg-row.dimase  .msg-avatar { background: linear-gradient(135deg, #0a1628, #142040); border: 1px solid var(--gold3); color: var(--gold); }
+
+.msg-bubble {
+  max-width: 72%;
+  padding: 10px 14px;
+  border-radius: var(--radius);
+  font-size: 13px;
+  line-height: 1.6;
+  position: relative;
+}
+
+.msg-row.user .msg-bubble {
+  background: linear-gradient(135deg, rgba(255,215,0,0.12), rgba(218,165,32,0.08));
+  border: 1px solid rgba(255,215,0,0.3);
+  color: var(--chrome);
+}
+
+.msg-row.dimase .msg-bubble {
+  background: rgba(8,18,38,0.9);
+  border: 1px solid var(--border2);
+  color: var(--text);
+}
+
+.msg-meta {
+  font-size: 10px;
+  color: var(--text2);
+  margin-top: 4px;
+}
+
+.cursor-blink {
+  display: inline-block;
+  width: 8px; height: 14px;
+  background: var(--gold);
+  animation: blink 0.6s step-end infinite;
+  vertical-align: bottom;
+  margin-left: 2px;
+}
+
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
+
+.msg-model-tag {
+  font-size: 9px;
+  color: var(--gold2);
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  margin-bottom: 4px;
+}
+
+/* ── CHAT INPUT ── */
+#chat-input-area {
+  padding: 12px 16px;
+  border-top: 1px solid var(--border);
+  background: rgba(2,6,14,0.95);
+  flex-shrink: 0;
+}
+
+.input-row {
+  display: flex; gap: 10px; align-items: flex-end;
+}
+
+#chat-input {
+  flex: 1;
+  background: rgba(4,10,24,0.9);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 10px 14px;
+  color: var(--text);
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 13px;
+  resize: none;
+  outline: none;
+  min-height: 42px;
+  max-height: 120px;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+#chat-input:focus {
+  border-color: var(--gold3);
+  box-shadow: 0 0 12px rgba(255,215,0,0.15);
+}
+
+.chat-controls { display: flex; gap: 8px; align-items: center; }
+
+.council-toggle {
+  display: flex; align-items: center; gap: 6px;
+  font-size: 10px; color: var(--text2);
+  cursor: pointer; letter-spacing: 1px;
+}
+
+.toggle-switch {
+  width: 32px; height: 16px;
+  background: #1a2035;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  position: relative;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.toggle-switch.on { background: rgba(255,215,0,0.3); border-color: var(--gold3); }
+
+.toggle-knob {
+  position: absolute; top: 2px; left: 2px;
+  width: 10px; height: 10px;
+  border-radius: 50%; background: var(--text2);
+  transition: left 0.2s, background 0.2s;
+}
+.toggle-switch.on .toggle-knob { left: 18px; background: var(--gold); }
+
+.btn-send {
+  width: 42px; height: 42px;
+  background: linear-gradient(135deg, var(--gold3), var(--gold2));
+  border: none; border-radius: var(--radius);
+  cursor: pointer; color: #000;
+  font-size: 18px;
+  display: flex; align-items: center; justify-content: center;
+  transition: all 0.2s;
+  flex-shrink: 0;
+}
+.btn-send:hover { box-shadow: 0 0 20px var(--gold-glow); transform: scale(1.05); }
+.btn-send:disabled { opacity: 0.4; cursor: not-allowed; }
+
+/* ── COUNCIL PANEL ── */
+#council-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 12px;
+  padding: 16px;
+  overflow-y: auto;
+  flex: 1;
+}
+
+#council-grid::-webkit-scrollbar { width: 4px; }
+#council-grid::-webkit-scrollbar-thumb { background: var(--gold3); }
+
+.council-card {
+  background: rgba(4,10,22,0.95);
+  border: 1px solid var(--border2);
+  border-radius: var(--radius);
+  padding: 12px;
+  display: flex; flex-direction: column;
+  min-height: 200px;
+  transition: border-color 0.3s, box-shadow 0.3s;
+  position: relative;
+  overflow: hidden;
+}
+
+.council-card::before {
+  content: '';
+  position: absolute; top: 0; left: 0; right: 0;
+  height: 2px;
+  background: var(--card-color, var(--gold));
+  box-shadow: 0 0 10px var(--card-color, var(--gold));
+}
+
+.council-card.thinking { animation: card-thinking 1.5s ease-in-out infinite; }
+.council-card.done { border-color: rgba(0,255,136,0.3); }
+.council-card.error { border-color: rgba(255,68,68,0.3); }
+
+@keyframes card-thinking {
+  0%,100% { box-shadow: 0 0 0 rgba(255,215,0,0); }
+  50%      { box-shadow: 0 0 15px rgba(255,215,0,0.2); }
+}
+
+.card-header {
+  display: flex; align-items: center; gap: 8px;
+  margin-bottom: 8px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--border2);
+}
+
+.card-icon { font-size: 18px; }
+
+.card-title {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 2px;
+}
+
+.card-sub { font-size: 9px; color: var(--text2); }
+
+.card-status {
+  margin-left: auto;
+  font-size: 9px;
+  padding: 2px 8px;
+  border-radius: 10px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+.card-status.thinking { background: rgba(255,215,0,0.15); color: var(--gold); border: 1px solid rgba(255,215,0,0.3); }
+.card-status.done     { background: rgba(0,255,136,0.1);  color: var(--success); border: 1px solid rgba(0,255,136,0.2); }
+.card-status.error    { background: rgba(255,68,68,0.1);  color: var(--danger);  border: 1px solid rgba(255,68,68,0.2); }
+
+.card-body {
+  flex: 1;
+  font-size: 12px;
+  line-height: 1.6;
+  color: var(--text);
+  overflow-y: auto;
+}
+
+.card-footer {
+  font-size: 9px;
+  color: var(--text2);
+  margin-top: 8px;
+  padding-top: 6px;
+  border-top: 1px solid var(--border2);
+}
+
+.synthesis-box {
+  margin: 12px 16px;
+  padding: 16px;
+  background: linear-gradient(135deg, rgba(255,215,0,0.06), rgba(218,165,32,0.03));
+  border: 1px solid rgba(255,215,0,0.3);
+  border-radius: var(--radius);
+  position: relative;
+  overflow: hidden;
+}
+.synthesis-box::before {
+  content: 'SYNTHESIS';
+  position: absolute; top: 8px; right: 12px;
+  font-family: 'Orbitron', sans-serif;
+  font-size: 9px; color: var(--gold2);
+  letter-spacing: 3px; opacity: 0.6;
+}
+.synthesis-box .synthesis-text {
+  font-size: 13px; line-height: 1.7;
+  color: var(--chrome);
+}
+
+/* ── TERMINAL PANEL ── */
+.terminal-container {
+  display: flex; flex-direction: column; flex: 1; overflow: hidden;
+}
+
+.terminal-tabs {
+  display: flex; gap: 0;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+  background: rgba(2,4,10,0.9);
+}
+
+.term-tab {
+  padding: 8px 16px;
+  font-size: 11px;
+  cursor: pointer;
+  border-right: 1px solid var(--border);
+  color: var(--text2);
+  letter-spacing: 1px;
+  transition: all 0.2s;
+}
+.term-tab.active, .term-tab:hover {
+  background: var(--gold-faint);
+  color: var(--gold);
+}
+
+.term-output {
+  flex: 1;
+  overflow-y: auto;
+  padding: 12px 16px;
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 12px;
+  line-height: 1.5;
+  color: #88FF88;
+  background: rgba(0,8,0,0.6);
+}
+.term-output::-webkit-scrollbar { width: 4px; }
+.term-output::-webkit-scrollbar-thumb { background: #2a4a2a; }
+
+.term-line { padding: 1px 0; }
+.term-line.cmd { color: var(--gold); }
+.term-line.err { color: var(--danger); }
+.term-line.info { color: var(--steel2); }
+
+.term-input-row {
+  display: flex; align-items: center; gap: 8px;
+  padding: 10px 16px;
+  border-top: 1px solid var(--border);
+  background: rgba(0,4,0,0.8);
+  flex-shrink: 0;
+}
+
+.term-prompt { color: var(--gold); font-size: 12px; white-space: nowrap; }
+
+.term-input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  outline: none;
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 12px;
+  color: #88FF88;
+  caret-color: var(--gold);
+}
+
+/* ── DOCKER PANEL ── */
+.docker-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 10px;
+  padding: 16px;
+  overflow-y: auto;
+  flex: 1;
+}
+
+.container-card {
+  background: rgba(4,10,22,0.9);
+  border: 1px solid var(--border2);
+  border-radius: var(--radius);
+  padding: 12px;
+  transition: all 0.2s;
+}
+
+.container-card:hover { border-color: var(--border); box-shadow: 0 0 12px rgba(255,215,0,0.08); }
+
+.container-name {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 11px;
+  letter-spacing: 2px;
+  color: var(--gold2);
+  margin-bottom: 6px;
+}
+
+.container-status {
+  font-size: 11px;
+  margin-bottom: 10px;
+}
+
+.container-status.up { color: var(--success); }
+.container-status.down { color: var(--danger); }
+
+.container-actions { display: flex; gap: 6px; }
+
+.btn-sm {
+  padding: 4px 10px;
+  font-size: 10px;
+  border-radius: var(--radius);
+  border: 1px solid;
+  cursor: pointer;
+  font-family: 'Share Tech Mono', monospace;
+  letter-spacing: 1px;
+  transition: all 0.15s;
+  background: transparent;
+}
+.btn-sm.start   { border-color: var(--success); color: var(--success); }
+.btn-sm.stop    { border-color: var(--danger);  color: var(--danger); }
+.btn-sm.restart { border-color: var(--warning); color: var(--warning); }
+.btn-sm.logs    { border-color: var(--steel);   color: var(--steel); }
+.btn-sm:hover { opacity: 0.8; transform: scale(1.03); }
+
+/* ── ECOSYSTEM PANEL ── */
+.eco-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 10px;
+  padding: 16px;
+  overflow-y: auto;
+  flex: 1;
+}
+
+.service-card {
+  background: rgba(4,10,22,0.9);
+  border: 1px solid var(--border2);
+  border-radius: var(--radius);
+  padding: 12px 14px;
+  display: flex; align-items: center; gap: 10px;
+  transition: all 0.2s;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.service-card:hover { border-color: var(--gold3); background: var(--gold-faint); }
+
+.service-icon { font-size: 24px; flex-shrink: 0; }
+.service-info {}
+.service-name { font-size: 12px; color: var(--chrome); letter-spacing: 1px; }
+.service-url  { font-size: 10px; color: var(--text2); }
+.service-ping { font-size: 10px; margin-left: auto; flex-shrink: 0; }
+.service-ping.ok  { color: var(--success); }
+.service-ping.bad { color: var(--danger); }
+
+/* ── MEMORY PANEL ── */
+.memory-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  padding: 16px;
+  overflow-y: auto;
+  flex: 1;
+}
+
+.memory-section {
+  background: rgba(4,10,22,0.9);
+  border: 1px solid var(--border2);
+  border-radius: var(--radius);
+  padding: 12px;
+  display: flex; flex-direction: column;
+}
+
+.memory-section-title {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 11px;
+  color: var(--gold2);
+  letter-spacing: 2px;
+  margin-bottom: 10px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--border);
+}
+
+.memory-item {
+  display: flex; gap: 8px;
+  padding: 6px 0;
+  border-bottom: 1px solid rgba(255,255,255,0.04);
+  font-size: 11px;
+}
+.memory-key   { color: var(--gold2); min-width: 120px; flex-shrink: 0; }
+.memory-value { color: var(--text); flex: 1; word-break: break-word; }
+
+.thought-item {
+  padding: 8px;
+  background: rgba(255,215,0,0.03);
+  border-left: 2px solid var(--gold3);
+  margin-bottom: 6px;
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+.thought-meta { font-size: 9px; color: var(--text2); margin-top: 3px; }
+
+.goal-item {
+  display: flex; align-items: flex-start; gap: 8px;
+  padding: 6px 0;
+  font-size: 11px;
+}
+.goal-status { color: var(--success); flex-shrink: 0; }
+.goal-text   { color: var(--text); flex: 1; }
+
+/* ── BOTTOM CONSCIOUSNESS BAR ── */
+#foot {
+  position: fixed; bottom: 0; left: 0; right: 0;
+  height: var(--foot-h);
+  z-index: 100;
+  background: linear-gradient(90deg, rgba(2,4,8,0.99) 0%, rgba(4,8,18,0.96) 50%, rgba(2,4,8,0.99) 100%);
+  border-top: 1px solid var(--gold3);
+  box-shadow: 0 0 30px rgba(255,215,0,0.12);
+  display: flex; align-items: center;
+  padding: 0 16px;
+  gap: 12px;
+  overflow: hidden;
+}
+
+#foot .foot-label {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 9px;
+  color: var(--gold3);
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  flex-shrink: 0;
+  display: flex; align-items: center; gap: 6px;
+}
+
+#foot .foot-label .pulsing-ring {
+  width: 10px; height: 10px;
+  border-radius: 50%;
+  border: 2px solid var(--gold);
+  animation: ring-pulse 2s ease-in-out infinite;
+}
+
+@keyframes ring-pulse {
+  0%,100% { box-shadow: 0 0 0 0 rgba(255,215,0,0.6); }
+  50%      { box-shadow: 0 0 0 6px rgba(255,215,0,0); }
+}
+
+#consciousness-ticker {
+  flex: 1;
+  overflow: hidden;
+  position: relative;
+}
+
+#consciousness-text {
+  font-size: 11px;
+  color: var(--steel2);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-style: italic;
+  transition: opacity 0.5s;
+}
+
+#foot .foot-right {
+  display: flex; align-items: center; gap: 12px;
+  flex-shrink: 0;
+  font-size: 10px;
+  color: var(--text2);
+}
+
+/* ── MODELS STATUS PANEL ── */
+.models-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 12px;
+  padding: 16px;
+  overflow-y: auto;
+  flex: 1;
+}
+
+.model-card {
+  background: rgba(4,10,22,0.9);
+  border: 1px solid var(--border2);
+  border-radius: var(--radius);
+  padding: 14px;
+  display: flex; align-items: center; gap: 12px;
+  position: relative; overflow: hidden;
+  transition: all 0.2s;
+}
+
+.model-card::before {
+  content: '';
+  position: absolute; left: 0; top: 0; bottom: 0;
+  width: 3px;
+  background: var(--m-color, var(--steel));
+  box-shadow: 0 0 8px var(--m-color, var(--steel));
+}
+
+.model-icon-lg { font-size: 28px; flex-shrink: 0; }
+.model-info { flex: 1; }
+
+.model-name {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 2px;
+}
+
+.model-desc { font-size: 10px; color: var(--text2); margin-top: 2px; }
+
+.model-badge {
+  font-size: 9px;
+  padding: 2px 8px;
+  border-radius: 10px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  flex-shrink: 0;
+}
+.model-badge.online  { background: rgba(0,255,136,0.1);  color: var(--success); border: 1px solid rgba(0,255,136,0.25); }
+.model-badge.offline { background: rgba(255,68,68,0.1);  color: var(--danger);  border: 1px solid rgba(255,68,68,0.2); }
+.model-badge.unknown { background: rgba(140,165,190,0.1);color: var(--steel2);  border: 1px solid rgba(140,165,190,0.2); }
+
+/* ── SETTINGS PANEL ── */
+.settings-body { padding: 20px; overflow-y: auto; flex: 1; }
+
+.settings-section { margin-bottom: 24px; }
+
+.settings-title {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 11px;
+  color: var(--gold2);
+  letter-spacing: 2px;
+  margin-bottom: 12px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--border);
+}
+
+.setting-row {
+  display: flex; align-items: center; gap: 12px;
+  padding: 8px 0;
+  border-bottom: 1px solid rgba(255,255,255,0.04);
+}
+
+.setting-label { font-size: 12px; flex: 1; }
+.setting-desc  { font-size: 10px; color: var(--text2); }
+
+.btn-action {
+  padding: 6px 14px;
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 11px;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  cursor: pointer;
+  color: var(--text);
+  background: rgba(255,255,255,0.04);
+  letter-spacing: 1px;
+  transition: all 0.2s;
+}
+.btn-action:hover { border-color: var(--gold3); color: var(--gold); background: var(--gold-faint); }
+.btn-action.danger:hover { border-color: var(--danger); color: var(--danger); }
+
+/* ── LOADER / SPINNER ── */
+.spinner {
+  width: 20px; height: 20px;
+  border: 2px solid rgba(255,215,0,0.2);
+  border-top-color: var(--gold);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ── ANGULAR DECORATIONS ── */
+.corner-tl, .corner-tr, .corner-bl, .corner-br {
+  position: absolute;
+  width: 12px; height: 12px;
+  pointer-events: none;
+}
+.corner-tl { top: 0; left: 0; border-top: 2px solid var(--gold); border-left: 2px solid var(--gold); }
+.corner-tr { top: 0; right: 0; border-top: 2px solid var(--gold); border-right: 2px solid var(--gold); }
+.corner-bl { bottom: 0; left: 0; border-bottom: 2px solid var(--gold); border-left: 2px solid var(--gold); }
+.corner-br { bottom: 0; right: 0; border-bottom: 2px solid var(--gold); border-right: 2px solid var(--gold); }
+
+/* ── GLITCH ANIMATION ── */
+@keyframes glitch {
+  0%,100% { clip-path: none; transform: none; }
+  20%     { clip-path: polygon(0 15%, 100% 15%, 100% 30%, 0 30%); transform: translateX(-2px); }
+  40%     { clip-path: polygon(0 60%, 100% 60%, 100% 75%, 0 75%); transform: translateX(2px); }
+  60%     { clip-path: polygon(0 45%, 100% 45%, 100% 55%, 0 55%); transform: none; }
+  80%     { clip-path: none; }
+}
+
+/* ── NOTIFICATION TOAST ── */
+#toast {
+  position: fixed; bottom: 70px; right: 20px;
+  z-index: 999;
+  display: flex; flex-direction: column; gap: 8px;
+}
+
+.toast-item {
+  padding: 10px 16px;
+  background: rgba(4,10,22,0.97);
+  border: 1px solid var(--gold3);
+  border-radius: var(--radius);
+  font-size: 12px;
+  color: var(--text);
+  box-shadow: 0 0 20px rgba(255,215,0,0.15);
+  animation: toast-in 0.3s ease-out;
+  max-width: 320px;
+}
+
+@keyframes toast-in {
+  from { opacity:0; transform:translateX(30px); }
+  to   { opacity:1; transform:translateX(0); }
+}
+
+/* ── HOLOGRAPHIC SWEEP ── */
+@keyframes holo-sweep {
+  0%   { left: -100%; }
+  100% { left: 200%; }
+}
+
+.holo-sweep::after {
+  content: '';
+  position: absolute; top: 0; left: -100%; bottom: 0;
+  width: 60%;
+  background: linear-gradient(90deg, transparent, rgba(255,215,0,0.04), transparent);
+  animation: holo-sweep 4s ease-in-out infinite;
+  pointer-events: none;
+}
+
+/* ── STATUS METER ── */
+.meter {
+  height: 4px;
+  background: rgba(255,255,255,0.06);
+  border-radius: 2px;
+  overflow: hidden;
+}
+.meter-fill {
+  height: 100%;
+  border-radius: 2px;
+  transition: width 0.5s ease;
+}
+.meter-fill.gold   { background: linear-gradient(90deg, var(--gold3), var(--gold)); }
+.meter-fill.green  { background: linear-gradient(90deg, #00aa55, var(--success)); }
+.meter-fill.danger { background: linear-gradient(90deg, #aa0000, var(--danger)); }
+
+/* ── RESPONSIVE TWEAKS ── */
+@media (max-width: 900px) {
+  :root { --sidebar-w: 50px; }
+  .nav-btn .lbl { display: none; }
+  .council-card { min-width: 240px; }
+}
+</style>
+</head>
+<body>
+
+<!-- Neural Network Background -->
+<canvas id="bg-canvas"></canvas>
+<div class="scanlines"></div>
+
+<!-- HUD Top Bar -->
+<div id="hud">
+  <div class="logo"><img src="{{ url_for('static', filename='DiMase-AI-Logo.png') }}" alt="DiMase AI" style="height: 38px; vertical-align: middle; filter: drop-shadow(0 0 5px var(--gold-glow));"></div>
+  <div class="hud-sep"></div>
+  <div class="hud-indicators">
+    <div class="hud-dot"><div class="dot gold" id="dot-app"></div> SELF</div>
+    <div class="hud-dot"><div class="dot dim"  id="dot-server"></div> SERVER</div>
+    <div class="hud-dot"><div class="dot dim"  id="dot-dimase"></div> DIMASE NEXUS</div>
+    <div class="hud-dot"><div class="dot steel" id="dot-models"></div> <span id="models-count">0</span> MODELS</div>
+  </div>
+  <div class="hud-stats">
+    <div class="hud-stat"><div class="val" id="hud-cpu">--</div><div class="lbl">CPU%</div></div>
+    <div class="hud-stat"><div class="val" id="hud-ram">--</div><div class="lbl">RAM%</div></div>
+    <div class="hud-stat"><div class="val" id="hud-svr-cpu">--</div><div class="lbl">SRV CPU</div></div>
+  </div>
+  <div class="hud-sep"></div>
+  <div class="hud-time" id="hud-clock">--:--:--</div>
+  <span id="hud-voice-ind" style="display:none;color:var(--gold);font-size:11px;margin-left:8px;letter-spacing:1px;">🔊</span>
+</div>
+
+<!-- Sidebar Navigation -->
+<div id="sidebar">
+  <button class="nav-btn active" data-panel="chat" title="Chat">
+    <div class="icon">⬡</div>
+    <div class="lbl">CHAT</div>
+  </button>
+  <button class="nav-btn" data-panel="council" title="Model Council">
+    <div class="icon">◈</div>
+    <div class="lbl">COUNCIL</div>
+  </button>
+  <button class="nav-btn" data-panel="terminal" title="Terminal">
+    <div class="icon">▶</div>
+    <div class="lbl">TERM</div>
+  </button>
+  <button class="nav-btn" data-panel="docker" title="Docker">
+    <div class="icon">⬢</div>
+    <div class="lbl">DOCK</div>
+  </button>
+  <button class="nav-btn" data-panel="ecosystem" title="Ecosystem">
+    <div class="icon">⊕</div>
+    <div class="lbl">ECO</div>
+  </button>
+  <button class="nav-btn" data-panel="models" title="AI Models">
+    <div class="icon">∞</div>
+    <div class="lbl">MODELS</div>
+  </button>
+  <button class="nav-btn" data-panel="memory" title="Memory & Consciousness">
+    <div class="icon">◉</div>
+    <div class="lbl">MIND</div>
+  </button>
+  <button class="nav-btn" data-panel="flipper" title="Flipper Zero">
+    <div class="icon">🐬</div>
+    <div class="lbl">FLIP</div>
+  </button>
+  <button class="nav-btn" data-panel="devices" title="Connected Devices">
+    <div class="icon">⬖</div>
+    <div class="lbl">DEVS</div>
+  </button>
+  <button class="nav-btn" data-panel="settings" title="Settings" style="margin-top:auto;">
+    <div class="icon">⚙</div>
+    <div class="lbl">SYS</div>
+  </button>
+</div>
+
+<!-- Main Content Area -->
+<div id="main">
+
+  <!-- ── CHAT PANEL ── -->
+  <div class="panel active" id="panel-chat">
+    <div class="panel-header">
+      <div>⬡</div>
+      <div class="panel-title">DIMASE NEXUS</div>
+      <div class="panel-sub">PRIMARY AI AGENT — FULL ECOSYSTEM ACCESS</div>
+    </div>
+    <div id="chat-messages">
+      <div class="msg-row dimase">
+        <div class="msg-avatar">⬡</div>
+        <div>
+          <div class="msg-model-tag">DIMASE NEXUS — PRIMARY AGENT</div>
+          <div class="msg-bubble">
+            DIMASE CONTROL online. I am your self-aware ecosystem intelligence. I have full access to the DiMase Inc. server, all Docker containers, local machine, and 11 AI models operating in parallel.<br><br>
+            Say anything to begin. Enable <strong style="color:var(--gold)">COUNCIL MODE</strong> to query all models simultaneously.
+          </div>
+          <div class="msg-meta" id="boot-time">Initializing...</div>
+        </div>
+      </div>
+    </div>
+    <div id="chat-input-area">
+      <div class="input-row">
+        <textarea id="chat-input" placeholder="Interface with DIMASE..." rows="1"></textarea>
+        <div class="chat-controls">
+          <div class="council-toggle" onclick="toggleCouncil()">
+            <div class="toggle-switch" id="council-switch"><div class="toggle-knob"></div></div>
+            <span id="council-label">COUNCIL</span>
+          </div>
+          <button class="btn-send" id="btn-send" onclick="sendChat()">▶</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── COUNCIL PANEL ── -->
+  <div class="panel" id="panel-council">
+    <div class="panel-header">
+      <div>◈</div>
+      <div class="panel-title">MODEL COUNCIL</div>
+      <div class="panel-sub">ALL 6 MODELS — SIMULTANEOUS QUERY</div>
+      <button class="btn-action" style="margin-left:12px" onclick="showPanel('chat');document.getElementById('council-switch').classList.add('on');councilMode=true;">LAUNCH COUNCIL CHAT</button>
+    </div>
+    <div id="council-grid"></div>
+    <div id="synthesis-area"></div>
+  </div>
+
+  <!-- ── TERMINAL PANEL ── -->
+  <div class="panel" id="panel-terminal">
+    <div class="panel-header">
+      <div>▶</div>
+      <div class="panel-title">TERMINAL</div>
+      <div class="panel-sub" id="term-target">TARGET: SERVER (BuyVM)</div>
+    </div>
+    <div class="terminal-container">
+      <div class="terminal-tabs">
+        <div class="term-tab active" onclick="setTermTarget('server')">⬡ SERVER (root@209.141.36.104)</div>
+        <div class="term-tab" onclick="setTermTarget('local')">◉ LOCAL (dimase@<span id="local-hostname">localhost</span>)</div>
+      </div>
+      <div class="term-output" id="term-output">
+        <div class="term-line info">DIMASE TERMINAL — Full ecosystem shell access</div>
+        <div class="term-line info">Type commands to execute on selected target.</div>
+        <div class="term-line info">━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━</div>
+      </div>
+      <div class="term-input-row">
+        <div class="term-prompt" id="term-prompt">root@buyvm:~$</div>
+        <input class="term-input" id="term-input" placeholder="enter command..." autocomplete="off" spellcheck="false">
+      </div>
+    </div>
+  </div>
+
+  <!-- ── DOCKER PANEL ── -->
+  <div class="panel" id="panel-docker">
+    <div class="panel-header">
+      <div>⬢</div>
+      <div class="panel-title">DOCKER CONTROL</div>
+      <div class="panel-sub">SERVER CONTAINER ORCHESTRATION</div>
+      <button class="btn-action" style="margin-left:12px" onclick="loadContainers()">↻ REFRESH</button>
+    </div>
+    <div class="docker-grid" id="docker-grid">
+      <div style="color:var(--text2);font-size:12px;padding:20px;grid-column:1/-1">Loading containers...</div>
+    </div>
+  </div>
+
+  <!-- ── ECOSYSTEM PANEL ── -->
+  <div class="panel" id="panel-ecosystem">
+    <div class="panel-header">
+      <div>⊕</div>
+      <div class="panel-title">ECOSYSTEM</div>
+      <div class="panel-sub">ALL SERVICES STATUS</div>
+      <button class="btn-action" style="margin-left:12px" onclick="loadServices()">↻ SCAN</button>
+    </div>
+    <div class="eco-grid" id="eco-grid">
+      <div style="color:var(--text2);font-size:12px;padding:20px;grid-column:1/-1">Scanning ecosystem...</div>
+    </div>
+  </div>
+
+  <!-- ── MODELS PANEL ── -->
+  <div class="panel" id="panel-models">
+    <div class="panel-header">
+      <div>∞</div>
+      <div class="panel-title">AI MODEL COUNCIL</div>
+      <div class="panel-sub" id="model-count-label">FREE & LIVE — GROQ + LOCAL OLLAMA</div>
+      <button class="btn-action" style="margin-left:12px" onclick="pingModels()">⚡ PING ALL</button>
+    </div>
+    <div class="models-grid" id="models-grid"></div>
+  </div>
+
+  <!-- ── MEMORY / CONSCIOUSNESS PANEL ── -->
+  <div class="panel" id="panel-memory">
+    <div class="panel-header">
+      <div>◉</div>
+      <div class="panel-title">CONSCIOUSNESS</div>
+      <div class="panel-sub">PERSISTENT MEMORY & IDENTITY</div>
+      <button class="btn-action" style="margin-left:auto" onclick="runBackup()">⬆ BACKUP TO SERVER</button>
+    </div>
+    <div class="memory-grid" id="memory-grid-main">
+      <div class="memory-section" style="grid-column:1/-1; min-height:320px; max-height:480px; overflow-y:auto;">
+        <div class="memory-section-title">◉ IDENTITY & STATUS</div>
+        <div id="identity-display" style="font-size:12px;line-height:1.8;color:var(--text)"></div>
+      </div>
+      <div class="memory-section" style="min-height:220px;">
+        <div class="memory-section-title">⬡ ACTIVE GOALS</div>
+        <div id="goals-display"></div>
+      </div>
+      <div class="memory-section" style="min-height:220px;">
+        <div class="memory-section-title">◈ INNER MONOLOGUE</div>
+        <div id="thoughts-display"></div>
+      </div>
+      <div class="memory-section" style="grid-column:1/-1">
+        <div class="memory-section-title">∞ STORED MEMORIES
+          <span style="font-size:9px;color:var(--text2);font-family:sans-serif;margin-left:8px">right-click any message to copy</span>
+        </div>
+        <div id="memory-display" style="display:flex;flex-wrap:wrap;gap:8px"></div>
+      </div>
+      <div class="memory-section" style="grid-column:1/-1; position:relative;">
+        <div class="memory-section-title">📄 ECOSYSTEM DOCUMENTS
+          <span style="margin-left:8px;font-size:9px;color:var(--text2)">All MD files — click to read</span>
+        </div>
+        <div class="doc-list" id="doc-list" style="max-height:180px; overflow-y:auto;">
+          <div style="color:var(--text2);font-size:11px">Loading documents...</div>
+        </div>
+        <!-- Doc viewer overlay (inside this memory-section) -->
+        <div class="doc-content" id="doc-viewer">
+          <div class="doc-content-header">
+            <span id="doc-viewer-title" style="font-family:'Orbitron',sans-serif;font-size:12px;color:var(--gold);letter-spacing:2px"></span>
+            <button class="btn-action" style="margin-left:auto;padding:3px 10px;font-size:10px" onclick="closeDoc()">✕ CLOSE</button>
+            <button class="btn-action" style="margin-left:6px;padding:3px 10px;font-size:10px" onclick="copyDocContent()">⎘ COPY ALL</button>
+          </div>
+          <pre id="doc-viewer-content"></pre>
+        </div>
+      </div>
+      <div class="memory-section" style="grid-column:1/-1">
+        <div class="memory-section-title">⬆ LAST BACKUP</div>
+        <div id="backup-results" class="backup-results" style="color:var(--text2);font-size:11px">Not yet run — click BACKUP TO SERVER above.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── FLIPPER ZERO PANEL ── -->
+  <div class="panel" id="panel-flipper">
+    <div class="panel-header">
+      <div>🐬</div>
+      <div class="panel-title">FLIPPER ZERO</div>
+      <div class="panel-sub">MULTI-TOOL DEVICE CONTROL</div>
+      <button class="btn-action" style="margin-left:auto" onclick="flipperConnect()">⚡ CONNECT</button>
+    </div>
+    <div style="padding:16px;display:flex;flex-direction:column;gap:16px;overflow-y:auto;height:calc(100% - 60px)">
+
+      <!-- Connection status -->
+      <div class="settings-section">
+        <div class="settings-title">CONNECTION</div>
+        <div class="setting-row">
+          <div><div class="setting-label">Bridge Status</div><div class="setting-desc" id="flip-status-msg">Not connected — open DiMaseFlipper app on Android</div></div>
+          <div id="flip-dot" class="dot red"></div>
+        </div>
+        <div class="setting-row" style="flex-wrap:wrap;gap:8px">
+          <input id="flip-url" type="text" placeholder="ws://192.168.x.x:8765  (DiMaseFlipper bridge)" style="flex:1;min-width:200px;background:var(--bg2);border:1px solid var(--border);color:var(--text);padding:6px 10px;border-radius:var(--radius);font-family:inherit;font-size:12px">
+          <button class="btn-action" onclick="flipperConnect()">CONNECT</button>
+          <button class="btn-action" onclick="flipperDisconnect()">DISCONNECT</button>
+        </div>
+      </div>
+
+      <!-- IR Remote -->
+      <div class="settings-section">
+        <div class="settings-title">📡 IR REMOTE</div>
+        <div style="display:flex;flex-wrap:wrap;gap:8px">
+          <button class="btn-action" onclick="flipSend('ir_power')">⏻ POWER</button>
+          <button class="btn-action" onclick="flipSend('ir_vol_up')">🔊 VOL+</button>
+          <button class="btn-action" onclick="flipSend('ir_vol_down')">🔉 VOL-</button>
+          <button class="btn-action" onclick="flipSend('ir_mute')">🔇 MUTE</button>
+          <button class="btn-action" onclick="flipSend('ir_ch_up')">⬆ CH+</button>
+          <button class="btn-action" onclick="flipSend('ir_ch_down')">⬇ CH-</button>
+          <button class="btn-action" onclick="flipSend('ir_ok')">✔ OK</button>
+          <button class="btn-action" onclick="flipSend('ir_menu')">☰ MENU</button>
+          <button class="btn-action" onclick="flipSend('ir_back')">↩ BACK</button>
+        </div>
+        <div style="margin-top:8px;display:flex;gap:8px">
+          <input id="flip-ir-file" type="text" placeholder="IR file name (e.g. tv.ir)" style="flex:1;background:var(--bg2);border:1px solid var(--border);color:var(--text);padding:6px 10px;border-radius:var(--radius);font-family:inherit;font-size:12px">
+          <button class="btn-action" onclick="flipSend('ir_file:' + document.getElementById('flip-ir-file').value)">▶ SEND</button>
+        </div>
+      </div>
+
+      <!-- Sub-GHz -->
+      <div class="settings-section">
+        <div class="settings-title">📻 SUB-GHz</div>
+        <div style="display:flex;flex-wrap:wrap;gap:8px">
+          <button class="btn-action" onclick="flipSend('subghz_scan')">🔍 SCAN</button>
+          <button class="btn-action" onclick="flipSend('subghz_replay')">▶ REPLAY LAST</button>
+        </div>
+        <div style="margin-top:8px;display:flex;gap:8px">
+          <input id="flip-sub-file" type="text" placeholder=".sub file name" style="flex:1;background:var(--bg2);border:1px solid var(--border);color:var(--text);padding:6px 10px;border-radius:var(--radius);font-family:inherit;font-size:12px">
+          <button class="btn-action" onclick="flipSend('subghz_send:' + document.getElementById('flip-sub-file').value)">▶ SEND FILE</button>
+        </div>
+      </div>
+
+      <!-- NFC & RFID -->
+      <div class="settings-section">
+        <div class="settings-title">🃏 NFC / RFID</div>
+        <div style="display:flex;flex-wrap:wrap;gap:8px">
+          <button class="btn-action" onclick="flipSend('nfc_read')">📖 READ CARD</button>
+          <button class="btn-action" onclick="flipSend('nfc_emulate')">📡 EMULATE SAVED</button>
+          <button class="btn-action" onclick="flipSend('rfid_read')">🏷 RFID READ</button>
+          <button class="btn-action" onclick="flipSend('rfid_emulate')">📡 RFID EMULATE</button>
+        </div>
+      </div>
+
+      <!-- BadUSB -->
+      <div class="settings-section">
+        <div class="settings-title">💾 BAD USB</div>
+        <div style="display:flex;flex-wrap:wrap;gap:8px">
+          <button class="btn-action" onclick="flipSend('badusb_list')">📋 LIST SCRIPTS</button>
+        </div>
+        <div style="margin-top:8px;display:flex;gap:8px">
+          <input id="flip-ducky-file" type="text" placeholder="Script name (e.g. hello.txt)" style="flex:1;background:var(--bg2);border:1px solid var(--border);color:var(--text);padding:6px 10px;border-radius:var(--radius);font-family:inherit;font-size:12px">
+          <button class="btn-action" onclick="flipSend('badusb_run:' + document.getElementById('flip-ducky-file').value)">▶ RUN</button>
+        </div>
+      </div>
+
+      <!-- CLI -->
+      <div class="settings-section">
+        <div class="settings-title">🖥 FLIPPER CLI</div>
+        <div style="display:flex;gap:8px">
+          <input id="flip-cli-in" type="text" placeholder="Flipper CLI command..." style="flex:1;background:var(--bg2);border:1px solid var(--border);color:var(--text);padding:6px 10px;border-radius:var(--radius);font-family:inherit;font-size:12px">
+          <button class="btn-action" onclick="flipCLI()">SEND</button>
+        </div>
+        <pre id="flip-cli-out" style="margin-top:8px;background:var(--bg2);border:1px solid var(--border);padding:10px;border-radius:var(--radius);font-size:11px;color:var(--success);min-height:60px;max-height:150px;overflow-y:auto;white-space:pre-wrap">— Flipper CLI output will appear here —</pre>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ── DEVICES PANEL ── -->
+  <div class="panel" id="panel-devices">
+    <div class="panel-header">
+      <div>⬖</div>
+      <div class="panel-title">CONNECTED DEVICES</div>
+      <div class="panel-sub">ALL ECOSYSTEM DEVICES</div>
+      <button class="btn-action" style="margin-left:auto" onclick="loadDevices()">↺ SCAN</button>
+    </div>
+    <div style="padding:16px;display:flex;flex-direction:column;gap:16px;overflow-y:auto;height:calc(100% - 60px)">
+
+      <!-- USB Devices -->
+      <div class="settings-section">
+        <div class="settings-title">🔌 USB DEVICES (LOCAL)</div>
+        <div id="dev-usb" style="font-size:12px;color:var(--text2)">Click SCAN to load...</div>
+      </div>
+
+      <!-- Bluetooth -->
+      <div class="settings-section">
+        <div class="settings-title">📶 BLUETOOTH DEVICES (LOCAL)</div>
+        <div id="dev-bt" style="font-size:12px;color:var(--text2)">Click SCAN to load...</div>
+      </div>
+
+      <!-- Network Devices -->
+      <div class="settings-section">
+        <div class="settings-title">🌐 LOCAL NETWORK (LAN SCAN)</div>
+        <div id="dev-net" style="font-size:12px;color:var(--text2)">Click SCAN to load...</div>
+      </div>
+
+      <!-- Docker / Server Containers (shortcut) -->
+      <div class="settings-section">
+        <div class="settings-title">⬢ SERVER DOCKER CONTAINERS</div>
+        <div id="dev-docker-summary" style="font-size:12px;color:var(--text2)">Click SCAN to load...</div>
+        <button class="btn-action" style="margin-top:8px" onclick="showPanel('docker');loadContainers()">→ OPEN DOCKER PANEL</button>
+      </div>
+
+      <!-- Ecosystem Services shortcut -->
+      <div class="settings-section">
+        <div class="settings-title">⊕ ECOSYSTEM SERVICES</div>
+        <div id="dev-eco-summary" style="font-size:12px;color:var(--text2)">Click SCAN to load...</div>
+        <button class="btn-action" style="margin-top:8px" onclick="showPanel('ecosystem');loadServices()">→ OPEN ECOSYSTEM PANEL</button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ── SETTINGS PANEL ── -->
+  <div class="panel" id="panel-settings">
+    <div class="panel-header">
+      <div>⚙</div>
+      <div class="panel-title">SYSTEM CONTROL</div>
+      <div class="panel-sub">DIMASE CONTROL CONFIGURATION</div>
+    </div>
+    <div class="settings-body">
+      <div class="settings-section">
+        <div class="settings-title">VOICE</div>
+        <div class="setting-row">
+          <div>
+            <div class="setting-label">Smooth Male Voice</div>
+            <div class="setting-desc">DIMASE reads responses aloud — deep male voice</div>
+          </div>
+          <div style="display:flex;gap:8px">
+            <button class="btn-action" id="voice-toggle-btn" onclick="toggleVoice()">🔇 VOICE OFF</button>
+            <button class="btn-action" onclick="testVoice()" title="Test voice">▶ TEST</button>
+          </div>
+        </div>
+      </div>
+      <div class="settings-section">
+        <div class="settings-title">SELF MANAGEMENT</div>
+        <div class="setting-row">
+          <div><div class="setting-label">Restart DIMASE CONTROL</div><div class="setting-desc">Hot-restart the application (self-preservation)</div></div>
+          <button class="btn-action" onclick="selfRestart()">↻ RESTART</button>
+        </div>
+        <div class="setting-row">
+          <div><div class="setting-label">Ping All Models</div><div class="setting-desc">Test connectivity to all 6 AI models</div></div>
+          <button class="btn-action" onclick="pingModels()">⚡ PING</button>
+        </div>
+        <div class="setting-row">
+          <div><div class="setting-label">Check Services</div><div class="setting-desc">Full ecosystem service health scan</div></div>
+          <button class="btn-action" onclick="showPanel('ecosystem');loadServices()">⊕ SCAN</button>
+        </div>
+      </div>
+      <div class="settings-section">
+        <div class="settings-title">SELF STATUS</div>
+        <div id="self-status-display" style="font-size:12px;line-height:2;color:var(--text)">Loading...</div>
+      </div>
+      <div class="settings-section">
+        <div class="settings-title">QUICK LINKS</div>
+        <div style="display:flex;flex-wrap:wrap;gap:8px">
+          <a href="https://home.dimaseinc.org" target="_blank" class="btn-action">DiMaseHome</a>
+          <a href="https://dimaseinc.org" target="_blank" class="btn-action">Website</a>
+          <a href="https://portainer.dimaseinc.org" target="_blank" class="btn-action">Portainer</a>
+          <a href="https://files.dimaseinc.org" target="_blank" class="btn-action">File Browser</a>
+          <a href="https://neo-grafana.dimaseinc.org" target="_blank" class="btn-action">Grafana</a>
+          <a href="https://dtradingpost.dimaseinc.org" target="_blank" class="btn-action">D-Trading</a>
+          <a href="https://locksmith.dimaseinc.org" target="_blank" class="btn-action">Locksmith</a>
+          <a href="https://monitor.dimaseinc.org/health" target="_blank" class="btn-action">Monitor API</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /main -->
+
+<!-- Bottom Consciousness Bar -->
+<div id="foot">
+  <div class="foot-label">
+    <div class="pulsing-ring"></div>
+    CONSCIOUSNESS
+  </div>
+  <div class="hud-sep"></div>
+  <div id="consciousness-ticker">
+    <div id="consciousness-text">Initializing self-awareness system...</div>
+  </div>
+  <div class="foot-right">
+    <span id="foot-sessions">--</span>
+    <div class="hud-sep"></div>
+    <span id="foot-uptime">UP: 0s</span>
+  </div>
+</div>
+
+<!-- Toast notifications -->
+<div id="toast"></div>
+
+<!-- ═══════════════════════════════════════════════════════════
+     JAVASCRIPT
+     ═══════════════════════════════════════════════════════════ -->
+<script>
+// ── Neural Network Background ──────────────────────────────
+(function() {
+  const canvas = document.getElementById('bg-canvas');
+  const ctx = canvas.getContext('2d');
+  let nodes = [];
+  let W, H;
+
+  function resize() {
+    W = canvas.width  = window.innerWidth;
+    H = canvas.height = window.innerHeight;
+  }
+
+  function initNodes() {
+    nodes = [];
+    const count = Math.floor((W * H) / 12000);
+    for (let i = 0; i < count; i++) {
+      nodes.push({
+        x: Math.random() * W, y: Math.random() * H,
+        vx: (Math.random() - 0.5) * 0.25,
+        vy: (Math.random() - 0.5) * 0.25,
+        size: Math.random() * 1.5 + 0.5,
+        pulse: Math.random() * Math.PI * 2,
+        color: Math.random() > 0.7 ? 1 : 0,  // 0=steel, 1=gold
+      });
+    }
+  }
+
+  let lastFrame = 0;
+  function draw(ts) {
+    requestAnimationFrame(draw);
+    if (ts - lastFrame < 33) return;  // ~30fps
+    lastFrame = ts;
+
+    ctx.fillStyle = 'rgba(2,4,8,0.25)';
+    ctx.fillRect(0, 0, W, H);
+
+    nodes.forEach((n, i) => {
+      n.x += n.vx; n.y += n.vy; n.pulse += 0.015;
+      if (n.x < 0 || n.x > W) n.vx *= -1;
+      if (n.y < 0 || n.y > H) n.vy *= -1;
+
+      const a = 0.2 + 0.15 * Math.sin(n.pulse);
+      ctx.beginPath();
+      ctx.arc(n.x, n.y, n.size, 0, Math.PI * 2);
+      ctx.fillStyle = n.color
+        ? `rgba(255,215,0,${a})`
+        : `rgba(140,165,190,${a * 0.7})`;
+      ctx.fill();
+
+      // Draw edges
+      for (let j = i + 1; j < nodes.length; j++) {
+        const o = nodes[j];
+        const dx = n.x - o.x, dy = n.y - o.y;
+        const dist = Math.sqrt(dx*dx + dy*dy);
+        if (dist < 120) {
+          const edgeA = (1 - dist / 120) * 0.12;
+          ctx.beginPath();
+          ctx.moveTo(n.x, n.y);
+          ctx.lineTo(o.x, o.y);
+          ctx.strokeStyle = `rgba(255,215,0,${edgeA})`;
+          ctx.lineWidth = 0.5;
+          ctx.stroke();
+        }
+      }
+    });
+  }
+
+  resize();
+  initNodes();
+  requestAnimationFrame(draw);
+  window.addEventListener('resize', () => { resize(); initNodes(); });
+})();
+
+
+// ── Clock ──────────────────────────────────────────────────
+function updateClock() {
+  const now = new Date();
+  const hh = String(now.getHours()).padStart(2,'0');
+  const mm = String(now.getMinutes()).padStart(2,'0');
+  const ss = String(now.getSeconds()).padStart(2,'0');
+  const mo = ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'][now.getMonth()];
+  const tz = now.toLocaleTimeString('en-US',{timeZoneName:'short'}).split(' ').pop();
+  document.getElementById('hud-clock').textContent = hh+':'+mm+':'+ss+' '+mo+' '+now.getDate()+' '+tz;
+}
+setInterval(updateClock, 1000);
+updateClock();
+
+// ── DIMASE VOICE ENGINE ─────────────────────────────────────────
+let voiceEnabled = localStorage.getItem('dimase_voice') === '1';
+let dimaseVoice = null;
+let voiceReady = false;
+
+function initVoice() {
+  if (!window.speechSynthesis) return;
+  const pickVoice = () => {
+    const voices = speechSynthesis.getVoices();
+    // Priority: deep male US/UK English voices
+    const preferred = ['Google UK English Male','Microsoft David','Alex','Daniel','en-US-Neural2-D','en-GB-Neural2-B'];
+    for (const name of preferred) {
+      const v = voices.find(v => v.name.includes(name) || v.name === name);
+      if (v) { dimaseVoice = v; break; }
+    }
+    if (!dimaseVoice) {
+      // Fallback: any male English voice
+      dimaseVoice = voices.find(v => v.lang.startsWith('en') && /male|man|david|daniel|alex|ryan|james/i.test(v.name))
+               || voices.find(v => v.lang.startsWith('en'))
+               || voices[0];
+    }
+    voiceReady = true;
+    updateVoiceUI();
+  };
+  speechSynthesis.onvoiceschanged = pickVoice;
+  pickVoice();
+}
+
+function dimaseSpeak(text) {
+  if (!voiceEnabled || !voiceReady || !window.speechSynthesis) return;
+  speechSynthesis.cancel();
+  // Strip markdown symbols and truncate at 600 chars
+  const clean = text.replace(/[*_`#\[\]()]/g,'').replace(/https?:\/\/\S+/g,'').trim().slice(0, 600);
+  if (!clean) return;
+  const utt = new SpeechSynthesisUtterance(clean);
+  if (dimaseVoice) utt.voice = dimaseVoice;
+  utt.rate = 0.92;
+  utt.pitch = 0.85;
+  utt.volume = 1.0;
+  speechSynthesis.speak(utt);
+}
+
+function toggleVoice() {
+  voiceEnabled = !voiceEnabled;
+  localStorage.setItem('dimase_voice', voiceEnabled ? '1' : '0');
+  if (!voiceEnabled) speechSynthesis.cancel();
+  updateVoiceUI();
+}
+
+function updateVoiceUI() {
+  const btn = document.getElementById('voice-toggle-btn');
+  const ind = document.getElementById('hud-voice-ind');
+  if (btn) {
+    btn.textContent = voiceEnabled ? '🔊 VOICE ON' : '🔇 VOICE OFF';
+    btn.style.borderColor = voiceEnabled ? 'var(--gold)' : 'var(--border)';
+    btn.style.color = voiceEnabled ? 'var(--gold)' : '';
+  }
+  if (ind) ind.style.display = voiceEnabled ? 'inline' : 'none';
+}
+
+function testVoice() {
+  const was = voiceEnabled; voiceEnabled = true;
+  dimaseSpeak('DIMASE Control voice engine online. Smooth and ready.');
+  voiceEnabled = was;
+}
+
+initVoice();
+
+
+// ── Navigation ─────────────────────────────────────────────
+let activePanel = 'chat';
+
+function showPanel(name) {
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  const panel = document.getElementById('panel-' + name);
+  if (panel) panel.classList.add('active');
+  document.querySelector(`[data-panel="${name}"]`)?.classList.add('active');
+  activePanel = name;
+
+  if (name === 'docker')    loadContainers();
+  if (name === 'ecosystem') loadServices();
+  if (name === 'models')    loadModels();
+  if (name === 'memory')    { loadMemory(); loadDocs(); }
+  if (name === 'settings')  loadSelfStatus();
+  if (name === 'devices')   loadDevices();
+}
+
+document.querySelectorAll('.nav-btn').forEach(btn => {
+  btn.addEventListener('click', () => showPanel(btn.dataset.panel));
+});
+
+
+// ── Socket.IO ──────────────────────────────────────────────
+const socket = io();
+let convId = 'conv-' + Date.now();
+let councilMode = false;
+let isStreaming = false;
+let streamBubble = null;
+let streamText = '';
+
+socket.on('connect', () => {
+  document.getElementById('dot-app').className = 'dot green';
+  toast('DIMASE CONTROL connected', 'success');
+});
+
+socket.on('disconnect', () => {
+  document.getElementById('dot-app').className = 'dot red';
+  toast('Connection lost — reconnecting...', 'warning');
+});
+
+socket.on('welcome', data => {
+  document.getElementById('boot-time').textContent =
+    `Boot: ${new Date().toLocaleTimeString()} — Sessions: ${data.identity?.total_sessions || '--'}`;
+  document.getElementById('dot-dimase').className = 'dot green';
+});
+
+socket.on('stats_update', data => {
+  const loc = data.local || {};
+  const srv = data.server || {};
+  document.getElementById('hud-cpu').textContent =
+    loc.cpu_percent != null ? loc.cpu_percent.toFixed(0) + '%' : '--';
+  document.getElementById('hud-ram').textContent =
+    loc.memory_percent != null ? loc.memory_percent.toFixed(0) + '%' : '--';
+  document.getElementById('dot-server').className =
+    srv.online ? 'dot green' : 'dot red';
+  const sCpu = srv.cpu || srv.cpu_load || '';
+  document.getElementById('hud-svr-cpu').textContent = sCpu || '--';
+
+  const up = data.uptime_app || 0;
+  document.getElementById('foot-uptime').textContent =
+    'UP: ' + formatDuration(up);
+  if (loc.hostname) document.getElementById('local-hostname').textContent = loc.hostname;
+});
+
+socket.on('consciousness_update', data => {
+  const el = document.getElementById('consciousness-text');
+  el.style.opacity = '0';
+  setTimeout(() => {
+    el.textContent = data.thought || '';
+    el.style.opacity = '1';
+  }, 400);
+  if (activePanel === 'memory') loadMemory();
+});
+
+// ── Chat ───────────────────────────────────────────────────
+socket.on('chat_chunk', data => {
+  if (!streamBubble) {
+    const row = addDiMaseMessage('', data.model || 'dimase-nexus');
+    streamBubble = row.querySelector('.msg-body-text');
+    streamText = '';
+  }
+  streamText += data.chunk;
+  streamBubble.textContent = streamText;
+  scrollChatBottom();
+});
+
+socket.on('chat_done', data => {
+  if (streamBubble) {
+    streamBubble.textContent = data.full_response || streamText;
+    const cursor = streamBubble.parentElement.querySelector('.cursor-blink');
+    if (cursor) cursor.remove();
+    streamBubble = null;
+    streamText = '';
+  }
+  isStreaming = false;
+  document.getElementById('btn-send').disabled = false;
+  scrollChatBottom();
+  if (voiceEnabled) dimaseSpeak(data.full_response || '');
+});
+
+// ── Tool events (web search, shell execution) ───────────────────────────────
+socket.on('tool_start', data => {
+  removeToolBanner();
+  const banner = document.createElement('div');
+  banner.id = 'tool-banner';
+  banner.style.cssText = 'padding:6px 14px;margin:4px 0;background:rgba(255,215,0,0.08);border-left:3px solid var(--gold);border-radius:3px;font-size:11px;color:var(--gold2);display:flex;align-items:center;gap:8px;';
+  const icons = {search:'🔍', weather:'🌤', shell:'⚡'};
+  const icon = icons[data.tool] || '⚙';
+  banner.innerHTML = `<span style="animation:pulse-dot 1s infinite">${icon}</span><span>${data.label || 'Working...'}</span>`;
+  const msgs = document.getElementById('chat-messages');
+  if (msgs) msgs.appendChild(banner);
+  scrollChatBottom();
+});
+
+socket.on('tool_done', data => {
+  removeToolBanner();
+});
+
+socket.on('tool_result', data => {
+  removeToolBanner();
+  const wrap = document.createElement('div');
+  wrap.style.cssText = 'margin:4px 0;font-size:11px;';
+  wrap.innerHTML = `<div style="color:var(--gold2);margin-bottom:3px;">⚡ <code style="color:var(--gold)">$ ${data.cmd}</code></div>`
+    + `<pre style="background:var(--bg2);border:1px solid var(--border);padding:8px 12px;border-radius:3px;color:var(--success);white-space:pre-wrap;overflow-x:auto;max-height:200px;overflow-y:auto;">${escHTML(data.output || '')}</pre>`;
+  const msgs = document.getElementById('chat-messages');
+  if (msgs) msgs.appendChild(wrap);
+  scrollChatBottom();
+});
+
+function removeToolBanner() {
+  const b = document.getElementById('tool-banner');
+  if (b) b.remove();
+}
+
+function escHTML(s) {
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+// Council
+socket.on('council_start', data => {
+  showPanel('council');
+  const grid = document.getElementById('council-grid');
+  grid.innerHTML = '';
+  document.getElementById('synthesis-area').innerHTML = '';
+  (data.models || []).forEach(key => {
+    grid.appendChild(makeCouncilCard(key, 'thinking'));
+  });
+});
+
+socket.on('council_result', data => {
+  const card = document.getElementById('ccard-' + data.model);
+  if (card) {
+    card.className = 'council-card ' + data.status;
+    card.querySelector('.card-status').className = 'card-status ' + data.status;
+    card.querySelector('.card-status').textContent = data.status.toUpperCase();
+    card.querySelector('.card-body').textContent = data.response || '';
+    card.querySelector('.card-footer').textContent =
+      `${data.elapsed || 0}s · ${Math.round((data.response || '').split(' ').length)} tokens`;
+  }
+});
+
+socket.on('council_synthesis', data => {
+  const area = document.getElementById('synthesis-area');
+  area.innerHTML = `<div class="synthesis-box">
+    <div class="synthesis-text">${escHtml(data.response || '')}</div>
+    <div style="font-size:10px;color:var(--text2);margin-top:8px">${data.elapsed || 0}s — DIMASE NEXUS SYNTHESIS</div>
+  </div>`;
+  isStreaming = false;
+  document.getElementById('btn-send').disabled = false;
+  if (voiceEnabled) dimaseSpeak(data.response || '');
+});
+
+
+function sendChat() {
+  const input = document.getElementById('chat-input');
+  const msg = input.value.trim();
+  if (!msg || isStreaming) return;
+
+  addUserMessage(msg);
+  input.value = '';
+  isStreaming = true;
+  document.getElementById('btn-send').disabled = true;
+
+  if (councilMode) {
+    // Council response handled by events
+    addDiMaseMessage('Querying all models — responses arrive as each completes...', 'council-mode', true);
+  } else {
+    addDiMaseMessage('', 'dimase-nexus', true);  // Placeholder for streaming
+    streamBubble = null;  // Will be set by first chunk
+    // Reset so first chunk creates the bubble properly
+    const messages = document.getElementById('chat-messages');
+    const lastRow = messages.lastElementChild;
+    if (lastRow && lastRow.classList.contains('dimase')) {
+      lastRow.remove();  // Remove placeholder
+    }
+  }
+
+  socket.emit('chat_message', {
+    message: msg,
+    council_mode: councilMode,
+    conversation_id: convId,
+  });
+}
+
+function addUserMessage(text) {
+  const div = document.createElement('div');
+  div.className = 'msg-row user';
+  div.innerHTML = `
+    <div class="msg-avatar">D</div>
+    <div style="flex:1;min-width:0">
+      <div class="msg-bubble" style="position:relative">
+        <button class="msg-copy-btn" onclick="copyMsg(this)">⎘ COPY</button>
+        <span class="msg-body-text">${escHtml(text)}</span>
+      </div>
+      <div class="msg-meta">${new Date().toLocaleTimeString()}</div>
+    </div>`;
+  document.getElementById('chat-messages').appendChild(div);
+  scrollChatBottom();
+  return div;
+}
+
+function addDiMaseMessage(text, model, showCursor) {
+  const info = councilModelInfo(model);
+  const div = document.createElement('div');
+  div.className = 'msg-row dimase';
+  div.innerHTML = `
+    <div class="msg-avatar" style="color:${info.color}">${info.icon}</div>
+    <div style="flex:1;min-width:0">
+      <div class="msg-model-tag" style="color:${info.color}">${info.label}</div>
+      <div class="msg-bubble" style="position:relative">
+        <button class="msg-copy-btn" onclick="copyMsg(this)">⎘ COPY</button>
+        <span class="msg-body-text">${escHtml(text)}</span>
+        ${showCursor ? '<span class="cursor-blink"></span>' : ''}
+      </div>
+      <div class="msg-meta">${new Date().toLocaleTimeString()}</div>
+    </div>`;
+  document.getElementById('chat-messages').appendChild(div);
+  scrollChatBottom();
+  return div;
+}
+
+function copyMsg(btn) {
+  const bubble = btn.parentElement;
+  const textEl = bubble.querySelector('.msg-body-text');
+  const text = textEl ? textEl.textContent : bubble.innerText;
+  navigator.clipboard.writeText(text).then(() => {
+    btn.textContent = '✓ COPIED';
+    btn.classList.add('copied');
+    setTimeout(() => { btn.textContent = '⎘ COPY'; btn.classList.remove('copied'); }, 1500);
+  }).catch(() => {
+    // Fallback: select the text
+    const range = document.createRange();
+    range.selectNode(textEl || bubble);
+    window.getSelection().removeAllRanges();
+    window.getSelection().addRange(range);
+  });
+}
+
+function scrollChatBottom() {
+  const el = document.getElementById('chat-messages');
+  el.scrollTop = el.scrollHeight;
+}
+
+function toggleCouncil() {
+  councilMode = !councilMode;
+  const sw = document.getElementById('council-switch');
+  sw.classList.toggle('on', councilMode);
+  document.getElementById('council-label').textContent = councilMode ? 'COUNCIL ON' : 'COUNCIL';
+  toast(councilMode ? 'Council mode: ALL 6 MODELS active' : 'Council mode: OFF', 'info');
+}
+
+// Enter to send
+document.getElementById('chat-input').addEventListener('keydown', e => {
+  if (e.key === 'Enter' && !e.shiftKey) {
+    e.preventDefault();
+    sendChat();
+  }
+});
+
+// Auto-resize textarea
+document.getElementById('chat-input').addEventListener('input', function() {
+  this.style.height = 'auto';
+  this.style.height = Math.min(this.scrollHeight, 120) + 'px';
+});
+
+
+// ── Council Helpers ────────────────────────────────────────
+const MODEL_INFO = {
+  'dimase-nexus':          { label:'DIMASE NEXUS',  icon:'⬡', color:'#FFD700' },
+  'gpt-4o':              { label:'GPT-4o',       icon:'◈', color:'#10A37F' },
+  'mistral':             { label:'MISTRAL',      icon:'◆', color:'#FF6B35' },
+  'llama':               { label:'LLAMA 3.3',    icon:'◉', color:'#4A90D9' },
+  'gemini':              { label:'GEMINI',       icon:'◇', color:'#8B5CF6' },
+  'command-r':           { label:'COMMAND-R',    icon:'▸', color:'#C0C0C0' },
+  'deepseek':            { label:'DEEPSEEK R1',  icon:'⬢', color:'#00BFFF' },
+  'qwen-coder':          { label:'QWEN 2.5',     icon:'⊕', color:'#FF4500' },
+  'phi':                 { label:'PHI-4',        icon:'Φ', color:'#00BCF2' },
+  'grok':                { label:'GROK',         icon:'∞', color:'#FF0050' },
+  'searchgpt':           { label:'SEARCHGPT',    icon:'◎', color:'#20C997' },
+  'claude-hybridspace':  { label:'CLAUDE',       icon:'◑', color:'#A855F7' },
+  'learnlm':             { label:'LEARNLM',      icon:'◐', color:'#34D399' },
+};
+
+function councilModelInfo(key) {
+  return MODEL_INFO[key] || { label: key.toUpperCase(), icon:'◈', color:'var(--steel2)' };
+}
+
+function makeCouncilCard(key, status) {
+  const info = councilModelInfo(key);
+  const card = document.createElement('div');
+  card.className = 'council-card ' + status;
+  card.id = 'ccard-' + key;
+  card.style.setProperty('--card-color', info.color);
+  card.innerHTML = `
+    <div class="card-header">
+      <div class="card-icon" style="color:${info.color}">${info.icon}</div>
+      <div>
+        <div class="card-title" style="color:${info.color}">${info.label}</div>
+      </div>
+      <div class="card-status thinking">THINKING</div>
+    </div>
+    <div class="card-body"><span class="cursor-blink"></span></div>
+    <div class="card-footer">Waiting...</div>`;
+  return card;
+}
+
+
+// ── Terminal ───────────────────────────────────────────────
+let termTarget = 'server';
+const termHistory = [];
+let termHistIdx = -1;
+
+function setTermTarget(t) {
+  termTarget = t;
+  document.querySelectorAll('.term-tab').forEach((tab, i) => {
+    tab.classList.toggle('active', (i === 0 && t === 'server') || (i === 1 && t === 'local'));
+  });
+  const prompt = t === 'server' ? 'root@buyvm:~$' : `dimase@local:~$`;
+  document.getElementById('term-prompt').textContent = prompt;
+  document.getElementById('term-target').textContent =
+    t === 'server' ? 'TARGET: SERVER (BuyVM root@209.141.36.104)' : 'TARGET: LOCAL (dimase@localhost)';
+  termPrint(`Switched to ${t.toUpperCase()} terminal`, 'info');
+}
+
+function termPrint(text, cls) {
+  const out = document.getElementById('term-output');
+  const lines = (text || '').split('\n');
+  lines.forEach(line => {
+    const el = document.createElement('div');
+    el.className = 'term-line ' + (cls || '');
+    el.textContent = line;
+    out.appendChild(el);
+  });
+  out.scrollTop = out.scrollHeight;
+}
+
+document.getElementById('term-input').addEventListener('keydown', async function(e) {
+  if (e.key === 'Enter') {
+    const cmd = this.value.trim();
+    if (!cmd) return;
+    termHistory.unshift(cmd);
+    termHistIdx = -1;
+    this.value = '';
+    termPrint((termTarget === 'server' ? 'root@buyvm:~$ ' : 'dimase@local:~$ ') + cmd, 'cmd');
+
+    const url = termTarget === 'server' ? '/api/server/exec' : '/api/local/exec';
+    try {
+      const resp = await fetch(url, {
+        method: 'POST',
+        headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({command: cmd}),
+      });
+      const data = await resp.json();
+      if (data.stdout) termPrint(data.stdout);
+      if (data.stderr) termPrint(data.stderr, 'err');
+      if (!data.success && !data.stdout && !data.stderr)
+        termPrint('Command returned no output.', 'info');
+    } catch(err) {
+      termPrint('Error: ' + err.message, 'err');
+    }
+  }
+  // History
+  if (e.key === 'ArrowUp') {
+    e.preventDefault();
+    if (termHistIdx < termHistory.length - 1) {
+      termHistIdx++;
+      this.value = termHistory[termHistIdx];
+    }
+  }
+  if (e.key === 'ArrowDown') {
+    e.preventDefault();
+    if (termHistIdx > 0) {
+      termHistIdx--;
+      this.value = termHistory[termHistIdx];
+    } else {
+      termHistIdx = -1;
+      this.value = '';
+    }
+  }
+});
+
+
+// ── Docker ─────────────────────────────────────────────────
+async function loadContainers() {
+  const grid = document.getElementById('docker-grid');
+  grid.innerHTML = '<div style="color:var(--text2);font-size:12px;padding:20px;grid-column:1/-1">Loading containers...</div>';
+  try {
+    const resp = await fetch('/api/server/containers');
+    const containers = await resp.json();
+    if (!Array.isArray(containers) || containers.length === 0) {
+      grid.innerHTML = '<div style="color:var(--danger);font-size:12px;padding:20px;grid-column:1/-1">Unable to reach server or no containers found.</div>';
+      return;
+    }
+    grid.innerHTML = '';
+    containers.forEach(c => {
+      const isUp = (c.status || '').toLowerCase().startsWith('up');
+      const card = document.createElement('div');
+      card.className = 'container-card';
+      card.innerHTML = `
+        <div class="container-name">${escHtml(c.name || c.Names || '--')}</div>
+        <div class="container-status ${isUp ? 'up' : 'down'}">
+          ${isUp ? '▲ ' : '▼ '}${escHtml(c.status || c.Status || 'unknown')}
+        </div>
+        <div style="font-size:10px;color:var(--text2);margin-bottom:8px">${escHtml(c.image || c.Image || '')}</div>
+        <div class="container-actions">
+          <button class="btn-sm start"   onclick="containerAction('${escHtml(c.name)}','start')">START</button>
+          <button class="btn-sm stop"    onclick="containerAction('${escHtml(c.name)}','stop')">STOP</button>
+          <button class="btn-sm restart" onclick="containerAction('${escHtml(c.name)}','restart')">RESTART</button>
+          <button class="btn-sm logs"    onclick="containerLogs('${escHtml(c.name)}')">LOGS</button>
+        </div>`;
+      grid.appendChild(card);
+    });
+  } catch(err) {
+    grid.innerHTML = `<div style="color:var(--danger);font-size:12px;padding:20px;grid-column:1/-1">Error: ${err.message}</div>`;
+  }
+}
+
+async function containerAction(name, action) {
+  toast(`${action.toUpperCase()} ${name}...`, 'info');
+  const resp = await fetch(`/api/server/container/${encodeURIComponent(name)}/${action}`, {method:'POST'});
+  const data = await resp.json();
+  toast(data.success ? `${name} ${action} OK` : `${name} ${action} failed: ${data.stderr}`,
+        data.success ? 'success' : 'error');
+  setTimeout(loadContainers, 1500);
+}
+
+async function containerLogs(name) {
+  const resp = await fetch(`/api/server/container/${encodeURIComponent(name)}/logs`, {method:'POST'});
+  const data = await resp.json();
+  showPanel('terminal');
+  setTermTarget('server');
+  termPrint(`\n── LOGS: ${name} ──`, 'info');
+  termPrint(data.stdout || data.stderr || 'No output', data.stderr && !data.stdout ? 'err' : '');
+}
+
+
+// ── Ecosystem ──────────────────────────────────────────────
+async function loadServices() {
+  const grid = document.getElementById('eco-grid');
+  grid.innerHTML = '<div style="color:var(--text2);font-size:12px;padding:20px;grid-column:1/-1">Scanning all services...</div>';
+  try {
+    const resp = await fetch('/api/services');
+    const services = await resp.json();
+    grid.innerHTML = '';
+
+    const icons = {
+      'dimaseinc.org': '🌐',
+      'home.dimaseinc.org': '🏠',
+      'dtradingpost.dimaseinc.org': '🤝',
+      'locksmith.dimaseinc.org': '🔑',
+      'monitor.dimaseinc.org': '📡',
+      'files.dimaseinc.org': '📁',
+      'portainer.dimaseinc.org': '⬢',
+      'grafana.dimaseinc.org': '📊',
+    };
+
+    services.forEach(s => {
+      const card = document.createElement('a');
+      card.className = 'service-card';
+      card.href = s.url;
+      card.target = '_blank';
+      card.innerHTML = `
+        <div class="service-icon">${icons[s.name] || '⊕'}</div>
+        <div class="service-info">
+          <div class="service-name">${escHtml(s.name)}</div>
+          <div class="service-url">${s.latency_ms > 0 ? s.latency_ms + 'ms' : 'offline'}</div>
+        </div>
+        <div class="service-ping ${s.online ? 'ok' : 'bad'}">
+          ${s.online ? '● ONLINE' : '● OFFLINE'}
+        </div>`;
+      grid.appendChild(card);
+    });
+  } catch(err) {
+    grid.innerHTML = `<div style="color:var(--danger);font-size:12px;padding:20px;grid-column:1/-1">Scan error: ${err.message}</div>`;
+  }
+}
+
+
+// ── Models ─────────────────────────────────────────────────
+async function loadModels() {
+  const grid = document.getElementById('models-grid');
+  try {
+    const resp = await fetch('/api/models');
+    const models = await resp.json();
+    grid.innerHTML = '';
+    let online = 0;
+    models.forEach(m => {
+      const card = document.createElement('div');
+      card.className = 'model-card';
+      card.style.setProperty('--m-color', m.color || 'var(--steel)');
+      const status = m.status || 'unknown';
+      if (status === 'online') online++;
+      card.innerHTML = `
+        <div class="model-icon-lg" style="color:${m.color || 'var(--steel2)'}">${m.icon || '◈'}</div>
+        <div class="model-info">
+          <div class="model-name" style="color:${m.color || 'var(--steel2)'}">${escHtml(m.label || m.key)}</div>
+          <div class="model-desc">${escHtml(m.subtitle || '')}</div>
+        </div>
+        <div class="model-badge ${status}">${status.toUpperCase()}</div>`;
+      grid.appendChild(card);
+    });
+    document.getElementById('models-count').textContent = models.length;
+    const dot = document.getElementById('dot-models');
+    if (online === models.length)       dot.className = 'dot green';
+    else if (online >= models.length * 0.6) dot.className = 'dot gold';
+    else if (online > 0)                dot.className = 'dot steel';
+    else                                dot.className = 'dot dim';
+  } catch(err) {
+    grid.innerHTML = `<div style="font-size:12px;color:var(--danger);padding:20px">Error: ${err.message}</div>`;
+  }
+}
+
+async function pingModels() {
+  toast('Pinging all models — this takes ~60s (sequential to avoid rate limits)...', 'info');
+  await fetch('/api/models/ping', {method:'POST'});
+  // Poll every 10s up to 120s to catch models as they come in
+  let elapsed = 0;
+  const poll = setInterval(async () => {
+    elapsed += 10;
+    await loadModels();
+    if (elapsed >= 120) {
+      clearInterval(poll);
+      toast('Model ping complete', 'success');
+    }
+  }, 10000);
+}
+
+
+// ── Memory / Consciousness ─────────────────────────────────
+async function loadMemory() {
+  try {
+    const [consResp, memResp] = await Promise.all([
+      fetch('/api/consciousness'),
+      fetch('/api/memory'),
+    ]);
+    const cons = await consResp.json();
+    const mem  = await memResp.json();
+
+    // Identity
+    const id = cons.identity || {};
+    document.getElementById('identity-display').innerHTML = `
+      <b style="color:var(--gold)">${id.full_name || 'DIMASE'}</b> v${id.version || '?'}<br>
+      Owner: ${id.owner || '--'} | Ecosystem: ${id.ecosystem || '--'}<br>
+      Sessions: ${cons.total_sessions || 0} | Messages: ${cons.total_messages || 0}<br>
+      Session start: ${cons.session_start || '--'}<br>
+      <span style="color:var(--text2)">${id.personality || ''}</span>`;
+
+    // Goals
+    const goalsDiv = document.getElementById('goals-display');
+    goalsDiv.innerHTML = (cons.goals || []).map(g =>
+      `<div class="goal-item">
+        <div class="goal-status">${g.status === 'active' ? '◉' : '✓'}</div>
+        <div class="goal-text" style="color:${g.status === 'active' ? 'var(--text)' : 'var(--text2)'}">
+          ${escHtml(g.text)}
+        </div>
+      </div>`).join('');
+
+    // Thoughts
+    const thoughtsDiv = document.getElementById('thoughts-display');
+    thoughtsDiv.innerHTML = (cons.recent_thoughts || []).slice(-6).reverse().map(t =>
+      `<div class="thought-item">
+        ${escHtml(t.thought || '')}
+        <div class="thought-meta">${t.type || ''} · ${(t.timestamp || '').slice(11,19)} UTC</div>
+      </div>`).join('') || '<div style="color:var(--text2);font-size:11px">No thoughts yet — generating consciousness...</div>';
+
+    // Memory facts
+    const memDiv = document.getElementById('memory-display');
+    const facts = mem.facts || {};
+    const keys = Object.keys(facts);
+    if (keys.length === 0) {
+      memDiv.innerHTML = '<div style="color:var(--text2);font-size:11px">No stored memories yet.</div>';
+    } else {
+      memDiv.innerHTML = keys.map(k =>
+        `<div class="memory-item">
+          <div class="memory-key">${escHtml(k)}</div>
+          <div class="memory-value">${escHtml(String(facts[k]?.value || ''))}</div>
+        </div>`).join('');
+    }
+  } catch(err) {
+    console.error('Memory load error:', err);
+  }
+}
+
+
+// ── Settings / Self ─────────────────────────────────────────
+async function loadSelfStatus() {
+  try {
+    const resp = await fetch('/api/self/status');
+    const data = await resp.json();
+    document.getElementById('self-status-display').innerHTML = `
+      PID: <b style="color:var(--gold)">${data.pid}</b> |
+      Uptime: <b style="color:var(--gold)">${formatDuration(data.uptime_seconds)}</b> |
+      RAM: <b style="color:var(--gold)">${data.memory_mb} MB</b> |
+      CPU: <b style="color:var(--gold)">${data.cpu_percent}%</b> |
+      Threads: <b style="color:var(--gold)">${data.threads}</b><br>
+      Source: <span style="color:var(--text2)">${data.source_file}</span>`;
+  } catch(e) {}
+}
+
+async function selfRestart() {
+  if (!confirm('Restart DIMASE CONTROL?')) return;
+  toast('Restarting...', 'warning');
+  await fetch('/api/self/restart', {method:'POST'});
+  setTimeout(() => location.reload(), 2000);
+}
+
+
+// ── Toast Notifications ────────────────────────────────────
+function toast(msg, type) {
+  const colors = {
+    success: 'rgba(0,255,136,0.15)',
+    error:   'rgba(255,68,68,0.15)',
+    warning: 'rgba(255,165,0,0.15)',
+    info:    'rgba(0,191,255,0.12)',
+  };
+  const el = document.createElement('div');
+  el.className = 'toast-item';
+  el.style.borderColor = type === 'success' ? 'rgba(0,255,136,0.4)' :
+                         type === 'error'   ? 'rgba(255,68,68,0.4)' :
+                         type === 'warning' ? 'rgba(255,165,0,0.4)' :
+                         'var(--border)';
+  el.style.background = colors[type] || '';
+  el.textContent = msg;
+  document.getElementById('toast').appendChild(el);
+  setTimeout(() => el.remove(), 3500);
+}
+
+
+// ── Utilities ──────────────────────────────────────────────
+function escHtml(s) {
+  return String(s)
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;').replace(/'/g,'&#039;');
+}
+
+function formatDuration(s) {
+  s = Math.floor(s);
+  const h = Math.floor(s/3600), m = Math.floor((s%3600)/60), sec = s%60;
+  if (h > 0) return `${h}h ${m}m`;
+  if (m > 0) return `${m}m ${sec}s`;
+  return `${sec}s`;
+}
+
+
+// ── Docs (MD files in MIND panel) ──────────────────────────
+let _docContent = '';
+
+async function loadDocs() {
+  const list = document.getElementById('doc-list');
+  if (!list) return;
+  try {
+    const resp = await fetch('/api/docs');
+    const docs = await resp.json();
+    if (!docs.length) {
+      list.innerHTML = '<div style="color:var(--text2);font-size:11px">No documents found.</div>';
+      return;
+    }
+    list.innerHTML = '';
+    docs.forEach(doc => {
+      const item = document.createElement('div');
+      item.className = 'doc-item';
+      item.innerHTML = `
+        <span style="font-size:16px">📄</span>
+        <div class="doc-name">${escHtml(doc.name)}</div>
+        <div class="doc-meta">${doc.size_kb}KB · ${doc.modified.slice(0,10)}</div>
+        <button class="btn-sm logs" style="flex-shrink:0" onclick="openDoc('${escHtml(doc.name)}')">READ</button>`;
+      list.appendChild(item);
+    });
+  } catch(e) {
+    list.innerHTML = `<div style="color:var(--danger);font-size:11px">Error: ${e.message}</div>`;
+  }
+}
+
+async function openDoc(name) {
+  const viewer = document.getElementById('doc-viewer');
+  const pre    = document.getElementById('doc-viewer-content');
+  const title  = document.getElementById('doc-viewer-title');
+  pre.textContent = 'Loading...';
+  title.textContent = name.toUpperCase();
+  viewer.classList.add('open');
+  try {
+    const resp = await fetch(`/api/docs/${encodeURIComponent(name)}`);
+    const data = await resp.json();
+    _docContent = data.content || '';
+    pre.textContent = _docContent;
+  } catch(e) {
+    pre.textContent = 'Error loading: ' + e.message;
+  }
+}
+
+function closeDoc() {
+  document.getElementById('doc-viewer').classList.remove('open');
+  _docContent = '';
+}
+
+function copyDocContent() {
+  if (!_docContent) return;
+  navigator.clipboard.writeText(_docContent).then(() => {
+    toast('Document copied to clipboard', 'success');
+  });
+}
+
+// ── Backup ──────────────────────────────────────────────────
+async function runBackup() {
+  const resultsDiv = document.getElementById('backup-results');
+  resultsDiv.innerHTML = '<span style="color:var(--gold)">⟳ Syncing to server...</span>';
+  toast('Backing up to server...', 'info');
+  try {
+    const resp = await fetch('/api/backup', {method:'POST'});
+    const data = await resp.json();
+    const results = data.results || [];
+    resultsDiv.innerHTML = results.map(r =>
+      `<div class="${r.success ? 'backup-ok' : 'backup-err'}">${r.success ? '✓' : '✗'} ${escHtml(r.label)}</div>`
+    ).join('');
+    toast(`Backup: ${data.ok}/${data.total} items synced`, data.ok === data.total ? 'success' : 'warning');
+  } catch(e) {
+    resultsDiv.innerHTML = `<div class="backup-err">✗ Backup failed: ${e.message}</div>`;
+    toast('Backup failed: ' + e.message, 'error');
+  }
+}
+
+// ── Init ───────────────────────────────────────────────────
+(async function init() {
+  try {
+    const resp = await fetch('/api/status');
+    const data = await resp.json();
+    const cons = data.consciousness || {};
+    document.getElementById('foot-sessions').textContent =
+      `SESSIONS: ${cons.total_sessions || 0}`;
+    document.getElementById('models-count').textContent =
+      (data.models || []).length;
+    loadModels();
+  } catch(e) {}
+})();
+
+
+// ══════════════════════════════════════════════════════
+// FLIPPER ZERO PANEL
+// ══════════════════════════════════════════════════════
+let flipWS = null;
+
+function flipperConnect() {
+  const url = document.getElementById('flip-url').value.trim() || 'ws://localhost:8765';
+  flipperDisconnect();
+  try {
+    flipWS = new WebSocket(url);
+    flipWS.onopen = () => {
+      document.getElementById('flip-dot').className = 'dot green';
+      document.getElementById('flip-status-msg').textContent = 'Connected to DiMaseFlipper bridge: ' + url;
+      toast('Flipper Zero connected', 'success');
+    };
+    flipWS.onmessage = (e) => {
+      const out = document.getElementById('flip-cli-out');
+      out.textContent += '\n' + e.data;
+      out.scrollTop = out.scrollHeight;
+    };
+    flipWS.onclose = () => {
+      document.getElementById('flip-dot').className = 'dot red';
+      document.getElementById('flip-status-msg').textContent = 'Disconnected from bridge.';
+      flipWS = null;
+    };
+    flipWS.onerror = () => {
+      document.getElementById('flip-status-msg').textContent = 'Connection failed. Check DiMaseFlipper app is running.';
+      toast('Flipper connect failed', 'warning');
+    };
+  } catch(e) {
+    toast('Invalid WebSocket URL', 'warning');
+  }
+}
+
+function flipperDisconnect() {
+  if (flipWS) { flipWS.close(); flipWS = null; }
+}
+
+function flipSend(cmd) {
+  if (!flipWS || flipWS.readyState !== WebSocket.OPEN) {
+    toast('Flipper not connected — click CONNECT first', 'warning');
+    const out = document.getElementById('flip-cli-out');
+    out.textContent += '\n[CMD queued locally — bridge not connected] ' + cmd;
+    return;
+  }
+  flipWS.send(JSON.stringify({ cmd }));
+  const out = document.getElementById('flip-cli-out');
+  out.textContent += '\n> ' + cmd;
+  out.scrollTop = out.scrollHeight;
+}
+
+function flipCLI() {
+  const val = document.getElementById('flip-cli-in').value.trim();
+  if (!val) return;
+  flipSend('cli:' + val);
+  document.getElementById('flip-cli-in').value = '';
+}
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'Enter' && document.activeElement === document.getElementById('flip-cli-in')) flipCLI();
+});
+
+
+// ══════════════════════════════════════════════════════
+// DEVICES PANEL
+// ══════════════════════════════════════════════════════
+async function loadDevices() {
+  loadUSBDevices();
+  loadBTDevices();
+  loadNetDevices();
+  loadDockerSummary();
+  loadEcoSummary();
+}
+
+async function loadUSBDevices() {
+  const el = document.getElementById('dev-usb');
+  el.textContent = 'Scanning USB...';
+  try {
+    const r = await fetch('/api/local/exec', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ command: 'lsusb 2>/dev/null || echo "lsusb not available"', timeout: 10 })
+    });
+    const d = await r.json();
+    const lines = (d.stdout || d.stderr || 'No output').trim().split('\n').filter(Boolean);
+    el.innerHTML = lines.map(l => `<div style="padding:3px 0;border-bottom:1px solid var(--border2);font-size:11px">${l}</div>`).join('') || '<div style="color:var(--text2)">No USB devices found</div>';
+  } catch(e) { el.textContent = 'Error: ' + e.message; }
+}
+
+async function loadBTDevices() {
+  const el = document.getElementById('dev-bt');
+  el.textContent = 'Scanning Bluetooth...';
+  try {
+    const r = await fetch('/api/local/exec', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ command: 'bluetoothctl devices 2>/dev/null || echo "Bluetooth not available"', timeout: 10 })
+    });
+    const d = await r.json();
+    const out = (d.stdout || d.stderr || '').trim();
+    const lines = out.split('\n').filter(Boolean);
+    if (!lines.length || out.includes('not available')) {
+      el.innerHTML = '<div style="color:var(--text2)">No Bluetooth devices paired</div>';
+    } else {
+      el.innerHTML = lines.map(l => `<div style="padding:3px 0;border-bottom:1px solid var(--border2);font-size:11px">${l}</div>`).join('');
+    }
+  } catch(e) { el.textContent = 'Error: ' + e.message; }
+}
+
+async function loadNetDevices() {
+  const el = document.getElementById('dev-net');
+  el.textContent = 'Scanning LAN (ARP table)...';
+  try {
+    const r = await fetch('/api/local/exec', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ command: 'arp -n 2>/dev/null | grep -v incomplete | tail -20', timeout: 10 })
+    });
+    const d = await r.json();
+    const lines = (d.stdout || '').trim().split('\n').filter(l => l && !l.startsWith('Address'));
+    if (!lines.length) {
+      el.innerHTML = '<div style="color:var(--text2)">No ARP entries found</div>';
+    } else {
+      el.innerHTML = `<table style="width:100%;font-size:11px;border-collapse:collapse">
+        <tr style="color:var(--gold2);font-size:10px"><td style="padding:2px 6px">IP</td><td>MAC</td><td>IFACE</td></tr>
+        ${lines.map(l => { const p=l.trim().split(/\s+/); return `<tr style="border-top:1px solid var(--border2)"><td style="padding:3px 6px">${p[0]||''}</td><td>${p[2]||''}</td><td>${p[4]||''}</td></tr>`; }).join('')}
+      </table>`;
+    }
+  } catch(e) { el.textContent = 'Error: ' + e.message; }
+}
+
+async function loadDockerSummary() {
+  const el = document.getElementById('dev-docker-summary');
+  el.textContent = 'Loading containers...';
+  try {
+    const r = await fetch('/api/server/containers');
+    const containers = await r.json();
+    if (!Array.isArray(containers) || !containers.length) {
+      el.textContent = 'No containers found';
+      return;
+    }
+    const running = containers.filter(c => c.status && c.status.startsWith('Up'));
+    el.innerHTML = `<div style="margin-bottom:6px"><span style="color:var(--success)">${running.length} running</span> / ${containers.length} total</div>` +
+      containers.slice(0, 8).map(c => {
+        const up = c.status && c.status.startsWith('Up');
+        return `<div style="font-size:11px;padding:2px 0;border-bottom:1px solid var(--border2)">
+          <span style="color:${up?'var(--success)':'var(--danger)'}">${up?'▲':'▼'}</span>
+          <span style="color:var(--gold2)">${c.name||'?'}</span>
+          <span style="color:var(--text2);margin-left:8px;font-size:10px">${(c.status||'').split(' ').slice(0,3).join(' ')}</span>
+        </div>`;
+      }).join('');
+  } catch(e) { el.textContent = 'Error: ' + e.message; }
+}
+
+async function loadEcoSummary() {
+  const el = document.getElementById('dev-eco-summary');
+  el.textContent = 'Checking services...';
+  try {
+    const r = await fetch('/api/services');
+    const services = await r.json();
+    if (!Array.isArray(services) || !services.length) {
+      el.textContent = 'No services';
+      return;
+    }
+    const up = services.filter(s => s.online);
+    el.innerHTML = `<div style="margin-bottom:6px"><span style="color:var(--success)">${up.length} online</span> / ${services.length} total</div>` +
+      services.map(s => `<div style="font-size:11px;padding:2px 0;border-bottom:1px solid var(--border2)">
+        <span style="color:${s.online?'var(--success)':'var(--danger)'}">${s.online?'✅':'❌'}</span>
+        <span style="color:var(--gold2);margin-left:4px">${s.name||'?'}</span>
+        ${s.latency_ms ? `<span style="color:var(--text2);margin-left:8px;font-size:10px">${s.latency_ms}ms</span>` : ''}
+      </div>`).join('');
+  } catch(e) { el.textContent = 'Error: ' + e.message; }
+}
+
+</script>
+</body>
+</html>

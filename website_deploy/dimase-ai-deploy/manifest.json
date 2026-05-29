@@ -1,0 +1,19 @@
+{
+  "name": "DiMase Deploy",
+  "short_name": "DiMase Deploy",
+  "description": "USB Diagnostic Agent powered by DiMase AI — diagnose and fix device issues",
+  "start_url": "/dimase-ai-deploy/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0a0a0a",
+  "theme_color": "#d4af37",
+  "icons": [
+    {
+      "src": "/DiMase-AI-Logo.png",
+      "sizes": "256x256",
+      "type": "image/png"
+    }
+  ],
+  "categories": ["utilities", "productivity"],
+  "lang": "en"
+}

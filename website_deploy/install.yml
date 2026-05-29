@@ -1,0 +1,131 @@
+# Dimase Inc Website - Installation & Deployment Configuration
+# ============================================================
+# This file documents the complete system setup for the dimaseinc.org website
+
+project:
+  name: dimaseinc-website
+  domain: dimaseinc.org
+  type: static-website
+  hosting: cloudflare-workers
+
+# Prerequisites
+requirements:
+  - name: Node.js
+    version: ">=18.0.0"
+    install:
+      ubuntu: "curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash - && sudo apt-get install -y nodejs"
+      macos: "brew install node"
+      windows: "winget install OpenJS.NodeJS.LTS"
+
+  - name: Wrangler CLI
+    version: ">=4.0.0"
+    install: "npm install -g wrangler"
+
+  - name: Git
+    install:
+      ubuntu: "sudo apt-get install git"
+      macos: "brew install git"
+
+# Cloudflare Configuration
+cloudflare:
+  account_id: "7f31d839e01ef85781465f816b10c541"
+  worker_name: dimaseinc-website
+  routes:
+    - pattern: "dimaseinc.org/*"
+      zone: dimaseinc.org
+    - pattern: "www.dimaseinc.org/*"
+      zone: dimaseinc.org
+  workers_dev: true
+  workers_dev_url: "https://dimaseinc-website.mrcdimase.workers.dev"
+
+# Project Structure
+structure:
+  /index.html: "Main landing page"
+  /css/style.css: "Stylesheet"
+  /js/main.js: "JavaScript functionality"
+  /images/: "Image assets directory"
+  /wrangler.jsonc: "Cloudflare Workers configuration"
+  /.assetsignore: "Files to exclude from deployment"
+  /.github/workflows/deploy.yml: "CI/CD pipeline"
+
+# Installation Steps
+installation:
+  steps:
+    - name: "Clone or create project"
+      commands:
+        - "git clone <repository-url> dimaseinc-website"
+        - "cd dimaseinc-website"
+
+    - name: "Authenticate with Cloudflare"
+      commands:
+        - "npx wrangler login"
+      notes: "Opens browser for OAuth authentication"
+
+    - name: "Deploy to Cloudflare"
+      commands:
+        - "npx wrangler deploy"
+
+# Environment Variables (for CI/CD)
+secrets:
+  CLOUDFLARE_API_TOKEN:
+    description: "API token with Workers edit permissions"
+    how_to_create: |
+      1. Go to https://dash.cloudflare.com/profile/api-tokens
+      2. Create Token -> Edit Cloudflare Workers template
+      3. Set Account Resources: Include -> Your Account
+      4. Set Zone Resources: Include -> All zones (or specific zone)
+      5. Copy token and add to GitHub secrets
+
+  CLOUDFLARE_ACCOUNT_ID:
+    description: "Your Cloudflare account ID"
+    value: "7f31d839e01ef85781465f816b10c541"
+
+# Local Development
+development:
+  start_server:
+    command: "npx wrangler dev"
+    url: "http://localhost:8787"
+
+  preview:
+    command: "python3 -m http.server 8080"
+    url: "http://localhost:8080"
+
+# Deployment Commands
+deployment:
+  manual:
+    command: "npx wrangler deploy"
+    description: "Deploy current directory to Cloudflare Workers"
+
+  dry_run:
+    command: "npx wrangler deploy --dry-run"
+    description: "Validate deployment without actually deploying"
+
+  logs:
+    command: "npx wrangler tail"
+    description: "Stream live logs from the worker"
+
+# DNS Configuration (already configured)
+dns:
+  provider: cloudflare
+  records:
+    - type: AAAA
+      name: "@"
+      content: "100::"
+      proxied: true
+    - type: AAAA
+      name: "www"
+      content: "100::"
+      proxied: true
+
+# Maintenance
+maintenance:
+  update_content:
+    steps:
+      - "Edit files in project directory"
+      - "npx wrangler deploy"
+
+  check_status:
+    command: "curl -I https://dimaseinc.org"
+
+  view_analytics:
+    url: "https://dash.cloudflare.com/?to=/:account/workers/services/view/dimaseinc-website/production"

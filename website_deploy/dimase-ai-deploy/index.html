@@ -1,0 +1,1136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+  <meta http-equiv="Pragma" content="no-cache" />
+  <meta http-equiv="Expires" content="0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>DiMase Deploy — USB Diagnostic Agent</title>
+  <link rel="manifest" href="/dimase-deploy/manifest.json" />
+  <meta name="theme-color" content="#d4af37" />
+  <style>
+    :root {
+      --bg: #0a0a0a;
+      --bg2: #111111;
+      --bg3: #1a1a1a;
+      --gold: #d4af37;
+      --gold-dim: #a07c20;
+      --gold-glow: rgba(212,175,55,0.15);
+      --green: #00ff88;
+      --red: #ff4444;
+      --text: #e0e0e0;
+      --text-dim: #888;
+      --mono: 'Courier New', Courier, monospace;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      max-width: 480px;
+      margin: 0 auto;
+    }
+
+    /* ── HEADER ── */
+    header {
+      background: linear-gradient(135deg, #0a0a0a 0%, #1a1200 100%);
+      border-bottom: 2px solid var(--gold);
+      padding: 14px 16px;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .header-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .brand {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .brand-title {
+      font-size: 1.4rem;
+      font-weight: 900;
+      color: var(--gold);
+      letter-spacing: 2px;
+      text-transform: uppercase;
+    }
+
+    .brand-sub {
+      font-size: 0.65rem;
+      color: var(--text-dim);
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      margin-top: 1px;
+    }
+
+    .status-badge {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      background: rgba(0,255,136,0.08);
+      border: 1px solid rgba(0,255,136,0.3);
+      border-radius: 20px;
+      padding: 5px 12px;
+    }
+
+    .status-dot {
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      background: var(--green);
+      animation: pulse 1.8s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(0,255,136,0.5); }
+      50% { opacity: 0.7; box-shadow: 0 0 0 5px rgba(0,255,136,0); }
+    }
+
+    .status-text {
+      font-size: 0.7rem;
+      font-weight: 700;
+      color: var(--green);
+      letter-spacing: 1.5px;
+    }
+
+    /* ── TABS ── */
+    nav.tabs {
+      background: var(--bg2);
+      border-bottom: 1px solid #222;
+      display: flex;
+      overflow-x: auto;
+      scrollbar-width: none;
+    }
+    nav.tabs::-webkit-scrollbar { display: none; }
+
+    .tab-btn {
+      flex: 1;
+      min-width: 64px;
+      padding: 10px 4px;
+      background: none;
+      border: none;
+      color: var(--text-dim);
+      font-size: 0.62rem;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 3px;
+      border-bottom: 2px solid transparent;
+      transition: all 0.2s;
+      white-space: nowrap;
+    }
+
+    .tab-btn .tab-icon { font-size: 1.2rem; }
+
+    .tab-btn.active {
+      color: var(--gold);
+      border-bottom-color: var(--gold);
+      background: var(--gold-glow);
+    }
+
+    .tab-btn:hover:not(.active) {
+      color: var(--text);
+      background: rgba(255,255,255,0.03);
+    }
+
+    /* ── CONTENT PANELS ── */
+    main { flex: 1; overflow-y: auto; }
+
+    .panel {
+      display: none;
+      padding: 16px;
+      animation: fadeIn 0.25s ease;
+    }
+    .panel.active { display: block; }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ── SHARED COMPONENTS ── */
+    .section-title {
+      font-size: 0.7rem;
+      font-weight: 700;
+      color: var(--gold);
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      margin-bottom: 12px;
+      padding-bottom: 6px;
+      border-bottom: 1px solid #1e1e1e;
+    }
+
+    .card {
+      background: var(--bg2);
+      border: 1px solid #222;
+      border-radius: 10px;
+      padding: 14px;
+      margin-bottom: 12px;
+    }
+
+    .card:hover { border-color: #333; }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      padding: 10px 18px;
+      border-radius: 8px;
+      border: none;
+      font-size: 0.85rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .btn-gold {
+      background: var(--gold);
+      color: #000;
+    }
+    .btn-gold:hover { background: #e8c547; transform: translateY(-1px); box-shadow: 0 4px 16px rgba(212,175,55,0.3); }
+    .btn-gold:active { transform: translateY(0); }
+
+    .btn-outline {
+      background: transparent;
+      color: var(--gold);
+      border: 1px solid var(--gold);
+    }
+    .btn-outline:hover { background: var(--gold-glow); }
+
+    .btn-sm {
+      padding: 7px 14px;
+      font-size: 0.75rem;
+    }
+
+    .btn-block { width: 100%; }
+
+    .terminal-box {
+      background: #050505;
+      border: 1px solid #1e1e1e;
+      border-radius: 8px;
+      padding: 12px;
+      font-family: var(--mono);
+      font-size: 0.78rem;
+      color: #aaa;
+      max-height: 300px;
+      overflow-y: auto;
+      line-height: 1.6;
+      white-space: pre-wrap;
+      word-break: break-all;
+    }
+
+    .terminal-box .t-gold { color: var(--gold); }
+    .terminal-box .t-green { color: var(--green); }
+    .terminal-box .t-red { color: var(--red); }
+    .terminal-box .t-dim { color: #555; }
+
+    /* ── DEPLOY PANEL ── */
+    .connect-banner {
+      background: linear-gradient(135deg, #0d1a00 0%, #0a0a0a 100%);
+      border: 1px solid rgba(0,255,136,0.25);
+      border-radius: 10px;
+      padding: 16px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    .connect-icon { font-size: 2rem; }
+
+    .connect-info { flex: 1; }
+    .connect-info h3 { font-size: 0.9rem; color: var(--green); margin-bottom: 3px; }
+    .connect-info p { font-size: 0.7rem; color: var(--text-dim); }
+
+    .device-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+
+    .device-item {
+      background: var(--bg3);
+      border: 1px solid #1e1e1e;
+      border-radius: 8px;
+      padding: 10px;
+    }
+
+    .device-item label {
+      display: block;
+      font-size: 0.6rem;
+      color: var(--text-dim);
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      margin-bottom: 4px;
+    }
+
+    .device-item .value {
+      font-family: var(--mono);
+      font-size: 0.75rem;
+      color: var(--gold);
+      word-break: break-word;
+    }
+
+    .begin-btn {
+      padding: 16px;
+      font-size: 1rem;
+      letter-spacing: 2px;
+      margin-top: 4px;
+    }
+
+    /* ── AI TERMINAL PANEL ── */
+    .chat-container {
+      display: flex;
+      flex-direction: column;
+      height: calc(100vh - 160px);
+    }
+
+    .quick-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-bottom: 10px;
+    }
+
+    .quick-btn {
+      background: var(--bg3);
+      border: 1px solid #2a2a2a;
+      border-radius: 20px;
+      color: var(--text-dim);
+      font-size: 0.65rem;
+      padding: 5px 10px;
+      cursor: pointer;
+      transition: all 0.2s;
+      white-space: nowrap;
+    }
+    .quick-btn:hover { border-color: var(--gold); color: var(--gold); background: var(--gold-glow); }
+
+    .chat-messages {
+      flex: 1;
+      overflow-y: auto;
+      background: #050505;
+      border: 1px solid #1e1e1e;
+      border-radius: 8px;
+      padding: 12px;
+      margin-bottom: 10px;
+      font-family: var(--mono);
+      font-size: 0.78rem;
+      line-height: 1.7;
+      min-height: 200px;
+    }
+
+    .msg { margin-bottom: 12px; }
+
+    .msg-you {
+      color: var(--gold);
+    }
+    .msg-you::before { content: '> '; color: var(--gold-dim); }
+
+    .msg-ai { color: #ccc; }
+    .msg-ai::before { content: 'DIMASE ⚡ '; color: var(--gold); font-weight: bold; }
+
+    .msg-system { color: #555; font-style: italic; }
+    .msg-system::before { content: '[SYS] '; }
+
+    .msg-error { color: var(--red); }
+    .msg-error::before { content: '[ERR] '; }
+
+    .typing-indicator {
+      display: none;
+      color: var(--gold-dim);
+      font-family: var(--mono);
+      font-size: 0.78rem;
+    }
+    .typing-indicator.visible { display: block; }
+    .typing-indicator::after {
+      content: '▋';
+      animation: blink 0.8s step-end infinite;
+    }
+    @keyframes blink { 50% { opacity: 0; } }
+
+    .chat-input-row {
+      display: flex;
+      gap: 8px;
+    }
+
+    .chat-input {
+      flex: 1;
+      background: var(--bg3);
+      border: 1px solid #2a2a2a;
+      border-radius: 8px;
+      color: var(--text);
+      font-family: var(--mono);
+      font-size: 0.82rem;
+      padding: 10px 12px;
+      outline: none;
+      transition: border-color 0.2s;
+      resize: none;
+      height: 44px;
+    }
+    .chat-input:focus { border-color: var(--gold); }
+
+    .send-btn {
+      background: var(--gold);
+      border: none;
+      border-radius: 8px;
+      color: #000;
+      font-size: 1.2rem;
+      width: 44px;
+      cursor: pointer;
+      transition: all 0.2s;
+      flex-shrink: 0;
+    }
+    .send-btn:hover { background: #e8c547; }
+    .send-btn:active { transform: scale(0.95); }
+
+    /* ── SCAN PANEL ── */
+    .scan-controls {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 14px;
+    }
+
+    .scan-output {
+      margin-bottom: 12px;
+    }
+
+    .progress-bar-wrap {
+      background: #1a1a1a;
+      border-radius: 4px;
+      height: 4px;
+      overflow: hidden;
+      margin-bottom: 2px;
+    }
+
+    .progress-bar {
+      height: 100%;
+      background: var(--gold);
+      border-radius: 4px;
+      transition: width 0.5s ease;
+      width: 0%;
+    }
+
+    /* ── TOOLS PANEL ── */
+    .tool-card {
+      background: var(--bg2);
+      border: 1px solid #222;
+      border-radius: 10px;
+      padding: 14px;
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .tool-icon { font-size: 1.8rem; flex-shrink: 0; }
+
+    .tool-info { flex: 1; }
+    .tool-info h3 { font-size: 0.9rem; color: var(--text); margin-bottom: 3px; }
+    .tool-info p { font-size: 0.72rem; color: var(--text-dim); line-height: 1.4; }
+
+    /* ── LOGS PANEL ── */
+    .log-controls {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+
+    .log-output {
+      background: #050505;
+      border: 1px solid #1e1e1e;
+      border-radius: 8px;
+      padding: 12px;
+      font-family: var(--mono);
+      font-size: 0.72rem;
+      color: #888;
+      max-height: calc(100vh - 260px);
+      overflow-y: auto;
+      line-height: 1.7;
+    }
+
+    .log-entry { margin-bottom: 8px; border-bottom: 1px solid #111; padding-bottom: 8px; }
+    .log-ts { color: #444; font-size: 0.65rem; margin-bottom: 2px; }
+    .log-type-ai { color: var(--gold); }
+    .log-type-scan { color: #4af; }
+    .log-type-sys { color: #888; }
+
+    /* ── SCROLLBARS ── */
+    ::-webkit-scrollbar { width: 4px; height: 4px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: #333; border-radius: 2px; }
+    ::-webkit-scrollbar-thumb:hover { background: #555; }
+
+    /* ── UTILITY ── */
+    .mt-8 { margin-top: 8px; }
+    .mt-12 { margin-top: 12px; }
+    .text-dim { color: var(--text-dim); font-size: 0.78rem; }
+    .text-gold { color: var(--gold); }
+    .flex-row { display: flex; gap: 8px; align-items: center; }
+    .badge {
+      display: inline-block;
+      font-size: 0.6rem;
+      font-weight: 700;
+      padding: 2px 7px;
+      border-radius: 10px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    .badge-green { background: rgba(0,255,136,0.12); color: var(--green); border: 1px solid rgba(0,255,136,0.3); }
+    .badge-gold { background: var(--gold-glow); color: var(--gold); border: 1px solid rgba(212,175,55,0.3); }
+  </style>
+</head>
+<body>
+
+<!-- ── HEADER ── -->
+<header>
+  <div class="header-top">
+    <div class="brand">
+      <div class="brand-title">⚡ DIMASE DEPLOY</div>
+      <div class="brand-sub">USB Diagnostic Agent</div>
+    </div>
+    <div class="status-badge">
+      <div class="status-dot"></div>
+      <span class="status-text">CONNECTED</span>
+    </div>
+  </div>
+</header>
+
+<!-- ── TABS ── -->
+<nav class="tabs" role="tablist">
+  <button class="tab-btn active" onclick="showTab('deploy')" id="tab-deploy">
+    <span class="tab-icon">🔌</span>Deploy
+  </button>
+  <button class="tab-btn" onclick="showTab('ai')" id="tab-ai">
+    <span class="tab-icon">🤖</span>AI Terminal
+  </button>
+  <button class="tab-btn" onclick="showTab('scan')" id="tab-scan">
+    <span class="tab-icon">🔍</span>System Scan
+  </button>
+  <button class="tab-btn" onclick="showTab('tools')" id="tab-tools">
+    <span class="tab-icon">🛠️</span>Deploy Tools
+  </button>
+  <button class="tab-btn" onclick="showTab('logs')" id="tab-logs">
+    <span class="tab-icon">📋</span>Logs
+  </button>
+</nav>
+
+<main>
+
+  <!-- ═══════════════════════════════════════ DEPLOY ═══ -->
+  <div class="panel active" id="panel-deploy">
+
+    <div class="connect-banner">
+      <div class="connect-icon">📱</div>
+      <div class="connect-info">
+        <h3>Device Connected via USB</h3>
+        <p>DiMase Deploy is active and ready to diagnose</p>
+      </div>
+      <span class="badge badge-green">LIVE</span>
+    </div>
+
+    <p class="section-title">Device Intelligence</p>
+
+    <div class="device-grid" id="device-grid">
+      <!-- populated by JS -->
+    </div>
+
+    <p class="section-title">Battery Status</p>
+    <div class="card" id="battery-card">
+      <p class="text-dim" style="font-family:var(--mono); font-size:0.78rem;" id="battery-info">Checking battery...</p>
+    </div>
+
+    <button class="btn btn-gold btn-block begin-btn" onclick="beginDiagnosis()">
+      ⚡ Begin Diagnosis
+    </button>
+
+    <p class="text-dim mt-8" style="text-align:center; font-size:0.68rem;">
+      Device info will be sent to DiMase AI for analysis
+    </p>
+  </div>
+
+  <!-- ═══════════════════════════════════════ AI TERMINAL ═══ -->
+  <div class="panel" id="panel-ai">
+
+    <p class="section-title">Quick Actions</p>
+
+    <div class="quick-actions">
+      <button class="quick-btn" onclick="quickAction('Diagnose why this device is running slow. Analyze performance bottlenecks step by step.')">🐢 Slow Performance</button>
+      <button class="quick-btn" onclick="quickAction('Help me fix network connectivity issues on this device. Walk me through diagnosis and fixes.')">📡 Fix Network</button>
+      <button class="quick-btn" onclick="quickAction('Check this device for potential malware, suspicious processes, and security threats.')">🦠 Check Malware</button>
+      <button class="quick-btn" onclick="quickAction('Guide me through optimizing and cleaning storage on this device to free up space.')">💾 Optimize Storage</button>
+      <button class="quick-btn" onclick="quickAction('Help me diagnose and repair boot issues on this device. Walk through recovery steps.')">🔧 Repair Boot</button>
+      <button class="quick-btn" onclick="quickAction('Help me identify and fix driver problems causing issues on this device.')">⚙️ Update Drivers</button>
+    </div>
+
+    <div class="chat-container">
+      <div class="chat-messages" id="chat-messages">
+        <div class="msg msg-system">DiMase Deploy AI Terminal initialized</div>
+        <div class="msg msg-system">System context loaded — USB diagnostic mode active</div>
+        <div class="msg msg-system">Type a message or use quick actions above</div>
+      </div>
+      <div class="typing-indicator" id="typing-indicator">DIMASE is analyzing</div>
+      <div class="chat-input-row">
+        <textarea class="chat-input" id="chat-input" placeholder="Describe your issue..." onkeydown="handleChatKey(event)" rows="1"></textarea>
+        <button class="send-btn" onclick="sendChat()">➤</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════ SYSTEM SCAN ═══ -->
+  <div class="panel" id="panel-scan">
+
+    <p class="section-title">System Scan</p>
+
+    <div class="scan-controls">
+      <button class="btn btn-gold btn-sm" onclick="runFullScan()">▶ Run Scan</button>
+      <button class="btn btn-outline btn-sm" onclick="sendScanToAI()">📤 Send to AI</button>
+      <button class="btn btn-outline btn-sm" onclick="clearScan()">✕ Clear</button>
+    </div>
+
+    <div class="progress-bar-wrap"><div class="progress-bar" id="scan-progress"></div></div>
+    <p class="text-dim mt-8" id="scan-status" style="font-size:0.68rem; margin-bottom:8px;">Ready to scan</p>
+
+    <div class="terminal-box scan-output" id="scan-output" style="min-height:200px;">
+<span class="t-dim">// Press "Run Scan" to collect system information</span>
+    </div>
+
+    <button class="btn btn-outline btn-sm btn-block mt-12" onclick="runSpeedTest()">🌐 Run Speed Test</button>
+  </div>
+
+  <!-- ═══════════════════════════════════════ DEPLOY TOOLS ═══ -->
+  <div class="panel" id="panel-tools">
+
+    <p class="section-title">Diagnostic Tools</p>
+
+    <div class="tool-card">
+      <div class="tool-icon">📡</div>
+      <div class="tool-info">
+        <h3>Network Reset Guide</h3>
+        <p>AI walks through full network stack diagnosis and reset procedures</p>
+      </div>
+      <button class="btn btn-outline btn-sm" onclick="launchTool('Walk me through a complete network troubleshooting guide. Cover DNS, adapters, drivers, TCP/IP stack reset, and connectivity tests step by step.')">Launch</button>
+    </div>
+
+    <div class="tool-card">
+      <div class="tool-icon">💾</div>
+      <div class="tool-info">
+        <h3>Storage Cleanup Guide</h3>
+        <p>AI guides through disk cleanup, temp files, and storage optimization</p>
+      </div>
+      <button class="btn btn-outline btn-sm" onclick="launchTool('Guide me step by step through cleaning and optimizing storage on this device. Cover temp files, cache, duplicate files, large file hunting, and system cleanup tools.')">Launch</button>
+    </div>
+
+    <div class="tool-card">
+      <div class="tool-icon">🚀</div>
+      <div class="tool-info">
+        <h3>Performance Boost</h3>
+        <p>AI diagnoses slow system and provides targeted optimizations</p>
+      </div>
+      <button class="btn btn-outline btn-sm" onclick="launchTool('Diagnose and fix slow system performance. Ask me about symptoms, then guide through: startup programs, background services, RAM usage, disk health, thermal throttling, and performance settings.')">Launch</button>
+    </div>
+
+    <div class="tool-card">
+      <div class="tool-icon">🔒</div>
+      <div class="tool-info">
+        <h3>Security Scan</h3>
+        <p>AI checks for suspicious activity, malware, and security vulnerabilities</p>
+      </div>
+      <button class="btn btn-outline btn-sm" onclick="launchTool('Run a comprehensive security analysis. Ask about symptoms, then guide through: checking running processes, startup entries, network connections, installed programs, browser extensions, and known malware indicators.')">Launch</button>
+    </div>
+
+    <div class="tool-card">
+      <div class="tool-icon">⚙️</div>
+      <div class="tool-info">
+        <h3>Driver Issues</h3>
+        <p>AI helps identify and fix device driver problems</p>
+      </div>
+      <button class="btn btn-outline btn-sm" onclick="launchTool('Help me identify and fix driver problems on this device. Guide through Device Manager checks, driver updates, rollbacks, and common driver conflict resolutions.')">Launch</button>
+    </div>
+
+    <div class="tool-card">
+      <div class="tool-icon">🔧</div>
+      <div class="tool-info">
+        <h3>Boot Problems</h3>
+        <p>AI guides through boot repair, safe mode, and recovery procedures</p>
+      </div>
+      <button class="btn btn-outline btn-sm" onclick="launchTool('Guide me through diagnosing and repairing boot problems. Cover: BIOS/UEFI checks, bootloader repair, safe mode entry, startup repair tools, system restore, and last resort recovery options.')">Launch</button>
+    </div>
+
+  </div>
+
+  <!-- ═══════════════════════════════════════ LOGS ═══ -->
+  <div class="panel" id="panel-logs">
+
+    <p class="section-title">Session Log</p>
+
+    <div class="log-controls">
+      <button class="btn btn-outline btn-sm" onclick="exportLogs()">📋 Copy to Clipboard</button>
+      <button class="btn btn-outline btn-sm" onclick="clearLogs()">✕ Clear Logs</button>
+    </div>
+
+    <div class="log-output" id="log-output">
+      <div class="log-entry">
+        <div class="log-ts">Session started — <span id="session-start-time"></span></div>
+        <div class="log-type-sys">DiMase Deploy initialized. USB diagnostic mode active.</div>
+      </div>
+    </div>
+
+  </div>
+
+</main>
+
+<script>
+// ─── STATE ───────────────────────────────────────────────────────────────────
+const DIMASE_API = 'https://dimaseinc.org/dimase/bot-chat';
+const DIMASE_SECRET = 'dimase-bot-2026';
+const SYSTEM_CONTEXT = `You are DiMase Deploy — an AI system diagnostic agent running from a phone plugged into a target device via USB. Your job is to help diagnose and fix system issues on the host device. Be direct, technical, and step-by-step. Ask clarifying questions when needed. Provide specific commands, settings paths, and actionable fixes. Keep responses concise but complete.`;
+
+let chatHistory = [];
+let sessionLogs = [];
+let sessionStartTime = new Date().toLocaleTimeString();
+let scanResults = '';
+
+// ─── TAB SYSTEM ──────────────────────────────────────────────────────────────
+function showTab(id) {
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('panel-' + id).classList.add('active');
+  document.getElementById('tab-' + id).classList.add('active');
+}
+
+// ─── DEVICE INFO ─────────────────────────────────────────────────────────────
+function getDeviceInfo() {
+  const info = {
+    platform: navigator.platform || 'Unknown',
+    userAgent: navigator.userAgent,
+    language: navigator.language,
+    screenRes: `${screen.width}x${screen.height}`,
+    pixelRatio: window.devicePixelRatio || 1,
+    memory: navigator.deviceMemory ? navigator.deviceMemory + ' GB' : 'Unknown',
+    cpuCores: navigator.hardwareConcurrency || 'Unknown',
+    onlineStatus: navigator.onLine ? 'Online' : 'Offline',
+    cookiesEnabled: navigator.cookieEnabled,
+    touchSupport: 'ontouchstart' in window ? 'Yes' : 'No',
+    connection: getConnectionInfo(),
+    timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+    colorDepth: screen.colorDepth + '-bit',
+  };
+  return info;
+}
+
+function getConnectionInfo() {
+  const conn = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
+  if (!conn) return 'API not available';
+  const parts = [];
+  if (conn.effectiveType) parts.push(conn.effectiveType.toUpperCase());
+  if (conn.downlink) parts.push(conn.downlink + ' Mbps');
+  if (conn.rtt) parts.push(conn.rtt + 'ms RTT');
+  if (conn.saveData) parts.push('Save Data ON');
+  return parts.length ? parts.join(' | ') : 'Connected';
+}
+
+function populateDeviceGrid() {
+  const info = getDeviceInfo();
+  const grid = document.getElementById('device-grid');
+  const items = [
+    ['Platform', info.platform],
+    ['Screen', info.screenRes],
+    ['RAM', info.memory],
+    ['CPU Cores', info.cpuCores],
+    ['Network', info.onlineStatus],
+    ['Connection', info.connection],
+    ['Timezone', info.timezone],
+    ['Pixel Ratio', info.pixelRatio + 'x'],
+  ];
+  grid.innerHTML = items.map(([label, value]) => `
+    <div class="device-item">
+      <label>${label}</label>
+      <div class="value">${value}</div>
+    </div>
+  `).join('');
+}
+
+async function checkBattery() {
+  const el = document.getElementById('battery-info');
+  try {
+    if (!navigator.getBattery) throw new Error('API not available');
+    const battery = await navigator.getBattery();
+    const pct = Math.round(battery.level * 100);
+    const charging = battery.charging ? '⚡ Charging' : '🔋 On Battery';
+    const time = battery.charging
+      ? (battery.chargingTime === Infinity ? '' : ` · Full in ${Math.round(battery.chargingTime/60)}m`)
+      : (battery.dischargingTime === Infinity ? '' : ` · ${Math.round(battery.dischargingTime/60)}m remaining`);
+    el.innerHTML = `<span style="color:var(--gold)">${pct}%</span> ${charging}${time}`;
+  } catch {
+    el.textContent = 'Battery API not available on this device/browser';
+  }
+}
+
+// ─── BEGIN DIAGNOSIS ─────────────────────────────────────────────────────────
+async function beginDiagnosis() {
+  const info = getDeviceInfo();
+  const summary = `NEW DIAGNOSIS SESSION
+
+Device Info collected:
+- Platform: ${info.platform}
+- User Agent: ${info.userAgent}
+- Screen: ${info.screenRes} @ ${info.pixelRatio}x pixel ratio
+- RAM: ${info.memory}
+- CPU Cores: ${info.cpuCores}
+- Network: ${info.onlineStatus} (${info.connection})
+- Timezone: ${info.timezone}
+- Touch Support: ${info.touchSupport}
+- Color Depth: ${info.colorDepth}
+
+Please begin the diagnosis. Ask me what issues I'm experiencing and start analyzing based on the device specs above.`;
+
+  showTab('ai');
+  await sendMessage(summary, true);
+}
+
+// ─── AI CHAT ─────────────────────────────────────────────────────────────────
+function appendMsg(role, text) {
+  const container = document.getElementById('chat-messages');
+  const div = document.createElement('div');
+  div.className = 'msg msg-' + role;
+  div.textContent = text;
+  container.appendChild(div);
+  container.scrollTop = container.scrollHeight;
+}
+
+function handleChatKey(e) {
+  if (e.key === 'Enter' && !e.shiftKey) {
+    e.preventDefault();
+    sendChat();
+  }
+}
+
+function sendChat() {
+  const input = document.getElementById('chat-input');
+  const text = input.value.trim();
+  if (!text) return;
+  input.value = '';
+  sendMessage(text, false);
+}
+
+async function sendMessage(text, isSystem) {
+  if (!isSystem) appendMsg('you', text);
+  else appendMsg('system', '--- New diagnosis session started ---');
+
+  const typing = document.getElementById('typing-indicator');
+  typing.classList.add('visible');
+
+  const messages = [
+    { role: 'user', content: SYSTEM_CONTEXT },
+    ...chatHistory,
+    { role: 'user', content: text }
+  ];
+
+  try {
+    const res = await fetch(DIMASE_API, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Bot-Secret': DIMASE_SECRET,
+      },
+      body: JSON.stringify({ message: text, history: chatHistory })
+    });
+
+    let reply = '';
+    if (res.ok) {
+      const data = await res.json();
+      reply = data.response || data.reply || data.message || JSON.stringify(data);
+    } else {
+      reply = `API error ${res.status} — ${res.statusText}. Check connection.`;
+    }
+
+    typing.classList.remove('visible');
+    appendMsg('ai', reply);
+    chatHistory.push({ role: 'user', content: text });
+    chatHistory.push({ role: 'assistant', content: reply });
+    try { addLog('ai', `Q: ${text.slice(0,60)}...\nA: ${reply.slice(0,200)}...`); } catch(e) {}
+
+  } catch (err) {
+    typing.classList.remove('visible');
+    appendMsg('error', 'Connection failed: ' + err.message);
+    addLog('ai', '[ERROR] ' + err.message);
+  }
+}
+
+function quickAction(prompt) {
+  showTab('ai');
+  document.getElementById('chat-input').value = prompt;
+  sendChat();
+}
+
+function launchTool(prompt) {
+  showTab('ai');
+  document.getElementById('chat-input').value = prompt;
+  sendChat();
+}
+
+// ─── SYSTEM SCAN ─────────────────────────────────────────────────────────────
+async function runFullScan() {
+  const output = document.getElementById('scan-output');
+  const progress = document.getElementById('scan-progress');
+  const status = document.getElementById('scan-status');
+
+  const lines = [];
+  const setProgress = (pct, msg) => {
+    progress.style.width = pct + '%';
+    status.textContent = msg;
+  };
+
+  output.textContent = '';
+  scanResults = '';
+
+  const log = (text, cls='') => {
+    lines.push(text);
+    const span = document.createElement('span');
+    if (cls) span.className = cls;
+    span.textContent = text + '\n';
+    output.appendChild(span);
+    output.scrollTop = output.scrollHeight;
+  };
+
+  const hr = () => log('─'.repeat(38), 't-dim');
+
+  setProgress(5, 'Collecting OS info...');
+  log('DIMASE DEPLOY — SYSTEM SCAN', 't-gold');
+  log(new Date().toISOString(), 't-dim');
+  hr();
+
+  // OS / Browser
+  log('[OS & BROWSER]', 't-green');
+  log('Platform: ' + navigator.platform);
+  log('User Agent: ' + navigator.userAgent);
+  log('Language: ' + navigator.language);
+  log('Cookies: ' + (navigator.cookieEnabled ? 'Enabled' : 'Disabled'));
+  log('Do Not Track: ' + (navigator.doNotTrack || 'Not set'));
+  hr();
+
+  setProgress(25, 'Checking network...');
+  // Network
+  log('[NETWORK]', 't-green');
+  log('Status: ' + (navigator.onLine ? 'ONLINE' : 'OFFLINE'));
+  const conn = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
+  if (conn) {
+    log('Type: ' + (conn.effectiveType || 'Unknown').toUpperCase());
+    log('Downlink: ' + (conn.downlink ? conn.downlink + ' Mbps' : 'Unknown'));
+    log('RTT: ' + (conn.rtt ? conn.rtt + 'ms' : 'Unknown'));
+    log('Save Data: ' + (conn.saveData ? 'ON' : 'OFF'));
+  } else {
+    log('Network API: Not available');
+  }
+  hr();
+
+  setProgress(45, 'Checking storage...');
+  // Storage
+  log('[STORAGE]', 't-green');
+  try {
+    const est = await navigator.storage.estimate();
+    const used = (est.usage / 1024 / 1024).toFixed(1);
+    const quota = (est.quota / 1024 / 1024).toFixed(1);
+    const pct = ((est.usage / est.quota) * 100).toFixed(1);
+    log(`Used: ${used} MB / ${quota} MB (${pct}%)`);
+  } catch {
+    log('Storage API: Not available');
+  }
+  hr();
+
+  setProgress(60, 'Checking hardware...');
+  // Hardware
+  log('[HARDWARE]', 't-green');
+  log('RAM: ' + (navigator.deviceMemory ? navigator.deviceMemory + ' GB' : 'Unknown'));
+  log('CPU Cores: ' + (navigator.hardwareConcurrency || 'Unknown'));
+  log('Screen: ' + screen.width + 'x' + screen.height + ' @ ' + window.devicePixelRatio + 'x');
+  log('Color Depth: ' + screen.colorDepth + '-bit');
+  log('Touch: ' + ('ontouchstart' in window ? 'Supported' : 'Not supported'));
+  hr();
+
+  setProgress(75, 'Checking GPU...');
+  // GPU
+  log('[GPU / WEBGL]', 't-green');
+  try {
+    const canvas = document.createElement('canvas');
+    const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
+    if (gl) {
+      const dbgInfo = gl.getExtension('WEBGL_debug_renderer_info');
+      if (dbgInfo) {
+        log('Vendor: ' + gl.getParameter(dbgInfo.UNMASKED_VENDOR_WEBGL));
+        log('Renderer: ' + gl.getParameter(dbgInfo.UNMASKED_RENDERER_WEBGL));
+      } else {
+        log('Renderer: ' + gl.getParameter(gl.RENDERER));
+      }
+      log('WebGL Version: ' + gl.getParameter(gl.VERSION));
+    } else {
+      log('WebGL: Not supported');
+    }
+  } catch {
+    log('GPU info: Unavailable');
+  }
+  hr();
+
+  setProgress(88, 'Checking performance...');
+  // Performance
+  log('[PERFORMANCE]', 't-green');
+  if (window.performance) {
+    const nav = performance.getEntriesByType('navigation')[0];
+    if (nav) {
+      log('Page Load: ' + nav.loadEventEnd.toFixed(0) + 'ms');
+      log('DOM Ready: ' + nav.domContentLoadedEventEnd.toFixed(0) + 'ms');
+      log('DNS: ' + (nav.domainLookupEnd - nav.domainLookupStart).toFixed(0) + 'ms');
+      log('TTFB: ' + nav.responseStart.toFixed(0) + 'ms');
+    }
+    const mem = performance.memory;
+    if (mem) {
+      log('JS Heap Used: ' + (mem.usedJSHeapSize / 1024 / 1024).toFixed(1) + ' MB');
+      log('JS Heap Limit: ' + (mem.jsHeapSizeLimit / 1024 / 1024).toFixed(1) + ' MB');
+    }
+  }
+  hr();
+
+  setProgress(100, 'Scan complete');
+  log('SCAN COMPLETE ✓', 't-green');
+
+  scanResults = lines.join('\n');
+  addLog('scan', 'System scan completed — ' + lines.length + ' data points collected');
+}
+
+async function runSpeedTest() {
+  const output = document.getElementById('scan-output');
+  const status = document.getElementById('scan-status');
+  status.textContent = 'Running speed test...';
+
+  const appendLine = (text, cls='') => {
+    const span = document.createElement('span');
+    if (cls) span.className = cls;
+    span.textContent = text + '\n';
+    output.appendChild(span);
+    output.scrollTop = output.scrollHeight;
+  };
+
+  appendLine('');
+  appendLine('[SPEED TEST]', 't-green');
+
+  const url = 'https://dimaseinc.org/dimase/chat-ui';
+  const sizes = [1];
+  let totalMs = 0;
+  let runs = 3;
+
+  for (let i = 0; i < runs; i++) {
+    try {
+      const t0 = performance.now();
+      await fetch(url + '?_=' + Date.now(), { cache: 'no-store', mode: 'no-cors' });
+      const ms = performance.now() - t0;
+      totalMs += ms;
+      appendLine(`  Run ${i+1}: ${ms.toFixed(0)}ms`);
+    } catch {
+      appendLine(`  Run ${i+1}: Failed`, 't-red');
+      runs--;
+    }
+  }
+
+  if (runs > 0) {
+    const avg = (totalMs / runs).toFixed(0);
+    appendLine(`Avg RTT: ${avg}ms`, 't-gold');
+    const rating = avg < 200 ? 'Excellent' : avg < 500 ? 'Good' : avg < 1000 ? 'Fair' : 'Poor';
+    appendLine(`Rating: ${rating}`, avg < 500 ? 't-green' : 't-red');
+  }
+
+  status.textContent = 'Speed test complete';
+  addLog('scan', 'Speed test completed');
+}
+
+function sendScanToAI() {
+  if (!scanResults) {
+    alert('Run a scan first.');
+    return;
+  }
+  const msg = 'Here are my system scan results. Please analyze them and tell me what you notice:\n\n' + scanResults;
+  showTab('ai');
+  document.getElementById('chat-input').value = msg;
+  sendChat();
+}
+
+function clearScan() {
+  document.getElementById('scan-output').textContent = '// Press "Run Scan" to collect system information';
+  document.getElementById('scan-progress').style.width = '0%';
+  document.getElementById('scan-status').textContent = 'Ready to scan';
+  scanResults = '';
+}
+
+// ─── LOGS ────────────────────────────────────────────────────────────────────
+function addLog(type, content) {
+  const ts = new Date().toLocaleTimeString();
+  sessionLogs.push({ ts, type, content });
+  renderLogs();
+}
+
+function renderLogs() {
+  const out = document.getElementById('log-output');
+  if (!out) return;
+  const entries = sessionLogs.map(l => `
+    <div class="log-entry">
+      <div class="log-ts">${l.ts}</div>
+      <div class="log-type-${l.type}">[${l.type.toUpperCase()}] ${escHtml(String(l.content || ''))}</div>
+    </div>
+  `).join('');
+  out.innerHTML = `<div class="log-entry">
+    <div class="log-ts">Session started — ${sessionStartTime}</div>
+    <div class="log-type-sys">DiMase Deploy initialized. USB diagnostic mode active.</div>
+  </div>` + entries;
+  out.scrollTop = out.scrollHeight;
+}
+
+function escHtml(s) {
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+function exportLogs() {
+  const text = sessionLogs.map(l => `[${l.ts}] [${l.type.toUpperCase()}]\n${l.content}`).join('\n\n---\n\n');
+  navigator.clipboard.writeText(text).then(() => {
+    alert('Log copied to clipboard (' + sessionLogs.length + ' entries)');
+  }).catch(() => {
+    alert('Clipboard not available. Check browser permissions.');
+  });
+}
+
+function clearLogs() {
+  sessionLogs = [];
+  document.getElementById('log-output').innerHTML = `<div class="log-entry">
+    <div class="log-ts">Logs cleared — ${new Date().toLocaleTimeString()}</div>
+    <div class="log-type-sys">Log cleared by user.</div>
+  </div>`;
+}
+
+// ─── INIT ────────────────────────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', () => {
+  sessionStartTime = new Date().toLocaleTimeString();
+  const sstEl = document.getElementById('session-start-time');
+  if (sstEl) sstEl.textContent = sessionStartTime;
+  populateDeviceGrid();
+  checkBattery();
+});
+</script>
+
+</body>
+</html>

@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Download applications for DiMase Inc. services - Jellyfin media player and more">
+    <title>Applications | DiMase Inc.</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        .apps-hero {
+            padding: 160px 0 80px;
+            text-align: center;
+            position: relative;
+        }
+        .apps-hero::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: radial-gradient(ellipse at center, rgba(212, 175, 55, 0.1) 0%, transparent 70%);
+            pointer-events: none;
+        }
+        .apps-hero h1 {
+            font-size: 3.5rem;
+            font-weight: 700;
+            margin-bottom: 1.5rem;
+            text-transform: uppercase;
+            letter-spacing: 4px;
+            background: linear-gradient(135deg, var(--gold-light) 0%, var(--gold) 50%, var(--gold-dark) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            animation: shimmer 3s ease-in-out infinite;
+        }
+        .apps-hero p {
+            font-size: 1.25rem;
+            color: var(--text-muted);
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .app-section {
+            padding: 80px 0;
+            background: rgba(26, 26, 26, 0.8);
+            backdrop-filter: blur(10px);
+        }
+        .app-section + .app-section {
+            border-top: 1px solid rgba(212, 175, 55, 0.1);
+        }
+        .app-section h2 {
+            font-size: 2.5rem;
+            text-align: center;
+            margin-bottom: 1rem;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            color: var(--gold);
+        }
+        .app-section-subtitle {
+            text-align: center;
+            color: var(--text-muted);
+            margin-bottom: 3rem;
+            font-size: 1.1rem;
+        }
+        .platform-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 1.5rem;
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+        .platform-card {
+            background: linear-gradient(135deg, var(--black-light) 0%, var(--black-lighter) 100%);
+            border: 1px solid var(--border);
+            padding: 2rem;
+            text-align: center;
+            text-decoration: none;
+            transition: all 0.4s;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.75rem;
+            position: relative;
+            overflow: hidden;
+        }
+        .platform-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, var(--gold), transparent);
+            transform: translateX(-100%);
+            transition: transform 0.5s;
+        }
+        .platform-card:hover::before {
+            transform: translateX(100%);
+        }
+        .platform-card:hover {
+            transform: translateY(-6px);
+            border-color: var(--gold);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5), 0 0 30px rgba(212, 175, 55, 0.1);
+        }
+        .platform-card svg {
+            width: 40px;
+            height: 40px;
+            color: var(--gold);
+            transition: all 0.3s;
+        }
+        .platform-card:hover svg {
+            filter: drop-shadow(0 0 8px rgba(212, 175, 55, 0.5));
+        }
+        .platform-name {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--text);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .platform-label {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        @media (max-width: 768px) {
+            .apps-hero h1 {
+                font-size: 2rem;
+                letter-spacing: 2px;
+            }
+            .apps-hero p {
+                font-size: 1rem;
+            }
+            .platform-grid {
+                grid-template-columns: 1fr 1fr;
+                gap: 1rem;
+            }
+            .platform-card {
+                padding: 1.5rem 1rem;
+            }
+            .app-section h2 {
+                font-size: 1.8rem;
+            }
+        }
+        @media (max-width: 480px) {
+            .platform-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <canvas id="bg-canvas"></canvas>
+    <div class="tech-grid"></div>
+
+    <header class="header">
+        <nav class="nav container">
+            <a href="/" class="logo">DiMase Inc.</a>
+            <ul class="nav-links">
+                <li><a href="/#about">About</a></li>
+                <li><a href="/#services">Services</a></li>
+                <li><a href="/jellyfin.html">Jellyfin</a></li>
+                <li><a href="/applications.html">Applications</a></li>
+                <li><a href="/learning">Learning</a></li>
+                <li><a href="/#contact">Contact</a></li>
+            </ul>
+            <button class="mobile-menu-btn" aria-label="Toggle menu">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+        </nav>
+    </header>
+
+    <main>
+        <section class="apps-hero">
+            <div class="container">
+                <h1>Applications</h1>
+                <p>Download apps for DiMase Inc. services. Choose your platform to get started.</p>
+            </div>
+        </section>
+
+        <section class="app-section">
+            <div class="container">
+                <h2>DiMase Inc. Apps</h2>
+                <p class="app-section-subtitle">Our custom-built applications</p>
+                <div class="platform-grid">
+
+                    <!-- DiMase 2.0 -->
+                    <a href="/downloads/DiMaseAI.apk" class="platform-card" download="DiMaseAI.apk">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 2v10l4.5 4.5"/><circle cx="12" cy="12" r="3"/></svg>
+                        <span class="platform-name">DiMase 2.0</span>
+                        <span class="platform-label">Master AI Controller <span class="platform-version" id="ver-dimase"></span></span>
+
+                    <!-- DiMase Inc. Learning -->
+                    <a href="/downloads/DiMase%20Inc.%20Learning.apk" class="platform-card" download="DiMase Inc. Learning.apk">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+                        <span class="platform-name">DiMase Learning</span>
+                        <span class="platform-label">Android APK <span class="platform-version" id="ver-learning"></span></span>
+                    </a>
+
+                    <!-- SmartCloud Map -->
+                    <a href="/downloads/smartcloud-map.apk" class="platform-card" download="SmartCloud Map.apk">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="3 6 9 3 15 6 21 3 21 18 15 21 9 18 3 21"/><line x1="9" y1="3" x2="9" y2="18"/><line x1="15" y1="6" x2="15" y2="21"/></svg>
+                        <span class="platform-name">SmartCloud Map</span>
+                        <span class="platform-label">Android APK <span class="platform-version" id="ver-smartcloud"></span></span>
+                    </a>
+
+                </div>
+            </div>
+        </section>
+
+
+
+        <!-- ADMIN ONLY: DiMase Control -->
+        <section class="app-section" id="admin-dimasecontrol-section" style="display:none">
+            <div class="container">
+                <h2>DiMase Control</h2>
+                <p class="app-section-subtitle">Full ecosystem controller — 13 AI models, server management, Docker, shell, council mode, Flipper Zero integration.</p>
+                <div class="platform-grid">
+                    <a href="/downloads/DiMaseControl.apk" class="platform-card" download="DiMaseControl.apk">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                        <span class="platform-name">Android</span>
+                        <span class="platform-label">DiMaseControl APK</span>
+                    </a>
+                </div>
+            </div>
+        </section>
+
+        <section class="app-section" id="admin-flipper-section" style="display:none">
+            <div class="container">
+                <h2>DiMase Flipper</h2>
+                <p class="app-section-subtitle">AI brain for your Flipper Zero. Control IR, Sub-GHz, BadUSB, NFC and more using plain-language voice or text commands via DiMase AI.</p>
+                <div class="platform-grid">
+                    <a href="/downloads/DiMaseFlipper.apk" class="platform-card" download="DiMaseFlipper.apk">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 2v10l4.5 4.5"/><circle cx="12" cy="12" r="3"/></svg>
+                        <span class="platform-name">Android</span>
+                        <span class="platform-label">Flipper Zero Companion APK</span>
+                    </a>
+                </div>
+            </div>
+        </section>
+        <section class="app-section">
+            <div class="container">
+                <h2>DiMase Deploy</h2>
+                <p class="app-section-subtitle">Plug your phone into any device and deploy DiMase AI to diagnose and fix system issues.</p>
+                <div class="platform-grid">
+                    <a href="/downloads/DiMaseDeploy.apk" class="platform-card" download="DiMaseDeploy.apk">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M17.523 15.341a.96.96 0 00-.96.96v3.038a.96.96 0 001.92 0V16.3a.96.96 0 00-.96-.96zm-11.046 0a.96.96 0 00-.96.96v3.038a.96.96 0 001.92 0V16.3a.96.96 0 00-.96-.96zm11.405-6.02l1.588-2.75a.33.33 0 00-.571-.33l-1.608 2.787A9.237 9.237 0 0012 7.688a9.237 9.237 0 00-5.291 1.34L5.1 6.24a.33.33 0 10-.571.33l1.588 2.75C3.232 11.04 1.2 14.156 1.2 17.76h21.6c0-3.604-2.032-6.72-4.918-8.44zM8.16 14.04a.96.96 0 110-1.92.96.96 0 010 1.92zm7.68 0a.96.96 0 110-1.92.96.96 0 010 1.92z"/></svg>
+                        <span class="platform-name">Android</span>
+                        <span class="platform-label">Android APK</span>
+                    </a>
+                </div>
+            </div>
+        </section>
+        <section class="app-section">
+            <div class="container">
+                <h2>DiMase Inc. AntiVirus</h2>
+                <p class="app-section-subtitle">AI-powered security suite. Scan, detect, and remove viruses, rootkits, and intruders.</p>
+                <div class="platform-grid">
+
+                    <!-- Linux -->
+                    <a href="/downloads/DiMaseAntiVirus-Linux.tar.gz" class="platform-card" download="DiMaseAntiVirus-Linux.tar.gz">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                        <span class="platform-name">Linux</span>
+                        <span class="platform-label">Python Script (.tar.gz)</span>
+                    </a>
+
+                    <!-- Windows -->
+                    <a href="/downloads/DiMaseAntiVirus-Windows.zip" class="platform-card" download="DiMaseAntiVirus-Windows.zip">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                        <span class="platform-name">Windows</span>
+                        <span class="platform-label">Windows App (.zip)</span>
+                    </a>
+
+                    <!-- Android -->
+                    <a href="/downloads/DiMaseAntiVirus.apk" class="platform-card" download="DiMaseAntiVirus.apk">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                        <span class="platform-name">Android</span>
+                        <span class="platform-label">Android APK</span>
+                    </a>
+
+                </div>
+            </div>
+        </section>
+
+        <!-- ADMIN ONLY: Ann's Bibliotheca -->
+        <section class="app-section" id="ann-section">
+            <div class="container">
+                <h2>Ann's Bibliotheca</h2>
+                <p class="app-section-subtitle">Ann's personal reading library — 70,000+ books, romance, shifter novels, The Alpha's Contract, and more.</p>
+                <div class="platform-grid">
+                    <a href="/ann-reads" class="platform-card">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+                        <span class="platform-name">Open Library</span>
+                        <span class="platform-label">Ann's Bibliotheca — Web App</span>
+                    </a>
+                </div>
+            </div>
+        </section>
+
+        <section class="app-section">
+            <div class="container">
+                <h2>Jellyfin</h2>
+                <p class="app-section-subtitle">Stream your media library from any device</p>
+                <div class="platform-grid">
+
+                    <!-- Android -->
+                    <a href="/downloads/Jellyfin%20Android.apk" class="platform-card" download="Jellyfin Android.apk">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M17.523 15.341a.96.96 0 00-.96.96v3.038a.96.96 0 001.92 0V16.3a.96.96 0 00-.96-.96zm-11.046 0a.96.96 0 00-.96.96v3.038a.96.96 0 001.92 0V16.3a.96.96 0 00-.96-.96zm11.405-6.02l1.588-2.75a.33.33 0 00-.571-.33l-1.608 2.787A9.237 9.237 0 0012 7.688a9.237 9.237 0 00-5.291 1.34L5.1 6.24a.33.33 0 10-.571.33l1.588 2.75C3.232 11.04 1.2 14.156 1.2 17.76h21.6c0-3.604-2.032-6.72-4.918-8.44zM8.16 14.04a.96.96 0 110-1.92.96.96 0 010 1.92zm7.68 0a.96.96 0 110-1.92.96.96 0 010 1.92z"/></svg>
+                        <span class="platform-name">Android</span>
+                        <span class="platform-label">Android APK</span>
+                    </a>
+
+                    <!-- Android TV -->
+                    <a href="/downloads/Jellyfin%20Fire%20TV.apk" class="platform-card" download="Jellyfin Fire TV.apk">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M.045 18.02c.07-.116.36-.358.78-.558 2.17-1.030 6.375-1.853 11.175-1.853 4.8 0 9.005.823 11.175 1.853.42.2.71.442.78.558a.19.19 0 01-.045.27c-2.39 1.695-6.735 2.853-11.91 2.853S2.48 19.985.09 18.29a.19.19 0 01-.045-.27zM13.244 2.108C12.97.872 12.487.108 12 .108c-.487 0-.97.764-1.244 2C10.512 3.196 10.4 4.476 10.4 5.88c0 1.404.112 2.684.356 3.772C11.03 10.888 11.513 11.652 12 11.652c.487 0 .97-.764 1.244-2C13.488 8.564 13.6 7.284 13.6 5.88c0-1.404-.112-2.684-.356-3.772z"/><path d="M18.844 5.397C18.29 4.29 17.564 3.618 16.9 3.618c-.386 0-.754.264-1.064.704-.31.44-.56 1.064-.73 1.81-.17.746-.256 1.574-.256 2.454 0 .88.086 1.708.256 2.454.17.746.42 1.37.73 1.81.31.44.678.704 1.064.704.664 0 1.39-.672 1.944-1.779.554-1.107.87-2.582.87-4.189 0-1.607-.316-3.082-.87-4.189zM5.156 5.397C5.71 4.29 6.436 3.618 7.1 3.618c.386 0 .754.264 1.064.704.31.44.56 1.064.73 1.81.17.746.256 1.574.256 2.454 0 .88-.086 1.708-.256 2.454-.17.746-.42 1.37-.73 1.81-.31.44-.678.704-1.064.704-.664 0-1.39-.672-1.944-1.779-.554-1.107-.87-2.582-.87-4.189 0-1.607.316-3.082.87-4.189z"/></svg>
+                        <span class="platform-name">Android TV / Fire TV</span>
+                        <span class="platform-label">Fire TV APK</span>
+                    </a>
+
+                    <!-- iOS -->
+                    <a href="https://apps.apple.com/app/swiftfin/id1604098728" class="platform-card" target="_blank" rel="noopener">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11"/></svg>
+                        <span class="platform-name">iOS / iPadOS</span>
+                        <span class="platform-label">App Store (Swiftfin)</span>
+                    </a>
+
+                    <!-- Windows -->
+                    <a href="https://jellyfin.org/downloads/clients/#windows" class="platform-card" target="_blank" rel="noopener">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M0 3.449L9.75 2.1v9.451H0m10.949-9.602L24 0v11.4H10.949M0 12.6h9.75v9.451L0 20.699M10.949 12.6H24V24l-12.9-1.801"/></svg>
+                        <span class="platform-name">Windows</span>
+                        <span class="platform-label">Desktop App</span>
+                    </a>
+
+                    <!-- macOS -->
+                    <a href="https://jellyfin.org/downloads/clients/#macos" class="platform-card" target="_blank" rel="noopener">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11"/></svg>
+                        <span class="platform-name">macOS</span>
+                        <span class="platform-label">Desktop App</span>
+                    </a>
+
+                    <!-- Linux -->
+                    <a href="https://flathub.org/apps/com.github.iwalton3.jellyfin-media-player" class="platform-card" target="_blank" rel="noopener">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M12.504 0c-.155 0-.315.008-.48.021-4.226.333-3.105 4.807-3.17 6.298-.076 1.092-.3 1.953-1.05 3.02-.885 1.051-2.127 2.75-2.716 4.521-.278.832-.41 1.684-.287 2.489a.424.424 0 00-.11.135c-.26.268-.45.6-.663.839-.199.199-.485.267-.797.4-.313.136-.658.269-.864.68-.09.189-.136.394-.132.602 0 .199.027.4.055.536.058.399.116.728.04.97-.249.68-.28 1.145-.106 1.484.174.334.535.47.94.601.81.2 1.91.135 2.774.6.926.466 1.866.67 2.616.47.526-.116.97-.464 1.208-.946.587-.003 1.23-.269 2.26-.334.699-.058 1.574.267 2.577.2.025.134.063.198.114.333l.003.003c.391.778 1.113 1.368 1.884 1.43.868.074 1.68-.39 1.998-1.046.428-.892.13-2.044-.807-2.627-.208-.146-.515-.198-.724-.333a3.282 3.282 0 01-.313-.327c-.078-.078-.156-.198-.267-.465-.39-.753-.833-1.928-1.467-3.18-.533-1.045-1.218-2.028-2.022-2.607-.27-.199-.663-.267-.913-.467a.83.83 0 01-.27-.4 1.05 1.05 0 01.135-.667c.146-.268.354-.537.469-.867.192-.535.061-1.151-.341-1.62a2.798 2.798 0 00-.468-.399c-.98-.6-2.88-.459-2.88-.459s-.037-.667.135-1.135c.158-.399.72-.799.72-.799s-.364-.333-.72-.267c-.354.065-.536.399-.536.399s-.28-.465.108-.865c.39-.399.865-.199.865-.199s-.266-.93-.866-.533c-.6.4-.468 1.133-.468 1.133s-1.045-1.066-.465-2.199c.2-.4.532-.533.866-.533.063.002.14.013.198.026.34-.867.958-1.467 1.197-1.6.48-.267 1.413-.07 1.732-.533.08-.12.08-.267.053-.399a1.742 1.742 0 00-.852-1.2C14.074.334 13.29.003 12.504 0z"/></svg>
+                        <span class="platform-name">Linux</span>
+                        <span class="platform-label">Flathub</span>
+                    </a>
+
+                    <!-- Roku -->
+                    <a href="https://channelstore.roku.com/details/4d9e526a7d972d4decf98ea6a84000f7:c617f4902629cc0bd1e1411db1775cf3/jellyfin" class="platform-card" target="_blank" rel="noopener">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><polyline points="8 21 12 17 16 21"/></svg>
+                        <span class="platform-name">Roku</span>
+                        <span class="platform-label">Channel Store</span>
+                    </a>
+
+                    <!-- Kodi -->
+                    <a href="https://jellyfin.org/docs/general/clients/kodi/" class="platform-card" target="_blank" rel="noopener">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2L4.5 8.3V20h5V14h5v6h5V8.3L12 2zm0 2.7l5.5 4.6V18h-1v-6H7.5v6h-1V9.3L12 4.7z"/></svg>
+                        <span class="platform-name">Kodi</span>
+                        <span class="platform-label">Plugin</span>
+                    </a>
+
+                    <!-- Web Browser -->
+                    <a href="https://jellyfin.dimaseinc.org" class="platform-card" target="_blank" rel="noopener">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+                        <span class="platform-name">Web Browser</span>
+                        <span class="platform-label">No Install Needed</span>
+                    </a>
+
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="footer">
+        <div class="container">
+            <p>&copy; 2025 <span>DiMase Inc.</span> All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script src="js/main.js"></script>
+
+    <script>
+    // Admin-only sections: check session and show if admin
+    (async function() {
+        try {
+            const r = await fetch('/auth/lms-token', { credentials: 'include' });
+            if (!r.ok) return;
+            const d = await r.json();
+            if (d.user && d.user.isAdmin) {
+                const sections = ['admin-flipper-section', 'admin-dimasecontrol-section'];
+                sections.forEach(id => {
+                    const el = document.getElementById(id);
+                    if (el) el.style.display = '';
+                });
+            }
+        } catch(e) {}
+    })();
+    </script>
+
+
+    <script>
+    // Fetch APK version info and update labels
+    fetch('/api/apk-info').then(r => r.json()).then(data => {
+      if (!data.apks) return;
+      const map = { 'DiMase 2.0': 'ver-dimase', 'DiMase Learning': 'ver-learning', 'SmartCloud Map': 'ver-smartcloud' };
+      data.apks.forEach(apk => {
+        const id = map[apk.name];
+        if (id) {
+          const el = document.getElementById(id);
+          if (el) el.textContent = 'v' + apk.version;
+        }
+      });
+    }).catch(() => {});
+    </script></body>
+</html>

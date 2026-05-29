@@ -1,0 +1,539 @@
+# ============================================================
+# DIMASE INC WEBSITE - FULL SYSTEM INSTALLATION
+# ============================================================
+# Complete infrastructure-as-code for dimaseinc.org
+# Run with: ansible-playbook full-system-install.yml
+# Or use as reference for manual setup
+# ============================================================
+
+---
+metadata:
+  project: dimaseinc-website
+  version: "1.0.0"
+  author: DiMase Inc
+  created: "2025-02-02"
+  description: "Complete system build for dimaseinc.org business website"
+
+# ============================================================
+# SYSTEM REQUIREMENTS
+# ============================================================
+system_requirements:
+  operating_systems:
+    - ubuntu-22.04
+    - ubuntu-24.04
+    - debian-12
+    - macos-14
+    - windows-11
+
+  minimum_specs:
+    ram: "512MB"
+    disk: "1GB"
+    cpu: "1 core"
+
+  software:
+    nodejs:
+      version: ">=20.0.0"
+      required: true
+    npm:
+      version: ">=10.0.0"
+      required: true
+    git:
+      version: ">=2.0.0"
+      required: true
+    wrangler:
+      version: ">=4.0.0"
+      required: true
+
+# ============================================================
+# INSTALLATION TASKS
+# ============================================================
+tasks:
+
+  # ----------------------------------------------------------
+  # TASK 1: System Dependencies
+  # ----------------------------------------------------------
+  - name: Install system dependencies
+    platforms:
+      ubuntu:
+        commands:
+          - sudo apt-get update
+          - sudo apt-get install -y curl git build-essential
+      debian:
+        commands:
+          - sudo apt-get update
+          - sudo apt-get install -y curl git build-essential
+      macos:
+        commands:
+          - xcode-select --install || true
+          - /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)" || true
+          - brew install git
+      windows:
+        commands:
+          - winget install Git.Git
+
+  # ----------------------------------------------------------
+  # TASK 2: Install Node.js
+  # ----------------------------------------------------------
+  - name: Install Node.js
+    platforms:
+      ubuntu:
+        commands:
+          - curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
+          - sudo apt-get install -y nodejs
+      debian:
+        commands:
+          - curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
+          - sudo apt-get install -y nodejs
+      macos:
+        commands:
+          - brew install node@20
+      windows:
+        commands:
+          - winget install OpenJS.NodeJS.LTS
+    verify:
+      command: node --version
+      expected: "v20"
+
+  # ----------------------------------------------------------
+  # TASK 3: Install Wrangler CLI
+  # ----------------------------------------------------------
+  - name: Install Wrangler CLI
+    all_platforms:
+      commands:
+        - npm install -g wrangler@latest
+    verify:
+      command: wrangler --version
+      expected: "4."
+
+  # ----------------------------------------------------------
+  # TASK 4: Create Project Directory
+  # ----------------------------------------------------------
+  - name: Create project structure
+    all_platforms:
+      commands:
+        - mkdir -p ~/dimaseinc-website/{css,js,images,.github/workflows}
+        - cd ~/dimaseinc-website
+
+  # ----------------------------------------------------------
+  # TASK 5: Create Website Files
+  # ----------------------------------------------------------
+  - name: Create index.html
+    file: index.html
+    content: |
+      <!DOCTYPE html>
+      <html lang="en">
+      <head>
+          <meta charset="UTF-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+          <meta name="description" content="DiMase Inc. - Professional business solutions">
+          <title>DiMase Inc.</title>
+          <link rel="stylesheet" href="css/style.css">
+          <link rel="preconnect" href="https://fonts.googleapis.com">
+          <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+          <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+      </head>
+      <body>
+          <header class="header">
+              <nav class="nav container">
+                  <a href="#" class="logo">DiMase Inc.</a>
+                  <ul class="nav-links">
+                      <li><a href="#about">About</a></li>
+                      <li><a href="#services">Services</a></li>
+                      <li><a href="#contact">Contact</a></li>
+                  </ul>
+                  <button class="mobile-menu-btn" aria-label="Toggle menu">
+                      <span></span>
+                      <span></span>
+                      <span></span>
+                  </button>
+              </nav>
+          </header>
+          <main>
+              <section class="hero">
+                  <div class="container">
+                      <h1>Building Tomorrow's Solutions Today</h1>
+                      <p>We help businesses transform and grow through innovative strategies and cutting-edge technology.</p>
+                      <a href="#contact" class="btn btn-primary">Get Started</a>
+                  </div>
+              </section>
+              <section id="about" class="about">
+                  <div class="container">
+                      <h2>About Us</h2>
+                      <div class="about-content">
+                          <p>DiMase Inc. is dedicated to delivering exceptional business solutions that drive growth and innovation.</p>
+                          <p>Our team of experts combines industry knowledge with creative thinking to solve complex challenges.</p>
+                      </div>
+                  </div>
+              </section>
+              <section id="services" class="services">
+                  <div class="container">
+                      <h2>Our Services</h2>
+                      <div class="services-grid">
+                          <div class="service-card">
+                              <div class="service-icon">
+                                  <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20V10"/><path d="M18 20V4"/><path d="M6 20v-4"/></svg>
+                              </div>
+                              <h3>Business Strategy</h3>
+                              <p>Strategic planning and consulting to help your business reach new heights.</p>
+                          </div>
+                          <div class="service-card">
+                              <div class="service-icon">
+                                  <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="20" height="14" x="2" y="5" rx="2"/><line x1="2" x2="22" y1="10" y2="10"/></svg>
+                              </div>
+                              <h3>Digital Solutions</h3>
+                              <p>Modern technology solutions to streamline operations and boost efficiency.</p>
+                          </div>
+                          <div class="service-card">
+                              <div class="service-icon">
+                                  <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                              </div>
+                              <h3>Consulting</h3>
+                              <p>Expert guidance to navigate challenges and capitalize on opportunities.</p>
+                          </div>
+                      </div>
+                  </div>
+              </section>
+              <section id="contact" class="contact">
+                  <div class="container">
+                      <h2>Contact Us</h2>
+                      <div class="contact-content">
+                          <div class="contact-info">
+                              <p>Ready to take your business to the next level? Get in touch with us today.</p>
+                              <div class="contact-details">
+                                  <div class="contact-item">
+                                      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
+                                      <a href="mailto:dimaseinc@gmail.com">dimaseinc@gmail.com</a>
+                                  </div>
+                              </div>
+                          </div>
+                          <form class="contact-form" id="contactForm">
+                              <div class="form-group">
+                                  <label for="name">Name</label>
+                                  <input type="text" id="name" name="name" required>
+                              </div>
+                              <div class="form-group">
+                                  <label for="email">Email</label>
+                                  <input type="email" id="email" name="email" required>
+                              </div>
+                              <div class="form-group">
+                                  <label for="message">Message</label>
+                                  <textarea id="message" name="message" rows="4" required></textarea>
+                              </div>
+                              <button type="submit" class="btn btn-primary">Send Message</button>
+                          </form>
+                      </div>
+                  </div>
+              </section>
+          </main>
+          <footer class="footer">
+              <div class="container">
+                  <p>&copy; 2025 DiMase Inc. All rights reserved.</p>
+              </div>
+          </footer>
+          <script src="js/main.js"></script>
+      </body>
+      </html>
+
+  # ----------------------------------------------------------
+  # TASK 6: Create Stylesheet
+  # ----------------------------------------------------------
+  - name: Create CSS stylesheet
+    file: css/style.css
+    content: |
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      :root {
+          --primary: #2563eb;
+          --primary-dark: #1d4ed8;
+          --text: #1f2937;
+          --text-light: #6b7280;
+          --background: #ffffff;
+          --background-alt: #f9fafb;
+          --border: #e5e7eb;
+      }
+      html { scroll-behavior: smooth; }
+      body {
+          font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+          color: var(--text);
+          line-height: 1.6;
+      }
+      .container { max-width: 1200px; margin: 0 auto; padding: 0 20px; }
+      .header {
+          position: fixed;
+          top: 0; left: 0; right: 0;
+          background: rgba(255, 255, 255, 0.95);
+          backdrop-filter: blur(10px);
+          border-bottom: 1px solid var(--border);
+          z-index: 1000;
+      }
+      .nav { display: flex; justify-content: space-between; align-items: center; height: 70px; }
+      .logo { font-size: 1.5rem; font-weight: 700; color: var(--text); text-decoration: none; }
+      .nav-links { display: flex; list-style: none; gap: 2rem; }
+      .nav-links a { color: var(--text); text-decoration: none; font-weight: 500; transition: color 0.3s; }
+      .nav-links a:hover { color: var(--primary); }
+      .mobile-menu-btn { display: none; flex-direction: column; gap: 5px; background: none; border: none; cursor: pointer; padding: 5px; }
+      .mobile-menu-btn span { width: 25px; height: 2px; background: var(--text); transition: 0.3s; }
+      .hero { padding: 150px 0 100px; background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%); text-align: center; }
+      .hero h1 { font-size: 3rem; font-weight: 700; margin-bottom: 1.5rem; color: var(--text); }
+      .hero p { font-size: 1.25rem; color: var(--text-light); max-width: 600px; margin: 0 auto 2rem; }
+      .btn { display: inline-block; padding: 14px 32px; border-radius: 8px; font-weight: 600; text-decoration: none; transition: all 0.3s; border: none; cursor: pointer; font-size: 1rem; }
+      .btn-primary { background: var(--primary); color: white; }
+      .btn-primary:hover { background: var(--primary-dark); transform: translateY(-2px); }
+      .about, .contact { padding: 100px 0; }
+      .about h2, .services h2, .contact h2 { font-size: 2.5rem; text-align: center; margin-bottom: 3rem; }
+      .about-content { max-width: 800px; margin: 0 auto; text-align: center; }
+      .about-content p { color: var(--text-light); margin-bottom: 1.5rem; font-size: 1.1rem; }
+      .services { padding: 100px 0; background: var(--background-alt); }
+      .services-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 2rem; }
+      .service-card { background: white; padding: 2.5rem; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); transition: transform 0.3s, box-shadow 0.3s; }
+      .service-card:hover { transform: translateY(-5px); box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1); }
+      .service-icon { width: 60px; height: 60px; background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%); border-radius: 12px; display: flex; align-items: center; justify-content: center; margin-bottom: 1.5rem; color: var(--primary); }
+      .service-card h3 { font-size: 1.25rem; margin-bottom: 1rem; }
+      .service-card p { color: var(--text-light); }
+      .contact-content { display: grid; grid-template-columns: 1fr 1fr; gap: 4rem; max-width: 900px; margin: 0 auto; }
+      .contact-info p { color: var(--text-light); margin-bottom: 2rem; font-size: 1.1rem; }
+      .contact-item { display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem; color: var(--text-light); }
+      .contact-item a { color: var(--primary); text-decoration: none; }
+      .contact-item a:hover { text-decoration: underline; }
+      .contact-form { display: flex; flex-direction: column; gap: 1.5rem; }
+      .form-group { display: flex; flex-direction: column; gap: 0.5rem; }
+      .form-group label { font-weight: 500; color: var(--text); }
+      .form-group input, .form-group textarea { padding: 12px 16px; border: 1px solid var(--border); border-radius: 8px; font-family: inherit; font-size: 1rem; transition: border-color 0.3s, box-shadow 0.3s; }
+      .form-group input:focus, .form-group textarea:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1); }
+      .form-group textarea { resize: vertical; }
+      .footer { background: var(--text); color: white; padding: 2rem 0; text-align: center; }
+      .footer p { color: rgba(255, 255, 255, 0.7); }
+      @media (max-width: 768px) {
+          .mobile-menu-btn { display: flex; }
+          .nav-links { position: absolute; top: 70px; left: 0; right: 0; background: white; flex-direction: column; padding: 2rem; gap: 1.5rem; border-bottom: 1px solid var(--border); display: none; }
+          .nav-links.active { display: flex; }
+          .hero h1 { font-size: 2rem; }
+          .hero p { font-size: 1rem; }
+          .contact-content { grid-template-columns: 1fr; gap: 2rem; }
+          .about h2, .services h2, .contact h2 { font-size: 2rem; }
+      }
+
+  # ----------------------------------------------------------
+  # TASK 7: Create JavaScript
+  # ----------------------------------------------------------
+  - name: Create JavaScript
+    file: js/main.js
+    content: |
+      const mobileMenuBtn = document.querySelector('.mobile-menu-btn');
+      const navLinks = document.querySelector('.nav-links');
+      mobileMenuBtn.addEventListener('click', () => { navLinks.classList.toggle('active'); });
+      document.querySelectorAll('.nav-links a').forEach(link => {
+          link.addEventListener('click', () => { navLinks.classList.remove('active'); });
+      });
+      const contactForm = document.getElementById('contactForm');
+      contactForm.addEventListener('submit', (e) => {
+          e.preventDefault();
+          const formData = new FormData(contactForm);
+          const name = formData.get('name');
+          const email = formData.get('email');
+          const message = formData.get('message');
+          const subject = encodeURIComponent(`Contact from ${name}`);
+          const body = encodeURIComponent(`Name: ${name}\nEmail: ${email}\n\nMessage:\n${message}`);
+          window.location.href = `mailto:dimaseinc@gmail.com?subject=${subject}&body=${body}`;
+          contactForm.reset();
+      });
+      document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+          anchor.addEventListener('click', function (e) {
+              e.preventDefault();
+              const target = document.querySelector(this.getAttribute('href'));
+              if (target) { target.scrollIntoView({ behavior: 'smooth', block: 'start' }); }
+          });
+      });
+
+  # ----------------------------------------------------------
+  # TASK 8: Create Wrangler Configuration
+  # ----------------------------------------------------------
+  - name: Create Wrangler config
+    file: wrangler.jsonc
+    content: |
+      {
+        "name": "dimaseinc-website",
+        "compatibility_date": "2025-01-01",
+        "workers_dev": true,
+        "routes": [
+          { "pattern": "dimaseinc.org/*", "zone_name": "dimaseinc.org" },
+          { "pattern": "www.dimaseinc.org/*", "zone_name": "dimaseinc.org" }
+        ],
+        "assets": {
+          "directory": "./"
+        }
+      }
+
+  # ----------------------------------------------------------
+  # TASK 9: Create Assets Ignore
+  # ----------------------------------------------------------
+  - name: Create .assetsignore
+    file: .assetsignore
+    content: |
+      wrangler.jsonc
+      .git
+      .gitignore
+      .github
+      install.yml
+      install.sh
+      full-system-install.yml
+
+  # ----------------------------------------------------------
+  # TASK 10: Create GitHub Actions Workflow
+  # ----------------------------------------------------------
+  - name: Create CI/CD pipeline
+    file: .github/workflows/deploy.yml
+    content: |
+      name: Deploy to Cloudflare Workers
+      on:
+        push:
+          branches: [main]
+        pull_request:
+          branches: [main]
+        workflow_dispatch:
+      jobs:
+        deploy:
+          runs-on: ubuntu-latest
+          name: Deploy
+          steps:
+            - uses: actions/checkout@v4
+            - uses: actions/setup-node@v4
+              with:
+                node-version: '20'
+            - run: npm install -g wrangler
+            - uses: cloudflare/wrangler-action@v3
+              with:
+                apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+                accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+
+  # ----------------------------------------------------------
+  # TASK 11: Create .gitignore
+  # ----------------------------------------------------------
+  - name: Create .gitignore
+    file: .gitignore
+    content: |
+      node_modules/
+      .wrangler/
+      .dev.vars
+      .env
+      *.log
+
+  # ----------------------------------------------------------
+  # TASK 12: Authenticate Cloudflare
+  # ----------------------------------------------------------
+  - name: Authenticate with Cloudflare
+    all_platforms:
+      commands:
+        - npx wrangler login
+    notes: "Opens browser for OAuth - click Allow"
+
+  # ----------------------------------------------------------
+  # TASK 13: Deploy
+  # ----------------------------------------------------------
+  - name: Deploy to Cloudflare Workers
+    all_platforms:
+      commands:
+        - npx wrangler deploy
+    verify:
+      urls:
+        - https://dimaseinc-website.mrcdimase.workers.dev
+        - https://dimaseinc.org
+        - https://www.dimaseinc.org
+
+# ============================================================
+# CLOUDFLARE CONFIGURATION
+# ============================================================
+cloudflare:
+  account:
+    id: "7f31d839e01ef85781465f816b10c541"
+    email: "Mrcdimase@gmail.com"
+
+  worker:
+    name: dimaseinc-website
+    compatibility_date: "2025-01-01"
+
+  routes:
+    - pattern: "dimaseinc.org/*"
+      zone: dimaseinc.org
+    - pattern: "www.dimaseinc.org/*"
+      zone: dimaseinc.org
+
+  dns_records:
+    - type: AAAA
+      name: "@"
+      content: "100::"
+      proxied: true
+      comment: "Root domain - proxied to Workers"
+    - type: AAAA
+      name: "www"
+      content: "100::"
+      proxied: true
+      comment: "WWW subdomain - proxied to Workers"
+
+# ============================================================
+# GITHUB SECRETS REQUIRED FOR CI/CD
+# ============================================================
+github_secrets:
+  CLOUDFLARE_API_TOKEN:
+    description: "API token for Cloudflare Workers deployment"
+    permissions:
+      - "Account: Workers Scripts - Edit"
+      - "Zone: Workers Routes - Edit"
+    create_url: "https://dash.cloudflare.com/profile/api-tokens"
+
+  CLOUDFLARE_ACCOUNT_ID:
+    value: "7f31d839e01ef85781465f816b10c541"
+
+# ============================================================
+# QUICK START COMMANDS
+# ============================================================
+quick_start:
+  fresh_install:
+    description: "Install from scratch on new machine"
+    commands:
+      - "curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -"
+      - "sudo apt-get install -y nodejs git"
+      - "npm install -g wrangler"
+      - "git clone <repo-url> dimaseinc-website"
+      - "cd dimaseinc-website"
+      - "npx wrangler login"
+      - "npx wrangler deploy"
+
+  update_and_deploy:
+    description: "Update site and redeploy"
+    commands:
+      - "cd ~/dimaseinc-website"
+      - "# Edit files as needed"
+      - "npx wrangler deploy"
+
+  local_development:
+    description: "Run local dev server"
+    commands:
+      - "cd ~/dimaseinc-website"
+      - "npx wrangler dev"
+      - "# Open http://localhost:8787"
+
+  view_logs:
+    description: "Stream live logs"
+    commands:
+      - "npx wrangler tail dimaseinc-website"
+
+# ============================================================
+# URLS
+# ============================================================
+urls:
+  production:
+    - https://dimaseinc.org
+    - https://www.dimaseinc.org
+  workers_dev: https://dimaseinc-website.mrcdimase.workers.dev
+  cloudflare_dashboard: https://dash.cloudflare.com/?to=/:account/workers/services/view/dimaseinc-website/production
+  analytics: https://dash.cloudflare.com/?to=/:account/workers/services/view/dimaseinc-website/production/analytics
+
+# ============================================================
+# COSTS
+# ============================================================
+costs:
+  hosting: "FREE (Cloudflare Workers Free Tier)"
+  limits:
+    requests_per_day: 100000
+    cpu_time_per_request: "10ms"
+  domain: "Requires domain registration (separate cost)"

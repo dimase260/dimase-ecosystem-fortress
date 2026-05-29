@@ -1,0 +1,973 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="description" content="DiMase Inc. Reading Mastery — Build your reading comprehension and speed">
+    <title>Reading Mastery | DiMase Inc.</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Lora:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --gold: #d4af37;
+            --gold-light: #f4d03f;
+            --gold-dark: #b8960c;
+            --black: #0a0a0a;
+            --bg-light: #1a1a1a;
+            --bg-lighter: #2a2a2a;
+            --text: #e8e8e8;
+            --text-muted: #a0a0a0;
+            --border: #333333;
+            --level-foundations: #d4af37;
+            --level-intermediate: #4a9eff;
+            --level-advanced: #a78bfa;
+            --success: #22c55e;
+            --danger: #ef4444;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html { scroll-behavior: smooth; }
+        body {
+            font-family: 'Inter', -apple-system, sans-serif;
+            color: var(--text);
+            line-height: 1.6;
+            background: var(--black);
+            overflow-x: hidden;
+            min-height: 100vh;
+        }
+
+        /* ===== HEADER ===== */
+        .header {
+            position: fixed; top: 0; left: 0; right: 0;
+            background: rgba(10,10,10,0.92);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--border);
+            z-index: 1000;
+        }
+        .nav {
+            display: flex; justify-content: space-between; align-items: center;
+            height: 70px; max-width: 1200px; margin: 0 auto; padding: 0 20px;
+        }
+        .logo {
+            display: flex; align-items: center; gap: 10px;
+            font-size: 1.4rem; font-weight: 700; color: var(--gold);
+            text-decoration: none; letter-spacing: 1px;
+        }
+        .nav-links { display: flex; list-style: none; gap: 16px; align-items: center; }
+        .nav-links a, .nav-links button {
+            color: var(--text-muted); text-decoration: none; font-size: 0.85rem;
+            background: none; border: none; cursor: pointer; padding: 0;
+            transition: color 0.2s; font-family: inherit;
+        }
+        .nav-links a:hover, .nav-links button:hover { color: var(--text); }
+        .nav-links .nav-user { color: var(--gold); font-weight: 500; font-size: 0.8rem; }
+
+        /* ===== MAIN ===== */
+        .main { margin-top: 70px; min-height: calc(100vh - 70px); }
+        .view { display: none; }
+        .view.active { display: block; }
+
+        /* ===== BUTTONS ===== */
+        .btn {
+            display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+            padding: 10px 24px; border-radius: 8px; font-weight: 600; font-size: 0.85rem;
+            cursor: pointer; transition: all 0.2s; border: none; font-family: inherit;
+            text-decoration: none;
+        }
+        .btn-primary { background: var(--gold); color: var(--black); }
+        .btn-primary:hover { background: var(--gold-light); }
+        .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+        .btn-secondary { background: var(--bg-lighter); color: var(--text); border: 1px solid var(--border); }
+        .btn-secondary:hover { border-color: var(--gold); color: var(--gold); }
+        .btn-danger { background: transparent; color: var(--danger); border: 1px solid var(--danger); }
+        .btn-danger:hover { background: var(--danger); color: white; }
+        .btn-full { width: 100%; }
+        .btn-small { padding: 6px 14px; font-size: 0.78rem; }
+        .btn-icon { padding: 8px 12px; font-size: 0.8rem; }
+
+        /* ===== DASHBOARD ===== */
+        .dashboard-container { max-width: 1000px; margin: 0 auto; padding: 40px 20px; }
+        .page-header { margin-bottom: 12px; }
+        .page-title { font-size: 1.8rem; font-weight: 700; margin-bottom: 6px; }
+        .page-title span { color: var(--gold); }
+        .page-subtitle { color: var(--text-muted); margin-bottom: 32px; }
+
+        /* Stats strip */
+        .stats-strip {
+            display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 36px;
+        }
+        .stat-card {
+            background: var(--bg-light); border: 1px solid var(--border); border-radius: 10px;
+            padding: 20px; text-align: center;
+        }
+        .stat-value { font-size: 2rem; font-weight: 700; color: var(--gold); }
+        .stat-label { font-size: 0.72rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; margin-top: 4px; }
+
+        /* Level cards */
+        .level-cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-bottom: 40px; }
+        .level-card {
+            background: var(--bg-light); border: 1px solid var(--border); border-radius: 12px;
+            padding: 28px 24px; cursor: pointer; transition: all 0.2s; text-align: center;
+        }
+        .level-card:hover { border-color: var(--gold); transform: translateY(-2px); box-shadow: 0 8px 24px rgba(212,175,55,0.08); }
+        .ring-container { position: relative; width: 100px; height: 100px; margin: 0 auto 20px; }
+        .ring-container svg { transform: rotate(-90deg); }
+        .ring-bg { fill: none; stroke: var(--bg-lighter); stroke-width: 6; }
+        .ring-progress {
+            fill: none; stroke-width: 6;
+            stroke-dasharray: 282.743; stroke-dashoffset: 282.743;
+            transition: stroke-dashoffset 1s ease; stroke-linecap: round;
+        }
+        .ring-text {
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            text-align: center;
+        }
+        .ring-pct { font-size: 1.2rem; font-weight: 700; }
+        .ring-label { font-size: 0.62rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; }
+        .level-card h3 { font-size: 1rem; font-weight: 600; margin-bottom: 4px; }
+        .level-card .level-sub { font-size: 0.78rem; color: var(--text-muted); margin-bottom: 12px; }
+        .level-card .level-count { font-size: 0.72rem; color: var(--text-muted); margin-bottom: 16px; }
+        .level-badge {
+            display: inline-block; padding: 3px 10px; border-radius: 12px; font-size: 0.7rem;
+            font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 16px;
+        }
+        .level-badge.foundations { background: rgba(212,175,55,0.15); color: var(--level-foundations); }
+        .level-badge.intermediate { background: rgba(74,158,255,0.15); color: var(--level-intermediate); }
+        .level-badge.advanced { background: rgba(167,139,250,0.15); color: var(--level-advanced); }
+
+        /* ===== CLASS LIST VIEW ===== */
+        .classlist-container { max-width: 800px; margin: 0 auto; padding: 40px 20px; }
+        .back-btn {
+            display: inline-flex; align-items: center; gap: 8px;
+            color: var(--text-muted); font-size: 0.85rem; cursor: pointer;
+            background: none; border: none; padding: 0; margin-bottom: 28px;
+            font-family: inherit; transition: color 0.2s;
+        }
+        .back-btn:hover { color: var(--gold); }
+        .section-header { display: flex; align-items: center; gap: 12px; margin-bottom: 28px; }
+        .section-header h2 { font-size: 1.4rem; font-weight: 700; }
+        .class-list { display: flex; flex-direction: column; gap: 6px; }
+        .class-item {
+            display: flex; align-items: center; gap: 16px;
+            background: var(--bg-light); border: 1px solid var(--border);
+            border-left: 3px solid transparent;
+            border-radius: 8px; padding: 18px 20px; cursor: pointer;
+            transition: all 0.2s; position: relative;
+        }
+        .class-item:hover { border-color: var(--gold); border-left-color: var(--gold); }
+        .class-item.completed { border-left-color: var(--success); }
+        .class-num {
+            width: 32px; height: 32px; border-radius: 50%; border: 1px solid var(--border);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 0.78rem; font-weight: 600; flex-shrink: 0; color: var(--text-muted);
+        }
+        .class-item.completed .class-num { background: rgba(34,197,94,0.15); border-color: var(--success); color: var(--success); }
+        .class-info { flex: 1; min-width: 0; }
+        .class-info h4 { font-size: 0.95rem; font-weight: 600; margin-bottom: 3px; }
+        .class-info p { font-size: 0.78rem; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .class-action { flex-shrink: 0; }
+
+        /* ===== LESSON MODAL ===== */
+        .modal-overlay {
+            position: fixed; inset: 0; background: rgba(0,0,0,0.85);
+            backdrop-filter: blur(4px); z-index: 2000;
+            display: none; align-items: center; justify-content: center; padding: 20px;
+        }
+        .modal-overlay.open { display: flex; }
+        .modal {
+            background: var(--bg-light); border: 1px solid var(--border);
+            border-radius: 16px; width: 100%; max-width: 860px; max-height: 90vh;
+            overflow-y: auto; display: flex; flex-direction: column;
+            box-shadow: 0 24px 64px rgba(0,0,0,0.6);
+        }
+        .modal-header {
+            padding: 24px 28px 20px; border-bottom: 1px solid var(--border);
+            display: flex; justify-content: space-between; align-items: flex-start;
+            position: sticky; top: 0; background: var(--bg-light); z-index: 1;
+            border-radius: 16px 16px 0 0;
+        }
+        .modal-header-left { flex: 1; min-width: 0; }
+        .modal-subtitle { font-size: 0.72rem; color: var(--gold); font-weight: 600; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px; }
+        .modal-title { font-size: 1.3rem; font-weight: 700; margin-bottom: 6px; }
+        .modal-desc { font-size: 0.85rem; color: var(--text-muted); line-height: 1.5; }
+        .modal-close {
+            background: none; border: none; color: var(--text-muted); font-size: 1.4rem;
+            cursor: pointer; padding: 4px 8px; margin-left: 16px; flex-shrink: 0;
+            transition: color 0.2s; line-height: 1;
+        }
+        .modal-close:hover { color: var(--text); }
+        .modal-body { padding: 28px; flex: 1; }
+
+        /* Reading passage */
+        .passage-section { margin-bottom: 28px; }
+        .passage-label {
+            font-size: 0.72rem; font-weight: 600; text-transform: uppercase; letter-spacing: 1px;
+            color: var(--gold); margin-bottom: 12px; display: flex; align-items: center; gap: 8px;
+        }
+        .passage-box {
+            background: var(--black); border: 1px solid var(--border); border-radius: 10px;
+            padding: 24px 28px; font-family: 'Lora', Georgia, serif; font-size: 1rem;
+            line-height: 1.85; color: var(--text); position: relative;
+        }
+        .passage-box p + p { margin-top: 1em; }
+
+        /* Timer bar */
+        .timer-bar {
+            display: flex; align-items: center; gap: 16px; padding: 14px 20px;
+            background: var(--bg-lighter); border: 1px solid var(--border);
+            border-radius: 10px; margin-bottom: 24px;
+        }
+        .timer-display {
+            font-size: 1.6rem; font-weight: 700; color: var(--gold);
+            font-variant-numeric: tabular-nums; min-width: 60px;
+        }
+        .timer-label { font-size: 0.72rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; }
+        .timer-wpm { font-size: 1rem; font-weight: 600; color: var(--text-muted); margin-left: auto; }
+        .timer-wpm span { color: var(--gold); }
+
+        /* Lesson actions */
+        .lesson-actions { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+        .complete-banner {
+            background: rgba(34,197,94,0.1); border: 1px solid var(--success);
+            border-radius: 8px; padding: 12px 20px; color: var(--success);
+            font-size: 0.85rem; font-weight: 600; margin-bottom: 20px;
+            display: none; align-items: center; gap: 8px;
+        }
+        .complete-banner.show { display: flex; }
+
+        /* ===== AI TUTOR PANEL ===== */
+        .tutor-toggle-btn {
+            position: fixed; bottom: 24px; right: 24px; z-index: 1500;
+            background: var(--gold); color: var(--black); border: none;
+            border-radius: 50%; width: 52px; height: 52px; font-size: 1.3rem;
+            cursor: pointer; box-shadow: 0 4px 20px rgba(212,175,55,0.3);
+            transition: all 0.2s; display: none; align-items: center; justify-content: center;
+        }
+        .tutor-toggle-btn:hover { background: var(--gold-light); transform: scale(1.05); }
+        .tutor-toggle-btn.visible { display: flex; }
+        .tutor-panel {
+            position: fixed; bottom: 88px; right: 24px; z-index: 1400;
+            width: 320px; background: var(--bg-light); border: 1px solid var(--border);
+            border-radius: 12px; display: none; flex-direction: column;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+            max-height: 420px;
+        }
+        .tutor-panel.open { display: flex; }
+        .tutor-panel-header {
+            padding: 14px 16px; border-bottom: 1px solid var(--border);
+            font-size: 0.82rem; font-weight: 600; color: var(--gold);
+            display: flex; align-items: center; gap: 8px; justify-content: space-between;
+        }
+        .tutor-panel-close { background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 1rem; transition: color 0.2s; }
+        .tutor-panel-close:hover { color: var(--text); }
+        .tutor-messages {
+            flex: 1; overflow-y: auto; padding: 14px; display: flex; flex-direction: column; gap: 10px;
+        }
+        .chat-bubble {
+            padding: 10px 14px; border-radius: 10px; font-size: 0.82rem; line-height: 1.5;
+        }
+        .chat-bubble.user { background: rgba(212,175,55,0.1); border: 1px solid rgba(212,175,55,0.2); align-self: flex-end; max-width: 85%; }
+        .chat-bubble.ai { background: var(--bg-lighter); border: 1px solid var(--border); }
+        .chat-bubble.ai .ai-label { font-size: 0.65rem; color: var(--gold); font-weight: 600; margin-bottom: 4px; text-transform: uppercase; letter-spacing: 1px; }
+        .tutor-input-row { display: flex; gap: 8px; padding: 12px; border-top: 1px solid var(--border); }
+        .tutor-input-row textarea {
+            flex: 1; background: var(--bg-lighter); border: 1px solid var(--border); border-radius: 6px;
+            padding: 8px 10px; color: var(--text); font-size: 0.82rem; resize: none; outline: none;
+            font-family: inherit; line-height: 1.4; min-height: 36px; max-height: 80px;
+        }
+        .tutor-input-row textarea:focus { border-color: var(--gold); }
+        .tutor-send-btn {
+            background: var(--gold); color: var(--black); border: none; border-radius: 6px;
+            width: 32px; height: 36px; cursor: pointer; display: flex; align-items: center; justify-content: center;
+            font-size: 0.9rem; flex-shrink: 0;
+        }
+
+        /* ===== TOAST ===== */
+        .toast {
+            position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
+            background: var(--bg-lighter); border: 1px solid var(--border); border-radius: 8px;
+            padding: 12px 24px; font-size: 0.85rem; z-index: 9999;
+            opacity: 0; transition: opacity 0.3s; pointer-events: none; white-space: nowrap;
+        }
+        .toast.show { opacity: 1; }
+        .toast.success { border-color: var(--success); color: var(--success); }
+        .toast.error { border-color: var(--danger); color: var(--danger); }
+
+        /* ===== LOADING ===== */
+        .loading-dots { display: inline-flex; gap: 4px; align-items: center; }
+        .loading-dots span {
+            width: 6px; height: 6px; background: var(--gold); border-radius: 50%;
+            animation: dot-bounce 1.2s ease-in-out infinite;
+        }
+        .loading-dots span:nth-child(2) { animation-delay: 0.2s; }
+        .loading-dots span:nth-child(3) { animation-delay: 0.4s; }
+        @keyframes dot-bounce { 0%, 80%, 100% { transform: scale(0.6); opacity: 0.4; } 40% { transform: scale(1); opacity: 1; } }
+
+        /* ===== RESPONSIVE ===== */
+        @media (max-width: 768px) {
+            .level-cards { grid-template-columns: 1fr; }
+            .stats-strip { grid-template-columns: repeat(3, 1fr); }
+            .tutor-panel { width: calc(100vw - 32px); right: 16px; bottom: 80px; }
+            .tutor-toggle-btn { right: 16px; bottom: 16px; }
+            .modal { max-height: 95vh; border-radius: 12px; }
+            .modal-body { padding: 20px; }
+            .passage-box { padding: 18px 20px; font-size: 0.95rem; }
+            .lesson-actions { flex-direction: column; align-items: stretch; }
+            .lesson-actions .btn { justify-content: center; }
+        }
+        @media (max-width: 480px) {
+            .stats-strip { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+<header class="header">
+    <nav class="nav">
+        <a href="/" class="logo">
+            <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
+                <rect width="28" height="28" rx="6" fill="#d4af37" fill-opacity="0.15"/>
+                <rect x="5" y="8" width="18" height="2.5" rx="1.25" fill="#d4af37"/>
+                <rect x="5" y="13" width="14" height="2.5" rx="1.25" fill="#d4af37"/>
+                <rect x="5" y="18" width="10" height="2.5" rx="1.25" fill="#d4af37"/>
+            </svg>
+            <span>Reading Mastery</span>
+        </a>
+        <ul class="nav-links" id="navLoggedIn" style="display:none">
+            <li><span class="nav-user" id="navUserName"></span></li>
+            <li><a href="/learning.html">Learning Hub</a></li>
+            <li><button onclick="logout()">Sign Out</button></li>
+        </ul>
+        <ul class="nav-links" id="navGuest">
+            <li><a href="/">&#8592; Home</a></li>
+        </ul>
+    </nav>
+</header>
+
+<div id="toastEl" class="toast"></div>
+
+<!-- AI Tutor floating button -->
+<button class="tutor-toggle-btn" id="tutorToggleBtn" onclick="toggleTutor()" title="AI Reading Tutor">&#x1F4DA;</button>
+
+<!-- AI Tutor panel -->
+<div class="tutor-panel" id="tutorPanel">
+    <div class="tutor-panel-header">
+        <span>&#x1F4DA; Reading Tutor</span>
+        <button class="tutor-panel-close" onclick="toggleTutor()">&#x2715;</button>
+    </div>
+    <div class="tutor-messages" id="tutorMessages">
+        <div class="chat-bubble ai">
+            <div class="ai-label">Tutor</div>
+            Hi! I'm your Reading Mastery tutor. Ask me about comprehension strategies, vocabulary, or this lesson.
+        </div>
+    </div>
+    <div class="tutor-input-row">
+        <textarea id="tutorInput" placeholder="Ask your tutor..." rows="1" onkeydown="tutorKeydown(event)"></textarea>
+        <button class="tutor-send-btn" onclick="sendTutorMessage()">&#x27A4;</button>
+    </div>
+</div>
+
+<main class="main">
+    <!-- DASHBOARD VIEW -->
+    <div id="viewDashboard" class="view active">
+        <div class="dashboard-container">
+            <div class="page-header">
+                <h1 class="page-title">Reading <span>Mastery</span></h1>
+                <p class="page-subtitle">Build comprehension, vocabulary, and reading speed through structured lessons. Choose your level below.</p>
+            </div>
+
+            <!-- Progress stats -->
+            <div class="stats-strip">
+                <div class="stat-card">
+                    <div class="stat-value" id="statTotal">0</div>
+                    <div class="stat-label">Lessons Complete</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="statLevel">&#x2014;</div>
+                    <div class="stat-label">Current Level</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="statBestWpm">&#x2014;</div>
+                    <div class="stat-label">Best Reading WPM</div>
+                </div>
+            </div>
+
+            <!-- Level cards -->
+            <div class="level-cards">
+                <!-- Foundations -->
+                <div class="level-card" onclick="openLevel(1)">
+                    <div class="level-badge foundations">Foundations</div>
+                    <div class="ring-container">
+                        <svg width="100" height="100" viewBox="0 0 100 100">
+                            <circle class="ring-bg" cx="50" cy="50" r="45"/>
+                            <circle class="ring-progress" id="ring1" cx="50" cy="50" r="45" stroke="var(--level-foundations)"/>
+                        </svg>
+                        <div class="ring-text">
+                            <div class="ring-pct" id="pct1">0%</div>
+                            <div class="ring-label">done</div>
+                        </div>
+                    </div>
+                    <h3>Core Reading Skills</h3>
+                    <p class="level-sub">Phonics, sight words, sentence structure</p>
+                    <p class="level-count" id="count1">0/10 Complete</p>
+                    <button class="btn btn-primary btn-small">Start Reading</button>
+                </div>
+                <!-- Intermediate -->
+                <div class="level-card" onclick="openLevel(2)">
+                    <div class="level-badge intermediate">Intermediate</div>
+                    <div class="ring-container">
+                        <svg width="100" height="100" viewBox="0 0 100 100">
+                            <circle class="ring-bg" cx="50" cy="50" r="45"/>
+                            <circle class="ring-progress" id="ring2" cx="50" cy="50" r="45" stroke="var(--level-intermediate)"/>
+                        </svg>
+                        <div class="ring-text">
+                            <div class="ring-pct" id="pct2">0%</div>
+                            <div class="ring-label">done</div>
+                        </div>
+                    </div>
+                    <h3>Comprehension & Context</h3>
+                    <p class="level-sub">Inference, main idea, vocabulary in context</p>
+                    <p class="level-count" id="count2">0/10 Complete</p>
+                    <button class="btn btn-primary btn-small">Continue</button>
+                </div>
+                <!-- Advanced -->
+                <div class="level-card" onclick="openLevel(3)">
+                    <div class="level-badge advanced">Advanced</div>
+                    <div class="ring-container">
+                        <svg width="100" height="100" viewBox="0 0 100 100">
+                            <circle class="ring-bg" cx="50" cy="50" r="45"/>
+                            <circle class="ring-progress" id="ring3" cx="50" cy="50" r="45" stroke="var(--level-advanced)"/>
+                        </svg>
+                        <div class="ring-text">
+                            <div class="ring-pct" id="pct3">0%</div>
+                            <div class="ring-label">done</div>
+                        </div>
+                    </div>
+                    <h3>Critical Analysis</h3>
+                    <p class="level-sub">Literary analysis, speed reading, synthesis</p>
+                    <p class="level-count" id="count3">0/10 Complete</p>
+                    <button class="btn btn-primary btn-small">Advance</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- CLASS LIST VIEW -->
+    <div id="viewClassList" class="view">
+        <div class="classlist-container">
+            <button class="back-btn" onclick="showView('dashboard')">&#8592; Back to Dashboard</button>
+            <div class="section-header">
+                <span class="level-badge" id="listLevelBadge"></span>
+                <h2 id="listTitle">Level Lessons</h2>
+            </div>
+            <div class="class-list" id="classList">
+                <div style="padding:40px;text-align:center;color:var(--text-muted)">
+                    <div class="loading-dots"><span></span><span></span><span></span></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+
+<!-- LESSON MODAL -->
+<div class="modal-overlay" id="lessonModal">
+    <div class="modal">
+        <div class="modal-header">
+            <div class="modal-header-left">
+                <div class="modal-subtitle" id="modalSubtitle">Lesson</div>
+                <div class="modal-title" id="modalTitle">Loading...</div>
+                <div class="modal-desc" id="modalDesc"></div>
+            </div>
+            <button class="modal-close" onclick="closeModal()">&#x2715;</button>
+        </div>
+        <div class="modal-body">
+            <!-- Completion banner -->
+            <div class="complete-banner" id="completeBanner">
+                &#x2714; Lesson Complete! Great work.
+            </div>
+
+            <!-- Reading passage -->
+            <div class="passage-section">
+                <div class="passage-label">
+                    <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                        <rect x="1" y="2" width="12" height="1.5" rx="0.75" fill="#d4af37"/>
+                        <rect x="1" y="5.5" width="9" height="1.5" rx="0.75" fill="#d4af37"/>
+                        <rect x="1" y="9" width="10.5" height="1.5" rx="0.75" fill="#d4af37"/>
+                    </svg>
+                    Reading Passage
+                </div>
+                <div class="passage-box" id="passageBox">
+                    <p>Loading content...</p>
+                </div>
+            </div>
+
+            <!-- Reading speed timer -->
+            <div class="timer-bar" id="timerBar">
+                <div>
+                    <div class="timer-display" id="timerDisplay">0:00</div>
+                    <div class="timer-label">Reading Timer</div>
+                </div>
+                <div style="flex:1"></div>
+                <div class="timer-wpm" id="timerWpm" style="display:none">
+                    <span id="wpmDisplay">0</span> WPM
+                </div>
+                <button class="btn btn-secondary btn-small" id="timerBtn" onclick="toggleTimer()">&#9654; Start Timer</button>
+            </div>
+
+            <!-- Actions -->
+            <div class="lesson-actions">
+                <button class="btn btn-primary" id="markCompleteBtn" onclick="markComplete()">
+                    &#x2713; Mark Complete
+                </button>
+                <button class="btn btn-secondary" onclick="closeModal()">Close</button>
+                <span id="markCompleteMsg" style="font-size:0.8rem;color:var(--text-muted);display:none">
+                    Already completed &#x2713;
+                </span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+/* ==================== STATE ==================== */
+var token = localStorage.getItem('reading_token');
+var user  = localStorage.getItem('reading_user');
+var currentLevel = null;
+var currentClass = null;
+var classesCache  = {};
+var progressCache = [];
+var timerInterval = null;
+var timerRunning  = false;
+var timerSeconds  = 0;
+var timerStartTs  = null;
+var tutorOpen = false;
+
+/* ==================== INIT ==================== */
+(function init() {
+    if (!token) {
+        // Try auto-auth from site session cookie before redirecting to login
+        fetch('/auth/lms-token', { credentials: 'include' })
+            .then(function(r) { return r.ok ? r.json() : null; })
+            .then(function(data) {
+                if (data && data.token) {
+                    token = data.token;
+                    user = data.user.displayName || data.user.email || '';
+                    localStorage.setItem('reading_token', token);
+                    localStorage.setItem('reading_user', user);
+                    continueInit();
+                } else {
+                    window.location.href = '/login?r=/reading.html';
+                }
+            })
+            .catch(function() { window.location.href = '/login?r=/reading.html'; });
+        return;
+    }
+    continueInit();
+    function continueInit() {
+    document.getElementById('navLoggedIn').style.display = 'flex';
+    document.getElementById('navGuest').style.display = 'none';
+    try {
+        var payload = JSON.parse(atob(token.split('.')[1]));
+        var displayName = user || payload.name || payload.email || 'Reader';
+        document.getElementById('navUserName').textContent = displayName;
+    } catch(e) {
+        document.getElementById('navUserName').textContent = user || 'Reader';
+    }
+    loadProgress();
+}
+})();
+
+/* ==================== AUTH ==================== */
+function logout() {
+    localStorage.removeItem('reading_token');
+    localStorage.removeItem('reading_user');
+    window.location.href = '/';
+}
+
+/* ==================== VIEWS ==================== */
+function showView(name) {
+    document.querySelectorAll('.view').forEach(function(v) { v.classList.remove('active'); });
+    var el = document.getElementById('view' + name.charAt(0).toUpperCase() + name.slice(1));
+    if (el) el.classList.add('active');
+    if (name === 'dashboard') {
+        document.getElementById('tutorToggleBtn').classList.remove('visible');
+    }
+    window.scrollTo(0, 0);
+}
+
+/* ==================== PROGRESS ==================== */
+function loadProgress() {
+    fetch('/reading/progress', {
+        headers: { 'Authorization': 'Bearer ' + token }
+    })
+    .then(function(r) {
+        if (r.status === 401) { logout(); return null; }
+        return r.json();
+    })
+    .then(function(data) {
+        if (!data) return;
+        progressCache = Array.isArray(data) ? data : (data.completed || []);
+        renderDashboard();
+    })
+    .catch(function() {
+        progressCache = [];
+        renderDashboard();
+    });
+}
+
+function renderDashboard() {
+    var total = progressCache.length;
+    document.getElementById('statTotal').textContent = total;
+
+    // Determine best WPM from progress data (if backend returns wpm)
+    var bestWpm = 0;
+    progressCache.forEach(function(item) {
+        if (item && item.wpm && item.wpm > bestWpm) bestWpm = item.wpm;
+    });
+    document.getElementById('statBestWpm').textContent = bestWpm > 0 ? bestWpm : '\u2014';
+
+    // Figure completed IDs
+    var completedIds = progressCache.map(function(item) {
+        return typeof item === 'object' ? item.class_id : item;
+    });
+
+    // Level breakdowns — we know each level has 10 classes
+    // Level 1: ids 1-10, Level 2: ids 11-20, Level 3: ids 21-30
+    // But since we rely on API data, we'll count by what's cached per level
+    var l1 = 0, l2 = 0, l3 = 0;
+    completedIds.forEach(function(id) {
+        if (id >= 1  && id <= 10) l1++;
+        else if (id >= 11 && id <= 20) l2++;
+        else if (id >= 21 && id <= 30) l3++;
+    });
+
+    updateRing('ring1', 'pct1', 'count1', l1, 10);
+    updateRing('ring2', 'pct2', 'count2', l2, 10);
+    updateRing('ring3', 'pct3', 'count3', l3, 10);
+
+    // Current level label
+    var levelNames = ['Foundations', 'Intermediate', 'Advanced'];
+    var curLevel = l1 < 10 ? 0 : l2 < 10 ? 1 : 2;
+    document.getElementById('statLevel').textContent = levelNames[curLevel];
+}
+
+function updateRing(ringId, pctId, countId, done, total) {
+    var pct = total > 0 ? Math.round((done / total) * 100) : 0;
+    var circumference = 282.743;
+    var offset = circumference - (pct / 100) * circumference;
+    var ring = document.getElementById(ringId);
+    if (ring) {
+        setTimeout(function() { ring.style.strokeDashoffset = offset; }, 100);
+    }
+    document.getElementById(pctId).textContent = pct + '%';
+    document.getElementById(countId).textContent = done + '/' + total + ' Complete';
+}
+
+/* ==================== LEVEL / CLASSES ==================== */
+function openLevel(level) {
+    currentLevel = level;
+    var names = { 1: 'Foundations', 2: 'Intermediate', 3: 'Advanced' };
+    var badgeClass = { 1: 'foundations', 2: 'intermediate', 3: 'advanced' };
+    document.getElementById('listLevelBadge').className = 'level-badge ' + badgeClass[level];
+    document.getElementById('listLevelBadge').textContent = names[level];
+    document.getElementById('listTitle').textContent = names[level] + ' Lessons';
+    document.getElementById('classList').innerHTML = '<div style="padding:40px;text-align:center;color:var(--text-muted)"><div class="loading-dots"><span></span><span></span><span></span></div></div>';
+    showView('classList');
+    document.getElementById('tutorToggleBtn').classList.add('visible');
+    fetchClasses(level);
+}
+
+function fetchClasses(level) {
+    if (classesCache[level]) {
+        renderClassList(classesCache[level]);
+        return;
+    }
+    fetch('/reading/classes?level=' + level, {
+        headers: { 'Authorization': 'Bearer ' + token }
+    })
+    .then(function(r) {
+        if (r.status === 401) { logout(); return null; }
+        return r.json();
+    })
+    .then(function(data) {
+        if (!data) return;
+        var classes = Array.isArray(data) ? data : (data.classes || data.data || []);
+        classesCache[level] = classes;
+        renderClassList(classes);
+    })
+    .catch(function(err) {
+        document.getElementById('classList').innerHTML = '<div style="padding:40px;text-align:center;color:var(--danger)">Failed to load lessons. Please try again.</div>';
+    });
+}
+
+function renderClassList(classes) {
+    var completedIds = progressCache.map(function(item) {
+        return typeof item === 'object' ? item.class_id : item;
+    });
+
+    if (!classes || classes.length === 0) {
+        document.getElementById('classList').innerHTML = '<div style="padding:40px;text-align:center;color:var(--text-muted)">No lessons found for this level yet.</div>';
+        return;
+    }
+
+    var html = '';
+    classes.forEach(function(cls, idx) {
+        var isDone = completedIds.indexOf(cls.id) !== -1;
+        var num = cls.order_num || (idx + 1);
+        html += '<div class="class-item' + (isDone ? ' completed' : '') + '" onclick="openLesson(' + JSON.stringify(cls).replace(/"/g, '&quot;') + ')">';
+        html += '<div class="class-num">' + (isDone ? '&#x2713;' : num) + '</div>';
+        html += '<div class="class-info">';
+        html += '<h4>' + escHtml(cls.title) + '</h4>';
+        html += '<p>' + escHtml(cls.description || '') + '</p>';
+        html += '</div>';
+        html += '<div class="class-action"><button class="btn btn-primary btn-small" onclick="event.stopPropagation();openLesson(' + JSON.stringify(cls).replace(/"/g, '&quot;') + ')">' + (isDone ? '&#x21BA; Review' : 'Start Lesson') + '</button></div>';
+        html += '</div>';
+    });
+    document.getElementById('classList').innerHTML = html;
+}
+
+/* ==================== LESSON MODAL ==================== */
+function openLesson(cls) {
+    currentClass = cls;
+    var levelNames = { 1: 'Foundations', 2: 'Intermediate', 3: 'Advanced' };
+    document.getElementById('modalSubtitle').textContent = 'Level ' + cls.level + ' \u2022 Lesson ' + (cls.order_num || '');
+    document.getElementById('modalTitle').textContent = cls.title;
+    document.getElementById('modalDesc').textContent = cls.description || '';
+
+    // Render passage — split on \n\n for paragraphs
+    var content = cls.content || cls.description || 'No content available for this lesson yet.';
+    var paragraphs = content.split(/\n\n+/);
+    var passageHtml = paragraphs.map(function(p) { return '<p>' + escHtml(p.trim()) + '</p>'; }).join('');
+    document.getElementById('passageBox').innerHTML = passageHtml;
+
+    // Check completion
+    var completedIds = progressCache.map(function(item) {
+        return typeof item === 'object' ? item.class_id : item;
+    });
+    var isDone = completedIds.indexOf(cls.id) !== -1;
+    var banner = document.getElementById('completeBanner');
+    var markBtn = document.getElementById('markCompleteBtn');
+    var markMsg = document.getElementById('markCompleteMsg');
+
+    if (isDone) {
+        banner.classList.add('show');
+        markBtn.style.display = 'none';
+        markMsg.style.display = 'inline';
+    } else {
+        banner.classList.remove('show');
+        markBtn.style.display = 'inline-flex';
+        markBtn.disabled = false;
+        markBtn.textContent = '\u2713 Mark Complete';
+        markMsg.style.display = 'none';
+    }
+
+    // Reset timer
+    stopTimer();
+    timerSeconds = 0;
+    document.getElementById('timerDisplay').textContent = '0:00';
+    document.getElementById('timerBtn').textContent = '\u25B6 Start Timer';
+    document.getElementById('timerWpm').style.display = 'none';
+
+    // Open modal
+    document.getElementById('lessonModal').classList.add('open');
+    document.body.style.overflow = 'hidden';
+}
+
+function closeModal() {
+    document.getElementById('lessonModal').classList.remove('open');
+    document.body.style.overflow = '';
+    stopTimer();
+}
+
+// Close modal on overlay click
+document.getElementById('lessonModal').addEventListener('click', function(e) {
+    if (e.target === this) closeModal();
+});
+
+/* ==================== TIMER ==================== */
+function toggleTimer() {
+    if (timerRunning) {
+        stopTimer();
+    } else {
+        startTimer();
+    }
+}
+
+function startTimer() {
+    timerRunning = true;
+    timerStartTs = Date.now() - (timerSeconds * 1000);
+    document.getElementById('timerBtn').textContent = '\u23F8 Stop Timer';
+    timerInterval = setInterval(function() {
+        timerSeconds = Math.floor((Date.now() - timerStartTs) / 1000);
+        var mins = Math.floor(timerSeconds / 60);
+        var secs = timerSeconds % 60;
+        document.getElementById('timerDisplay').textContent = mins + ':' + (secs < 10 ? '0' : '') + secs;
+        updateWpm();
+    }, 500);
+}
+
+function stopTimer() {
+    timerRunning = false;
+    clearInterval(timerInterval);
+    timerInterval = null;
+    document.getElementById('timerBtn').textContent = '\u25B6 Start Timer';
+    updateWpm();
+}
+
+function updateWpm() {
+    if (!currentClass || timerSeconds < 3) return;
+    var content = currentClass.content || currentClass.description || '';
+    var wordCount = content.trim().split(/\s+/).filter(Boolean).length;
+    if (wordCount < 1) return;
+    var minutes = timerSeconds / 60;
+    var wpm = Math.round(wordCount / minutes);
+    document.getElementById('timerWpm').style.display = 'flex';
+    document.getElementById('wpmDisplay').textContent = wpm;
+}
+
+function getTimerWpm() {
+    if (!currentClass || timerSeconds < 3) return 0;
+    var content = currentClass.content || currentClass.description || '';
+    var wordCount = content.trim().split(/\s+/).filter(Boolean).length;
+    if (wordCount < 1) return 0;
+    var minutes = timerSeconds / 60;
+    return Math.round(wordCount / minutes);
+}
+
+/* ==================== MARK COMPLETE ==================== */
+function markComplete() {
+    if (!currentClass) return;
+    var btn = document.getElementById('markCompleteBtn');
+    btn.disabled = true;
+    btn.textContent = 'Saving...';
+
+    var wpm = getTimerWpm();
+    var body = { class_id: currentClass.id, completed: true };
+    if (wpm > 0) body.wpm = wpm;
+
+    fetch('/reading/progress', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer ' + token
+        },
+        body: JSON.stringify(body)
+    })
+    .then(function(r) {
+        if (r.status === 401) { logout(); return null; }
+        return r.json();
+    })
+    .then(function(data) {
+        if (!data) return;
+        // Update local cache
+        if (progressCache.indexOf(currentClass.id) === -1) {
+            progressCache.push({ class_id: currentClass.id, wpm: wpm });
+        }
+        // Update UI
+        document.getElementById('completeBanner').classList.add('show');
+        btn.style.display = 'none';
+        document.getElementById('markCompleteMsg').style.display = 'inline';
+        // Refresh list and dashboard
+        renderClassList(classesCache[currentLevel] || []);
+        renderDashboard();
+        showToast('Lesson marked complete!', 'success');
+    })
+    .catch(function() {
+        btn.disabled = false;
+        btn.textContent = '\u2713 Mark Complete';
+        showToast('Failed to save progress. Try again.', 'error');
+    });
+}
+
+/* ==================== AI TUTOR ==================== */
+function toggleTutor() {
+    tutorOpen = !tutorOpen;
+    var panel = document.getElementById('tutorPanel');
+    if (tutorOpen) {
+        panel.classList.add('open');
+    } else {
+        panel.classList.remove('open');
+    }
+}
+
+function tutorKeydown(e) {
+    if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        sendTutorMessage();
+    }
+}
+
+function sendTutorMessage() {
+    var input = document.getElementById('tutorInput');
+    var text = input.value.trim();
+    if (!text) return;
+    input.value = '';
+
+    var msgs = document.getElementById('tutorMessages');
+    // Add user bubble
+    var userBubble = document.createElement('div');
+    userBubble.className = 'chat-bubble user';
+    userBubble.textContent = text;
+    msgs.appendChild(userBubble);
+
+    // Add typing indicator
+    var typingBubble = document.createElement('div');
+    typingBubble.className = 'chat-bubble ai';
+    typingBubble.innerHTML = '<div class="ai-label">Tutor</div><div class="loading-dots"><span></span><span></span><span></span></div>';
+    msgs.appendChild(typingBubble);
+    msgs.scrollTop = msgs.scrollHeight;
+
+    // Build context message
+    var contextMsg = text;
+    if (currentClass) {
+        contextMsg = '[Reading Mastery - ' + currentClass.title + '] ' + text;
+    }
+
+    fetch('/reading/chat/message', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer ' + token
+        },
+        body: JSON.stringify({ message: contextMsg })
+    })
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+        typingBubble.innerHTML = '<div class="ai-label">Tutor</div>' + escHtml(data.response || data.message || 'Sorry, I could not respond right now.');
+        msgs.scrollTop = msgs.scrollHeight;
+    })
+    .catch(function() {
+        typingBubble.innerHTML = '<div class="ai-label">Tutor</div>Sorry, I\'m unavailable right now. Please try again.';
+        msgs.scrollTop = msgs.scrollHeight;
+    });
+}
+
+/* ==================== UTILS ==================== */
+function escHtml(str) {
+    if (!str) return '';
+    return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+}
+
+function showToast(msg, type) {
+    var el = document.getElementById('toastEl');
+    el.textContent = msg;
+    el.className = 'toast' + (type ? ' ' + type : '');
+    el.classList.add('show');
+    setTimeout(function() { el.classList.remove('show'); }, 3000);
+}
+
+/* ==================== KEYBOARD ==================== */
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+        var modal = document.getElementById('lessonModal');
+        if (modal.classList.contains('open')) closeModal();
+        else if (tutorOpen) toggleTutor();
+    }
+});
+</script>
+</body>
+</html>

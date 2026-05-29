@@ -1,0 +1,23 @@
+# Large files
+*.apk
+*.zip
+*.tar.gz
+*.jks
+
+# Python
+__pycache__/
+*.pyc
+venv/
+.env
+
+# OS/System
+.DS_Store
+.cache/
+node_modules/
+
+# Local states
+*.log
+data/consciousness.json
+data/memory.json
+website_deploy/downloads/2012-Dodge-Journey-Repair-Manual.pdf
+*.pdf

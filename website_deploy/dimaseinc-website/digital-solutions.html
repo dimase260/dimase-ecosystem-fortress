@@ -1,0 +1,749 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="DiMase Inc. Digital Solutions - Process Automation, Cloud Infrastructure, System Integration, and Data Analytics">
+    <title>Digital Solutions | DiMase Inc.</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --gold: #d4af37;
+            --gold-light: #f4d03f;
+            --gold-dark: #b8960c;
+            --black: #0a0a0a;
+            --black-light: #1a1a1a;
+            --black-lighter: #2a2a2a;
+            --text: #ffffff;
+            --text-muted: #a0a0a0;
+            --border: #333333;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            color: var(--text);
+            line-height: 1.6;
+            background: var(--black);
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        /* Tech Grid Overlay */
+        .tech-grid {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: -1;
+            opacity: 0.03;
+            background-image:
+                linear-gradient(var(--gold) 1px, transparent 1px),
+                linear-gradient(90deg, var(--gold) 1px, transparent 1px);
+            background-size: 50px 50px;
+        }
+
+        .bg-gradient {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -2;
+            background: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 50%, #0a0a0a 100%);
+        }
+
+        /* Header */
+        .header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: rgba(10, 10, 10, 0.9);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--border);
+            z-index: 1000;
+        }
+
+        .nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            height: 70px;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--gold);
+            text-decoration: none;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .nav-links {
+            display: flex;
+            list-style: none;
+            gap: 2rem;
+        }
+
+        .nav-links a {
+            color: var(--text);
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.3s, text-shadow 0.3s;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-size: 0.9rem;
+        }
+
+        .nav-links a:hover {
+            color: var(--gold);
+            text-shadow: 0 0 20px rgba(212, 175, 55, 0.5);
+        }
+
+        .mobile-menu-btn {
+            display: none;
+            flex-direction: column;
+            gap: 5px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 5px;
+        }
+
+        .mobile-menu-btn span {
+            width: 25px;
+            height: 2px;
+            background: var(--gold);
+            transition: 0.3s;
+        }
+
+        /* Hero */
+        .hero {
+            padding: 180px 0 120px;
+            text-align: center;
+            position: relative;
+        }
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: radial-gradient(ellipse at center, rgba(212, 175, 55, 0.1) 0%, transparent 70%);
+            pointer-events: none;
+        }
+
+        .hero h1 {
+            font-size: 4rem;
+            font-weight: 700;
+            margin-bottom: 1.5rem;
+            color: var(--text);
+            text-transform: uppercase;
+            letter-spacing: 4px;
+            background: linear-gradient(135deg, var(--gold-light) 0%, var(--gold) 50%, var(--gold-dark) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            animation: shimmer 3s ease-in-out infinite;
+        }
+
+        @keyframes shimmer {
+            0%, 100% { filter: brightness(1); }
+            50% { filter: brightness(1.2); }
+        }
+
+        .hero p {
+            font-size: 1.25rem;
+            color: var(--text-muted);
+            max-width: 650px;
+            margin: 0 auto 2.5rem;
+        }
+
+        .hero .breadcrumb {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 2rem;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .hero .breadcrumb a {
+            color: var(--text-muted);
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+
+        .hero .breadcrumb a:hover {
+            color: var(--gold);
+        }
+
+        .hero .breadcrumb .separator {
+            color: var(--border);
+        }
+
+        .hero .breadcrumb .current {
+            color: var(--gold);
+        }
+
+        /* Buttons */
+        .btn {
+            display: inline-block;
+            padding: 16px 40px;
+            border-radius: 0;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.3s;
+            border: 2px solid var(--gold);
+            cursor: pointer;
+            font-size: 1rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-primary {
+            background: transparent;
+            color: var(--gold);
+        }
+
+        .btn-primary::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(212, 175, 55, 0.3), transparent);
+            transition: left 0.5s;
+        }
+
+        .btn-primary:hover::before {
+            left: 100%;
+        }
+
+        .btn-primary:hover {
+            background: var(--gold);
+            color: var(--black);
+            box-shadow: 0 0 30px rgba(212, 175, 55, 0.5);
+        }
+
+        /* Section base styles */
+        section {
+            position: relative;
+        }
+
+        section h2 {
+            font-size: 2.5rem;
+            text-align: center;
+            margin-bottom: 1.5rem;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            color: var(--gold);
+        }
+
+        .section-subtitle {
+            text-align: center;
+            color: var(--text-muted);
+            font-size: 1.1rem;
+            max-width: 700px;
+            margin: 0 auto 3rem;
+        }
+
+        /* Offerings Section */
+        .offerings {
+            padding: 100px 0;
+            background: rgba(26, 26, 26, 0.8);
+            backdrop-filter: blur(10px);
+        }
+
+        .offerings-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 2rem;
+        }
+
+        .offering-card {
+            background: linear-gradient(135deg, var(--black-light) 0%, var(--black-lighter) 100%);
+            padding: 2.5rem;
+            border: 1px solid var(--border);
+            transition: all 0.4s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .offering-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, var(--gold), transparent);
+            transform: translateX(-100%);
+            transition: transform 0.5s;
+        }
+
+        .offering-card:hover::before {
+            transform: translateX(100%);
+        }
+
+        .offering-card:hover {
+            transform: translateY(-10px);
+            border-color: var(--gold);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5), 0 0 30px rgba(212, 175, 55, 0.1);
+        }
+
+        .offering-icon {
+            width: 70px;
+            height: 70px;
+            background: transparent;
+            border: 2px solid var(--gold);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 1.5rem;
+            color: var(--gold);
+            transition: all 0.3s;
+        }
+
+        .offering-card:hover .offering-icon {
+            background: var(--gold);
+            color: var(--black);
+            box-shadow: 0 0 20px rgba(212, 175, 55, 0.5);
+        }
+
+        .offering-card h3 {
+            font-size: 1.25rem;
+            margin-bottom: 1rem;
+            color: var(--text);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .offering-card p {
+            color: var(--text-muted);
+            font-size: 0.95rem;
+            line-height: 1.7;
+        }
+
+        /* Why Digital Section */
+        .why-digital {
+            padding: 100px 0;
+            background: rgba(10, 10, 10, 0.9);
+        }
+
+        .benefits-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2.5rem;
+            margin-top: 3rem;
+        }
+
+        .benefit-item {
+            text-align: center;
+            padding: 2rem 1.5rem;
+            border: 1px solid var(--border);
+            background: linear-gradient(180deg, var(--black-light) 0%, var(--black) 100%);
+            transition: all 0.4s;
+        }
+
+        .benefit-item:hover {
+            border-color: var(--gold);
+            box-shadow: 0 0 30px rgba(212, 175, 55, 0.08);
+        }
+
+        .benefit-number {
+            font-size: 3rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--gold-light) 0%, var(--gold) 50%, var(--gold-dark) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 1rem;
+            line-height: 1;
+        }
+
+        .benefit-item h3 {
+            font-size: 1.1rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--text);
+            margin-bottom: 0.75rem;
+        }
+
+        .benefit-item p {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            line-height: 1.7;
+        }
+
+        /* Process Section */
+        .process {
+            padding: 100px 0;
+            background: rgba(26, 26, 26, 0.5);
+        }
+
+        .process-steps {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 0;
+            margin-top: 3rem;
+            position: relative;
+        }
+
+        .process-step {
+            text-align: center;
+            padding: 2rem 1.5rem;
+            position: relative;
+        }
+
+        .process-step:not(:last-child)::after {
+            content: '';
+            position: absolute;
+            top: 45px;
+            right: 0;
+            width: 40%;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, var(--gold), transparent);
+        }
+
+        .step-number {
+            width: 50px;
+            height: 50px;
+            border: 2px solid var(--gold);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1.5rem;
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--gold);
+            transition: all 0.3s;
+        }
+
+        .process-step:hover .step-number {
+            background: var(--gold);
+            color: var(--black);
+            box-shadow: 0 0 20px rgba(212, 175, 55, 0.5);
+        }
+
+        .process-step h3 {
+            font-size: 1rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--text);
+            margin-bottom: 0.75rem;
+        }
+
+        .process-step p {
+            color: var(--text-muted);
+            font-size: 0.85rem;
+            line-height: 1.6;
+        }
+
+        /* CTA Section */
+        .cta {
+            padding: 100px 0;
+            text-align: center;
+            background: rgba(10, 10, 10, 0.9);
+            position: relative;
+        }
+
+        .cta::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: radial-gradient(ellipse at center, rgba(212, 175, 55, 0.06) 0%, transparent 70%);
+            pointer-events: none;
+        }
+
+        .cta h2 {
+            margin-bottom: 1.5rem;
+        }
+
+        .cta p {
+            color: var(--text-muted);
+            font-size: 1.15rem;
+            max-width: 600px;
+            margin: 0 auto 2.5rem;
+        }
+
+        /* Footer */
+        .footer {
+            background: var(--black);
+            border-top: 1px solid var(--border);
+            padding: 2rem 0;
+            text-align: center;
+        }
+
+        .footer p {
+            color: var(--text-muted);
+        }
+
+        .footer span {
+            color: var(--gold);
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .mobile-menu-btn {
+                display: flex;
+            }
+
+            .nav-links {
+                position: absolute;
+                top: 70px;
+                left: 0;
+                right: 0;
+                background: rgba(10, 10, 10, 0.98);
+                flex-direction: column;
+                padding: 2rem;
+                gap: 1.5rem;
+                border-bottom: 1px solid var(--border);
+                display: none;
+            }
+
+            .nav-links.active {
+                display: flex;
+            }
+
+            .hero {
+                padding: 140px 0 80px;
+            }
+
+            .hero h1 {
+                font-size: 2.2rem;
+                letter-spacing: 2px;
+            }
+
+            .hero p {
+                font-size: 1rem;
+            }
+
+            section h2 {
+                font-size: 1.8rem;
+            }
+
+            .offerings,
+            .why-digital,
+            .process,
+            .cta {
+                padding: 70px 0;
+            }
+
+            .offerings-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .benefits-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .process-steps {
+                grid-template-columns: 1fr;
+            }
+
+            .process-step:not(:last-child)::after {
+                display: none;
+            }
+        }
+
+        /* Glowing elements */
+        @keyframes glow {
+            from {
+                box-shadow: 0 0 5px rgba(212, 175, 55, 0.2), 0 0 10px rgba(212, 175, 55, 0.2);
+            }
+            to {
+                box-shadow: 0 0 20px rgba(212, 175, 55, 0.4), 0 0 30px rgba(212, 175, 55, 0.3);
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Background -->
+    <div class="bg-gradient"></div>
+    <div class="tech-grid"></div>
+
+    <header class="header">
+        <nav class="nav container">
+            <a href="/" class="logo">DiMase Inc.</a>
+            <ul class="nav-links">
+                <li><a href="/">Home</a></li>
+                <li><a href="/#services">Services</a></li>
+                <li><a href="/learning">Learning</a></li>
+                <li><a href="/#contact">Contact</a></li>
+            </ul>
+            <button class="mobile-menu-btn" aria-label="Toggle menu">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+        </nav>
+    </header>
+
+    <main>
+        <section class="hero">
+            <div class="container">
+                <div class="breadcrumb">
+                    <a href="/">Home</a>
+                    <span class="separator">/</span>
+                    <a href="/#services">Services</a>
+                    <span class="separator">/</span>
+                    <span class="current">Digital Solutions</span>
+                </div>
+                <h1>Digital Solutions</h1>
+                <p>Modern technology solutions engineered to streamline operations, automate workflows, and transform the way your business operates.</p>
+            </div>
+        </section>
+
+        <section class="offerings">
+            <div class="container">
+                <h2>What We Deliver</h2>
+                <p class="section-subtitle">End-to-end digital capabilities designed to eliminate inefficiency and position your business for scalable growth.</p>
+                <div class="offerings-grid">
+                    <div class="offering-card">
+                        <div class="offering-icon">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 6V2H8"/><path d="m8 18-4 4V8a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2Z"/><path d="M2 12h2"/><path d="M9 11v2"/><path d="M15 11v2"/><path d="M20 12h2"/></svg>
+                        </div>
+                        <h3>Process Automation</h3>
+                        <p>Eliminate repetitive manual tasks with intelligent automation workflows. We design and deploy RPA solutions, custom scripts, and automated pipelines that free your team to focus on high-value work.</p>
+                    </div>
+                    <div class="offering-card">
+                        <div class="offering-icon">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z"/></svg>
+                        </div>
+                        <h3>Cloud Infrastructure</h3>
+                        <p>Architect, migrate, and manage cloud environments built for reliability and performance. From AWS and Azure to self-hosted solutions, we build infrastructure that scales with your business demands.</p>
+                    </div>
+                    <div class="offering-card">
+                        <div class="offering-icon">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h16"/><path d="M4 20V10l8-6 8 6v10"/><path d="M9.5 20v-6h5v6"/><path d="M3 10h18"/></svg>
+                        </div>
+                        <h3>System Integration</h3>
+                        <p>Connect disparate systems into a unified, efficient ecosystem. We build custom APIs, middleware, and data bridges that let your tools communicate seamlessly and eliminate information silos.</p>
+                    </div>
+                    <div class="offering-card">
+                        <div class="offering-icon">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20V10"/><path d="M18 20V4"/><path d="M6 20v-4"/><rect x="2" y="2" width="20" height="20" rx="0" stroke="none" fill="none"/></svg>
+                        </div>
+                        <h3>Data Analytics</h3>
+                        <p>Turn raw data into actionable intelligence. We implement dashboards, reporting pipelines, and analytics platforms that give you real-time visibility into the metrics that drive your business forward.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="why-digital">
+            <div class="container">
+                <h2>Why Go Digital</h2>
+                <p class="section-subtitle">Digital transformation is not a luxury -- it is a competitive necessity. Here is what it delivers.</p>
+                <div class="benefits-grid">
+                    <div class="benefit-item">
+                        <div class="benefit-number">40%</div>
+                        <h3>Cost Reduction</h3>
+                        <p>Automated workflows and optimized infrastructure dramatically cut operational overhead and eliminate waste.</p>
+                    </div>
+                    <div class="benefit-item">
+                        <div class="benefit-number">10x</div>
+                        <h3>Faster Execution</h3>
+                        <p>Processes that took days now take minutes. Speed becomes your competitive advantage across every department.</p>
+                    </div>
+                    <div class="benefit-item">
+                        <div class="benefit-number">99.9%</div>
+                        <h3>Uptime Reliability</h3>
+                        <p>Enterprise-grade infrastructure with redundancy and monitoring ensures your systems stay online when it matters most.</p>
+                    </div>
+                    <div class="benefit-item">
+                        <div class="benefit-number">360°</div>
+                        <h3>Full Visibility</h3>
+                        <p>Integrated analytics and real-time dashboards give you a complete picture of operations, performance, and opportunity.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="process">
+            <div class="container">
+                <h2>Our Approach</h2>
+                <p class="section-subtitle">A proven, methodical process that moves from discovery to deployment with precision and accountability.</p>
+                <div class="process-steps">
+                    <div class="process-step">
+                        <div class="step-number">01</div>
+                        <h3>Assess</h3>
+                        <p>Deep-dive audit of your current systems, workflows, and pain points to identify the highest-impact opportunities.</p>
+                    </div>
+                    <div class="process-step">
+                        <div class="step-number">02</div>
+                        <h3>Architect</h3>
+                        <p>Custom solution design with clear technical specifications, timelines, and measurable success criteria.</p>
+                    </div>
+                    <div class="process-step">
+                        <div class="step-number">03</div>
+                        <h3>Build</h3>
+                        <p>Agile development and deployment with iterative testing, ensuring every component performs before going live.</p>
+                    </div>
+                    <div class="process-step">
+                        <div class="step-number">04</div>
+                        <h3>Optimize</h3>
+                        <p>Ongoing monitoring, performance tuning, and continuous improvement to maximize long-term ROI.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="cta">
+            <div class="container">
+                <h2>Ready to Transform</h2>
+                <p>Stop leaving efficiency on the table. Let us build the digital backbone your business needs to operate at full capacity.</p>
+                <a href="/#contact" class="btn btn-primary">Get Started</a>
+            </div>
+        </section>
+    </main>
+
+    <footer class="footer">
+        <div class="container">
+            <p>&copy; 2025 <span>DiMase Inc.</span> All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script>
+        // Mobile menu toggle
+        const menuBtn = document.querySelector('.mobile-menu-btn');
+        const navLinks = document.querySelector('.nav-links');
+
+        if (menuBtn) {
+            menuBtn.addEventListener('click', () => {
+                navLinks.classList.toggle('active');
+            });
+        }
+    </script>
+</body>
+</html>

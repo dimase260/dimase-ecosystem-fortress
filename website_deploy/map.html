@@ -1,0 +1,962 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="description" content="Pioneer Service - Live Work Order Map">
+    <title>DiMase Inc. | Pioneer Service Map</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* ── Map Page Overrides ── */
+        body.map-page { overflow: hidden; }
+        body.map-page .tech-grid { display: none; }
+        body.map-page #bg-canvas { display: none; }
+
+        /* ── Login Screen ── */
+        #login-screen {
+            display: flex; align-items: center; justify-content: center;
+            height: calc(100vh - 70px); height: calc(100dvh - 70px); height: var(--app-height, calc(100vh - 70px));
+            width: 100vw; position: fixed; top: 70px; left: 0;
+            background: radial-gradient(ellipse at center, #111 0%, #0a0a0a 70%);
+            z-index: 500;
+        }
+        #login-screen.hidden { display: none; }
+
+        .login-container { width: 100%; max-width: 400px; padding: 24px; }
+
+        .login-card {
+            background: var(--black-light, #1a1a1a); border: 1px solid var(--border, #333);
+            border-radius: 12px; padding: 40px 32px; text-align: center;
+            box-shadow: 0 0 60px rgba(212,175,55,0.06);
+        }
+        .login-card .logo-icon {
+            width: 56px; height: 56px; margin: 0 auto 20px;
+            border: 2px solid var(--gold-dark, #b8960c); border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 24px; color: var(--gold, #d4af37);
+            font-weight: 700; font-family: 'Inter', sans-serif;
+        }
+        .login-card h1 {
+            font-size: 22px; font-weight: 700; color: var(--gold, #d4af37);
+            margin-bottom: 4px; letter-spacing: 0.5px;
+        }
+        .login-card .subtitle {
+            font-size: 13px; color: var(--text-muted, #a0a0a0); margin-bottom: 32px;
+        }
+        .login-card .form-group { margin-bottom: 16px; text-align: left; }
+        .login-card .form-group label {
+            display: block; font-size: 12px; font-weight: 600;
+            color: var(--text-muted, #a0a0a0); margin-bottom: 6px;
+            text-transform: uppercase; letter-spacing: 0.5px;
+        }
+        .login-card .form-group input {
+            width: 100%; padding: 12px 14px; background: #111;
+            border: 1px solid var(--border, #333); border-radius: 8px;
+            color: var(--text, #fff); font-size: 15px; outline: none;
+            transition: border-color 0.2s; box-sizing: border-box;
+        }
+        .login-card .form-group input:focus { border-color: var(--gold-dark, #b8960c); }
+
+        .login-btn {
+            width: 100%; padding: 13px; margin-top: 8px;
+            background: linear-gradient(135deg, var(--gold-dark, #b8960c), var(--gold, #d4af37));
+            color: #0a0a0a; font-size: 15px; font-weight: 700;
+            border: none; border-radius: 8px; cursor: pointer;
+            letter-spacing: 0.3px; transition: opacity 0.2s;
+        }
+        .login-btn:hover { opacity: 0.9; }
+        .login-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+        .login-error { color: #e74c3c; font-size: 13px; margin-top: 12px; min-height: 18px; }
+
+        /* ── App Shell ── */
+        #app-screen { display: none; height: calc(100vh - 70px); height: calc(100dvh - 70px); height: var(--app-height, calc(100vh - 70px)); width: 100vw; flex-direction: column; position: fixed; top: 70px; left: 0; z-index: 400; background: var(--black, #0a0a0a); }
+        #app-screen.active { display: flex; }
+
+        /* Map header bar */
+        #map-header {
+            height: 48px; min-height: 48px;
+            background: rgba(10,10,10,0.95); backdrop-filter: blur(10px);
+            border-bottom: 1px solid var(--border, #333);
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 0 16px; z-index: 10;
+        }
+        #map-header .mh-title {
+            font-size: 15px; font-weight: 700; color: var(--gold, #d4af37);
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+        }
+        #map-header .mh-status {
+            display: flex; align-items: center; gap: 16px; font-size: 12px;
+            color: var(--text-muted, #a0a0a0);
+        }
+        #map-header .mh-status .stat { display: flex; align-items: center; gap: 5px; }
+
+        .conn-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+        .conn-dot.connected { background: #2ecc71; box-shadow: 0 0 6px rgba(46,204,113,0.5); }
+        .conn-dot.disconnected { background: #e74c3c; box-shadow: 0 0 6px rgba(231,76,60,0.5); }
+
+        .legend-item { display: flex; align-items: center; gap: 4px; }
+        .legend-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+        .legend-dot.red { background: #e74c3c; }
+        .legend-dot.green { background: #2ecc71; }
+        .legend-dot.purple { background: #9b59b6; }
+
+        #map-logout-btn {
+            background: transparent; border: 1px solid var(--border, #333);
+            color: var(--text-muted, #a0a0a0); padding: 5px 12px; border-radius: 6px;
+            font-size: 12px; cursor: pointer; transition: all 0.2s; white-space: nowrap;
+        }
+        #map-logout-btn:hover { border-color: var(--gold-dark, #b8960c); color: var(--gold, #d4af37); }
+
+        /* Map container */
+        #map-wrap { flex: 1; position: relative; overflow: hidden; }
+        #gmap { width: 100%; height: 100%; }
+
+        /* Status panel overlay */
+        #status-panel {
+            position: absolute; top: 12px; right: 12px; z-index: 100;
+            background: rgba(10,10,10,0.88); backdrop-filter: blur(10px);
+            border: 1px solid var(--border, #333); border-radius: 10px;
+            padding: 14px 18px; min-width: 200px; font-size: 13px;
+        }
+        #status-panel h3 {
+            font-size: 11px; text-transform: uppercase; letter-spacing: 0.8px;
+            color: var(--gold-dark, #b8960c); margin-bottom: 10px;
+        }
+        .sp-row {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 4px 0; color: var(--text-muted, #a0a0a0);
+        }
+        .sp-row .sp-val { color: var(--text, #fff); font-weight: 600; }
+        .sp-row .sp-val.gold { color: var(--gold, #d4af37); }
+
+        /* My Location button */
+        #my-location-btn {
+            position: absolute; top: 12px; left: 12px; z-index: 100;
+            width: 40px; height: 40px; border-radius: 8px;
+            background: rgba(10,10,10,0.88); backdrop-filter: blur(10px);
+            border: 1px solid var(--border, #333);
+            color: var(--text-muted, #a0a0a0); cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+            transition: all 0.2s;
+        }
+        #my-location-btn:hover { border-color: var(--gold-dark, #b8960c); color: var(--gold, #d4af37); }
+        #my-location-btn.active { color: #4285F4; border-color: #4285F4; }
+        #my-location-btn.locating { animation: pulse-locate 1s ease-in-out infinite; }
+        @keyframes pulse-locate { 0%,100% { opacity: 1; } 50% { opacity: 0.4; } }
+        #my-location-btn svg { width: 20px; height: 20px; fill: currentColor; }
+
+        /* Toast notifications */
+        #toast-container {
+            position: absolute; bottom: 24px; left: 50%; transform: translateX(-50%);
+            z-index: 100; display: flex; flex-direction: column-reverse; gap: 8px;
+            align-items: center; pointer-events: none; max-width: 90vw;
+        }
+        .toast {
+            background: rgba(20,20,20,0.92); backdrop-filter: blur(8px);
+            border: 1px solid var(--border, #333); border-left: 3px solid var(--gold, #d4af37);
+            padding: 10px 16px; border-radius: 8px;
+            font-size: 13px; color: var(--text, #fff); white-space: nowrap;
+            overflow: hidden; text-overflow: ellipsis; max-width: 90vw;
+            animation: toastIn 0.3s ease-out, toastOut 0.4s ease-in 4.6s forwards;
+            pointer-events: auto;
+        }
+        @keyframes toastIn { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes toastOut { from { opacity: 1; } to { opacity: 0; transform: translateY(8px); } }
+
+        /* Pulsing marker animation */
+        @keyframes pulse-ring {
+            0% { box-shadow: 0 0 0 0 rgba(231,76,60,0.5); }
+            70% { box-shadow: 0 0 0 12px rgba(231,76,60,0); }
+            100% { box-shadow: 0 0 0 0 rgba(231,76,60,0); }
+        }
+
+        /* Info window styling */
+        .gm-style-iw-d { overflow: auto !important; }
+        .gm-style-iw { background: #1a1a1a !important; }
+        .gm-style-iw-tc::after { background: #1a1a1a !important; }
+        .iw-content { font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; padding: 4px 2px; }
+        .iw-content h4 { font-size: 14px; color: #d4af37; margin-bottom: 6px; }
+        .iw-content p { font-size: 12px; color: #ccc; margin: 3px 0; line-height: 1.4; }
+        .iw-content .iw-label { color: #888; }
+        .iw-content .iw-status {
+            display: inline-block; padding: 2px 8px; border-radius: 4px;
+            font-size: 11px; font-weight: 600;
+        }
+
+        /* ── Nav adjustments for map page ── */
+        body.map-page .header { z-index: 450; }
+        body.map-page .hero { display: none; }
+        body.map-page .footer { display: none; }
+
+        /* ── Mobile ── */
+        @media (max-width: 768px) {
+            #map-header .mh-title { font-size: 13px; }
+            #map-header .mh-status { gap: 8px; font-size: 11px; }
+            #map-header .mh-status .hide-mobile { display: none; }
+            #status-panel { top: 8px; right: 8px; padding: 10px 14px; min-width: 160px; font-size: 12px; }
+        }
+    </style>
+    <script>
+        // Fix mobile viewport height (Android Chrome address bar issue)
+        function setAppHeight() {
+            var h = window.innerHeight - 70;
+            document.documentElement.style.setProperty('--app-height', h + 'px');
+        }
+        window.addEventListener('resize', setAppHeight);
+        window.addEventListener('orientationchange', function () { setTimeout(setAppHeight, 100); });
+        setAppHeight();
+    </script>
+</head>
+<body class="map-page">
+    <!-- Background elements (hidden by CSS but needed for main.js not to error) -->
+    <canvas id="bg-canvas"></canvas>
+    <div class="tech-grid"></div>
+
+    <!-- Navigation -->
+    <header class="header">
+        <nav class="nav container">
+            <a href="/" class="logo">
+                <svg width="40" height="40" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <polygon points="50,2 93,27 93,73 50,98 7,73 7,27" stroke="#d4af37" stroke-width="3" fill="none"/>
+                    <polygon points="50,12 83,32 83,68 50,88 17,68 17,32" stroke="#d4af37" stroke-width="1" fill="none" opacity="0.25"/>
+                    <line x1="7" y1="27" x2="25" y2="36" stroke="#d4af37" stroke-width="1.5" opacity="0.4"/>
+                    <line x1="7" y1="73" x2="25" y2="64" stroke="#d4af37" stroke-width="1.5" opacity="0.4"/>
+                    <line x1="93" y1="27" x2="75" y2="36" stroke="#d4af37" stroke-width="1.5" opacity="0.4"/>
+                    <line x1="93" y1="73" x2="75" y2="64" stroke="#d4af37" stroke-width="1.5" opacity="0.4"/>
+                    <circle cx="25" cy="36" r="2.5" fill="#d4af37" opacity="0.6"/>
+                    <circle cx="25" cy="64" r="2.5" fill="#d4af37" opacity="0.6"/>
+                    <circle cx="75" cy="36" r="2.5" fill="#d4af37" opacity="0.6"/>
+                    <circle cx="75" cy="64" r="2.5" fill="#d4af37" opacity="0.6"/>
+                    <circle cx="50" cy="12" r="2" fill="#d4af37" opacity="0.4"/>
+                    <circle cx="50" cy="88" r="2" fill="#d4af37" opacity="0.4"/>
+                    <path d="M34,30 L34,70 L50,70 L65,60 L65,40 L50,30 Z" stroke="#d4af37" stroke-width="3.5" fill="none" stroke-linejoin="miter"/>
+                    <line x1="40" y1="42" x2="56" y2="42" stroke="#d4af37" stroke-width="1.5" opacity="0.5"/>
+                    <line x1="40" y1="50" x2="60" y2="50" stroke="#d4af37" stroke-width="2" opacity="0.7"/>
+                    <line x1="40" y1="58" x2="56" y2="58" stroke="#d4af37" stroke-width="1.5" opacity="0.5"/>
+                    <circle cx="60" cy="50" r="3" fill="#d4af37" opacity="0.9"/>
+                </svg>
+                <span class="logo-text">DiMase Inc.</span>
+            </a>
+            <ul class="nav-links">
+                <li><a href="/#about">About</a></li>
+                <li><a href="/#services">Services</a></li>
+                <li><a href="/jellyfin.html">Jellyfin</a></li>
+                <li><a href="/applications.html">Applications</a></li>
+                
+                <li><a href="/podcast">Podcast</a></li>
+                <li><a href="/learning">Learning</a></li>
+                <li><a href="/#contact">Contact</a></li>
+            </ul>
+            <button class="mobile-menu-btn" aria-label="Toggle menu">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+        </nav>
+    </header>
+
+    <!-- ── Login Screen ── -->
+    <div id="login-screen">
+        <div class="login-container">
+            <div class="login-card">
+                <div class="logo-icon">P</div>
+                <h1>Pioneer Service</h1>
+                <p class="subtitle">Live Work Order Map</p>
+                <form id="login-form" autocomplete="off">
+                    <div class="form-group">
+                        <label for="username">Username</label>
+                        <input type="text" id="username" name="username" autocomplete="username" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="password">Password</label>
+                        <input type="password" id="password" name="password" autocomplete="current-password" required>
+                    </div>
+                    <button type="submit" class="login-btn" id="login-btn-submit">Sign In</button>
+                    <div class="login-error" id="login-error"></div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- ── App Screen ── -->
+    <div id="app-screen">
+        <div id="map-header">
+            <div class="mh-title">Pioneer Service &mdash; Live Map</div>
+            <div class="mh-status">
+                <div class="stat">
+                    <span class="conn-dot disconnected" id="conn-dot"></span>
+                    <span id="conn-label">Connecting</span>
+                </div>
+                <div class="stat hide-mobile">
+                    Active WO: <span id="active-count" style="color:#d4af37;font-weight:700;margin-left:3px">0</span>
+                </div>
+                <div class="stat hide-mobile legend-item">
+                    <span class="legend-dot red"></span> Work Order
+                </div>
+                <div class="stat hide-mobile legend-item">
+                    <span class="legend-dot green"></span> Location
+                </div>
+                <div class="stat hide-mobile legend-item">
+                    <span class="legend-dot purple"></span> Warehouse
+                </div>
+            </div>
+            <button id="map-logout-btn">Logout</button>
+        </div>
+        <div id="map-wrap">
+            <div id="gmap"></div>
+            <div id="status-panel">
+                <h3>Status</h3>
+                <div class="sp-row"><span>Active WOs</span><span class="sp-val gold" id="sp-active">0</span></div>
+                <div class="sp-row"><span>Locations</span><span class="sp-val" id="sp-locations">0</span></div>
+                <div class="sp-row"><span>Last Update</span><span class="sp-val" id="sp-updated">&mdash;</span></div>
+                <div class="sp-row"><span>Connection</span><span class="sp-val" id="sp-conn">Connecting</span></div>
+            </div>
+            <button id="my-location-btn" title="My Location">
+                <svg viewBox="0 0 24 24"><path d="M12 8c-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4-1.79-4-4-4zm8.94 3A8.994 8.994 0 0 0 13 3.06V1h-2v2.06A8.994 8.994 0 0 0 3.06 11H1v2h2.06A8.994 8.994 0 0 0 11 20.94V23h2v-2.06A8.994 8.994 0 0 0 20.94 13H23v-2h-2.06zM12 19c-3.87 0-7-3.13-7-7s3.13-7 7-7 7 3.13 7 7-3.13 7-7 7z"/></svg>
+            </button>
+            <div id="toast-container"></div>
+        </div>
+    </div>
+
+    <script src="js/main.js" defer></script>
+    <script>
+    /* ================================================================
+       Pioneer Service - Live Map
+       Combined locations + work orders on Google Maps
+       Calls API at https://map.dimaseinc.org/api/*
+       SSE stream at https://map.dimaseinc.org/stream
+       ================================================================ */
+    (function () {
+        'use strict';
+
+        var API_BASE = 'https://map.dimaseinc.org';
+        var FALLBACK_API_KEY = 'AIzaSyCOEG6GIpGaOM3xo7uSCwt36y2pHvtYNVY';
+        var MAP_CENTER = { lat: 39.1, lng: -84.5 };
+        var MAP_ZOOM = 7;
+
+        var VALID_USERS = {
+            dimase: '4d2b4fd054827a511593a8d98f315c0a530adae8e76e971fb9892f6a3d8ff320',
+            monty:  '576c85c584f60555c2a024cbb99dfbbdb5f58c3bdcf28dbc8ea315fd46a388f3'
+        };
+
+        // ── State ──
+        var map = null;
+        var infoWindow = null;
+        var eventSource = null;
+
+        var workOrders = {};        // keyed by WO id
+        var woMarkers = {};         // keyed by WO id
+        var locations = [];         // array of location objects
+        var locationMarkers = {};   // keyed by account_number
+        var locationsByAddress = {};// normalized address -> location obj
+        var woAddressSet = {};      // normalized address -> true (for overlap detection)
+
+        // ── DOM refs ──
+        var $loginScreen    = document.getElementById('login-screen');
+        var $appScreen      = document.getElementById('app-screen');
+        var $loginForm      = document.getElementById('login-form');
+        var $loginError     = document.getElementById('login-error');
+        var $connDot        = document.getElementById('conn-dot');
+        var $connLabel      = document.getElementById('conn-label');
+        var $activeCount    = document.getElementById('active-count');
+        var $spActive       = document.getElementById('sp-active');
+        var $spLocations    = document.getElementById('sp-locations');
+        var $spUpdated      = document.getElementById('sp-updated');
+        var $spConn         = document.getElementById('sp-conn');
+        var $toastContainer = document.getElementById('toast-container');
+        var $logoutBtn      = document.getElementById('map-logout-btn');
+
+        // ── Utility ──
+        function sha256(message) {
+            var msgBuffer = new TextEncoder().encode(message);
+            return crypto.subtle.digest('SHA-256', msgBuffer).then(function(hashBuffer) {
+                var hashArray = Array.from(new Uint8Array(hashBuffer));
+                return hashArray.map(function(b) { return b.toString(16).padStart(2, '0'); }).join('');
+            });
+        }
+
+        function formatTime(date) {
+            if (!date) return '\u2014';
+            var d = date instanceof Date ? date : new Date(date);
+            if (isNaN(d.getTime())) return '\u2014';
+            return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+        }
+
+        function normalizeAddress(addr) {
+            if (!addr) return '';
+            return addr.toLowerCase().replace(/[^a-z0-9]/g, '').replace(/\s+/g, '');
+        }
+
+        function isActive(wo) {
+            if (!wo || !wo.status) return false;
+            var s = wo.status.toLowerCase();
+            return s === 'active' || s === 'new' || s === 'open' || s === 'in_progress' ||
+                   s === 'in progress' || s === 'pending' || s === 'assigned' ||
+                   s === 'dispatched' || s === 'en_route' || s === 'en route';
+        }
+
+        function isCompleted(wo) {
+            if (!wo || !wo.status) return false;
+            var s = wo.status.toLowerCase();
+            return s === 'completed' || s === 'complete' || s === 'closed' ||
+                   s === 'done' || s === 'inactive' || s === 'cancelled' || s === 'canceled';
+        }
+
+        function escapeHtml(str) {
+            var div = document.createElement('div');
+            div.textContent = str;
+            return div.innerHTML;
+        }
+
+        // ── Auth ──
+        $loginForm.addEventListener('submit', function (e) {
+            e.preventDefault();
+            $loginError.textContent = '';
+            var user = document.getElementById('username').value.trim().toLowerCase();
+            var pass = document.getElementById('password').value.trim();
+            if (!user || !pass) { $loginError.textContent = 'Enter username and password.'; return; }
+
+            sha256(pass).then(function(hash) {
+                if (VALID_USERS[user] && VALID_USERS[user] === hash) {
+                    sessionStorage.setItem('pioneer_user', user);
+                    showApp();
+                } else {
+                    $loginError.textContent = 'Invalid username or password.';
+                    document.getElementById('password').value = '';
+                }
+            });
+        });
+
+        $logoutBtn.addEventListener('click', function() {
+            sessionStorage.removeItem('pioneer_user');
+            if (eventSource) { eventSource.close(); eventSource = null; }
+            $appScreen.classList.remove('active');
+            $loginScreen.classList.remove('hidden');
+            document.getElementById('username').value = '';
+            document.getElementById('password').value = '';
+            $loginError.textContent = '';
+        });
+
+        function checkSession() {
+            var user = sessionStorage.getItem('pioneer_user');
+            if (user && VALID_USERS[user]) { showApp(); }
+        }
+
+        function showApp() {
+            $loginScreen.classList.add('hidden');
+            $appScreen.classList.add('active');
+            loadMap();
+        }
+
+        // ── Google Maps Loading ──
+        function loadMap() {
+            if (window.google && window.google.maps) { initMap(); return; }
+
+            var apiKey = FALLBACK_API_KEY;
+            fetch(API_BASE + '/api/config').then(function(resp) {
+                if (resp.ok) return resp.json();
+                throw new Error('config fetch failed');
+            }).then(function(cfg) {
+                if (cfg.google_maps_api_key) apiKey = cfg.google_maps_api_key;
+            }).catch(function() {
+                // use fallback
+            }).finally(function() {
+                window._mapInitReady = initMap;
+                var script = document.createElement('script');
+                script.src = 'https://maps.googleapis.com/maps/api/js?key=' + encodeURIComponent(apiKey) + '&callback=_mapInitReady';
+                script.async = true;
+                script.defer = true;
+                document.head.appendChild(script);
+            });
+        }
+
+        // ── Dark Map Styles ──
+        var DARK_MAP_STYLES = [
+            { elementType: 'geometry', stylers: [{ color: '#1a1a2e' }] },
+            { elementType: 'labels.text.stroke', stylers: [{ color: '#0a0a0a' }] },
+            { elementType: 'labels.text.fill', stylers: [{ color: '#555555' }] },
+            { featureType: 'administrative', elementType: 'geometry.stroke', stylers: [{ color: '#2a2a3e' }] },
+            { featureType: 'administrative.locality', elementType: 'labels.text.fill', stylers: [{ color: '#8a8a8a' }] },
+            { featureType: 'poi', elementType: 'labels', stylers: [{ visibility: 'off' }] },
+            { featureType: 'poi', elementType: 'geometry', stylers: [{ color: '#1a1a2e' }] },
+            { featureType: 'poi.park', elementType: 'geometry', stylers: [{ color: '#151525' }] },
+            { featureType: 'road', elementType: 'geometry', stylers: [{ color: '#222238' }] },
+            { featureType: 'road', elementType: 'geometry.stroke', stylers: [{ color: '#1a1a2e' }] },
+            { featureType: 'road.highway', elementType: 'geometry', stylers: [{ color: '#2a2a44' }] },
+            { featureType: 'road.highway', elementType: 'geometry.stroke', stylers: [{ color: '#1a1a2e' }] },
+            { featureType: 'road.highway', elementType: 'labels.text.fill', stylers: [{ color: '#666666' }] },
+            { featureType: 'transit', elementType: 'geometry', stylers: [{ color: '#1a1a2e' }] },
+            { featureType: 'water', elementType: 'geometry', stylers: [{ color: '#0d0d1a' }] },
+            { featureType: 'water', elementType: 'labels.text.fill', stylers: [{ color: '#3a3a55' }] }
+        ];
+
+        // ── Map Init ──
+        function initMap() {
+            map = new google.maps.Map(document.getElementById('gmap'), {
+                center: MAP_CENTER,
+                zoom: MAP_ZOOM,
+                styles: DARK_MAP_STYLES,
+                disableDefaultUI: true,
+                gestureHandling: 'greedy',
+                backgroundColor: '#0a0a0a'
+            });
+
+            infoWindow = new google.maps.InfoWindow();
+            map.addListener('click', function () { infoWindow.close(); });
+
+            loadInitialData();
+            connectSSE();
+            initMyLocationBtn();
+        }
+
+        // ── My Location ──
+        var myLocationMarker = null;
+        var myLocationCircle = null;
+
+        function initMyLocationBtn() {
+            var btn = document.getElementById('my-location-btn');
+            if (!btn || !navigator.geolocation) {
+                if (btn) btn.style.display = 'none';
+                return;
+            }
+            btn.addEventListener('click', function () {
+                btn.classList.add('locating');
+                navigator.geolocation.getCurrentPosition(
+                    function (pos) {
+                        btn.classList.remove('locating');
+                        btn.classList.add('active');
+                        var latlng = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+                        map.panTo(latlng);
+                        map.setZoom(14);
+
+                        if (myLocationCircle) myLocationCircle.setMap(null);
+                        myLocationCircle = new google.maps.Circle({
+                            center: latlng,
+                            radius: pos.coords.accuracy,
+                            map: map,
+                            fillColor: '#4285F4',
+                            fillOpacity: 0.1,
+                            strokeColor: '#4285F4',
+                            strokeOpacity: 0.3,
+                            strokeWeight: 1,
+                            clickable: false,
+                            zIndex: 0
+                        });
+
+                        if (!myLocationMarker) {
+                            myLocationMarker = new google.maps.Marker({
+                                position: latlng,
+                                map: map,
+                                icon: {
+                                    path: google.maps.SymbolPath.CIRCLE,
+                                    fillColor: '#4285F4',
+                                    fillOpacity: 1,
+                                    strokeColor: '#ffffff',
+                                    strokeWeight: 2.5,
+                                    scale: 8
+                                },
+                                title: 'My Location',
+                                zIndex: 999
+                            });
+                        } else {
+                            myLocationMarker.setPosition(latlng);
+                            myLocationMarker.setMap(map);
+                        }
+                    },
+                    function (err) {
+                        btn.classList.remove('locating');
+                        showToast('Location error: ' + err.message);
+                    },
+                    { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 }
+                );
+            });
+        }
+
+        // ── Location Markers (GREEN) ──
+        function createLocationMarker(loc) {
+            var lat = parseFloat(loc.lat);
+            var lng = parseFloat(loc.lon || loc.lng || loc.longitude);
+            if (isNaN(lat) || isNaN(lng)) return;
+
+            var key = loc.account_number || (loc.name + '_' + loc.address);
+            var normAddr = normalizeAddress(loc.address);
+
+            // If a work order already exists at this address, skip the green marker
+            // (it will show as red instead)
+            if (woAddressSet[normAddr]) return;
+
+            // Store for address lookup
+            locationsByAddress[normAddr] = loc;
+
+            if (locationMarkers[key]) {
+                locationMarkers[key].setPosition({ lat: lat, lng: lng });
+                return;
+            }
+
+            var isWarehouse = /warehouse|storage/i.test(loc.name || '');
+            var fillColor = isWarehouse ? '#9b59b6' : '#2ecc71';
+            var strokeColor = isWarehouse ? '#7d3c98' : '#1a9c54';
+
+            var marker = new google.maps.Marker({
+                position: { lat: lat, lng: lng },
+                map: map,
+                icon: {
+                    path: google.maps.SymbolPath.CIRCLE,
+                    fillColor: fillColor,
+                    fillOpacity: isWarehouse ? 0.85 : 0.6,
+                    strokeColor: strokeColor,
+                    strokeWeight: 1.5,
+                    scale: isWarehouse ? 8 : 6
+                },
+                title: loc.name || 'Location',
+                optimized: true,
+                zIndex: isWarehouse ? 2 : 1
+            });
+
+            marker.addListener('click', function () {
+                showLocationInfoWindow(marker, loc);
+            });
+
+            locationMarkers[key] = marker;
+        }
+
+        function showLocationInfoWindow(marker, loc) {
+            var html = '<div class="iw-content">';
+            html += '<h4>' + escapeHtml(loc.name || 'Location') + '</h4>';
+            if (loc.address) html += '<p><span class="iw-label">Address:</span> ' + escapeHtml(loc.address) + '</p>';
+            if (loc.city || loc.state) html += '<p><span class="iw-label">City/State:</span> ' + escapeHtml((loc.city || '') + (loc.city && loc.state ? ', ' : '') + (loc.state || '')) + '</p>';
+            if (loc.phone) html += '<p><span class="iw-label">Phone:</span> ' + escapeHtml(loc.phone) + '</p>';
+            if (loc.customer_type) html += '<p><span class="iw-label">Type:</span> ' + escapeHtml(loc.customer_type) + '</p>';
+            if (loc.account_number) html += '<p><span class="iw-label">Account #:</span> ' + escapeHtml(loc.account_number) + '</p>';
+            html += '</div>';
+
+            infoWindow.setContent(html);
+            infoWindow.open(map, marker);
+        }
+
+        // ── Work Order Markers (RED) ──
+        function getWoMarkerIcon(wo) {
+            return {
+                path: google.maps.SymbolPath.CIRCLE,
+                fillColor: '#e74c3c',
+                fillOpacity: 1,
+                strokeColor: '#c0392b',
+                strokeWeight: 2,
+                scale: 10
+            };
+        }
+
+        function buildPulseOverlay(marker, woId) {
+            var growing = true;
+            var baseScale = 10;
+            var interval = setInterval(function () {
+                if (!woMarkers[woId] || woMarkers[woId].marker !== marker) {
+                    clearInterval(interval);
+                    return;
+                }
+                var icon = marker.getIcon();
+                if (!icon) { clearInterval(interval); return; }
+                if (growing) {
+                    icon.scale = baseScale + 3;
+                    icon.fillOpacity = 0.75;
+                    growing = false;
+                } else {
+                    icon.scale = baseScale;
+                    icon.fillOpacity = 1;
+                    growing = true;
+                }
+                marker.setIcon(icon);
+            }, 800);
+            return interval;
+        }
+
+        function hideOverlappingLocationMarker(wo) {
+            var normAddr = normalizeAddress(wo.address || wo.location || '');
+            if (!normAddr) return;
+            woAddressSet[normAddr] = true;
+
+            // Find and hide any green location marker at the same address
+            for (var key in locationMarkers) {
+                var loc = null;
+                // Find the location by iterating locations array
+                for (var i = 0; i < locations.length; i++) {
+                    var lkey = locations[i].account_number || (locations[i].name + '_' + locations[i].address);
+                    if (lkey === key) { loc = locations[i]; break; }
+                }
+                if (loc && normalizeAddress(loc.address) === normAddr) {
+                    locationMarkers[key].setMap(null);
+                }
+            }
+        }
+
+        function upsertWoMarker(wo) {
+            if (!map || !wo) return;
+
+            var id = wo.id || wo.work_order_id || wo.wo_id;
+            if (!id) return;
+            wo.id = id;
+
+            var lat = parseFloat(wo.lat || wo.latitude);
+            var lng = parseFloat(wo.lng || wo.lon || wo.longitude);
+            if (isNaN(lat) || isNaN(lng)) return;
+
+            var isNew = !workOrders[id];
+            workOrders[id] = wo;
+
+            // Handle address overlap: hide green marker if WO is at same address
+            hideOverlappingLocationMarker(wo);
+
+            var position = { lat: lat, lng: lng };
+
+            if (woMarkers[id]) {
+                var entry = woMarkers[id];
+                entry.marker.setPosition(position);
+                entry.marker.setIcon(getWoMarkerIcon(wo));
+                if (entry.pulseInterval) clearInterval(entry.pulseInterval);
+                entry.pulseInterval = buildPulseOverlay(entry.marker, id);
+            } else {
+                var marker = new google.maps.Marker({
+                    position: position,
+                    map: map,
+                    icon: getWoMarkerIcon(wo),
+                    title: 'WO #' + id,
+                    optimized: false,
+                    zIndex: 10,
+                    animation: isNew && isActive(wo) ? google.maps.Animation.DROP : null
+                });
+
+                marker.addListener('click', function () {
+                    showWoInfoWindow(marker, wo);
+                });
+
+                var pulseInterval = buildPulseOverlay(marker, id);
+                woMarkers[id] = { marker: marker, pulseInterval: pulseInterval };
+            }
+
+            if (isNew && isActive(wo)) {
+                var addr = wo.address || wo.location || '';
+                showToast('New work order #' + id + (addr ? ' \u2014 ' + addr : ''));
+            }
+        }
+
+        function removeWoMarker(id) {
+            if (woMarkers[id]) {
+                if (woMarkers[id].pulseInterval) clearInterval(woMarkers[id].pulseInterval);
+                woMarkers[id].marker.setMap(null);
+                delete woMarkers[id];
+            }
+            // Re-show any hidden location marker at this address
+            var wo = workOrders[id];
+            if (wo) {
+                var normAddr = normalizeAddress(wo.address || wo.location || '');
+                if (normAddr) {
+                    delete woAddressSet[normAddr];
+                    // Check if any other WO still occupies this address
+                    var stillOccupied = false;
+                    for (var wid in workOrders) {
+                        if (wid !== id && normalizeAddress(workOrders[wid].address || workOrders[wid].location || '') === normAddr) {
+                            stillOccupied = true;
+                            break;
+                        }
+                    }
+                    if (!stillOccupied) {
+                        // Re-show location markers at this address
+                        for (var i = 0; i < locations.length; i++) {
+                            if (normalizeAddress(locations[i].address) === normAddr) {
+                                createLocationMarker(locations[i]);
+                            }
+                        }
+                    }
+                }
+            }
+            delete workOrders[id];
+        }
+
+        function showWoInfoWindow(marker, wo) {
+            var id = wo.id || wo.work_order_id || '';
+            var address = wo.address || wo.location || 'N/A';
+            var status = wo.status || 'Unknown';
+            var customer = wo.customer_name || wo.customer || wo.name || 'N/A';
+            var desc = wo.notes || wo.description || '';
+
+            var html = '<div class="iw-content">';
+            html += '<h4>WO #' + escapeHtml(String(id)) + '</h4>';
+            html += '<p><span class="iw-label">Address:</span> ' + escapeHtml(address) + '</p>';
+            if (wo.city || wo.state) {
+                html += '<p><span class="iw-label">City/State:</span> ' + escapeHtml((wo.city || '') + (wo.city && wo.state ? ', ' : '') + (wo.state || '')) + '</p>';
+            }
+            html += '<p><span class="iw-label">Customer:</span> ' + escapeHtml(customer) + '</p>';
+            html += '<p><span class="iw-label">Status:</span> <span class="iw-status" style="background:rgba(231,76,60,0.15);color:#e74c3c">' + escapeHtml(status) + '</span></p>';
+            if (desc) html += '<p style="margin-top:6px;color:#999;font-size:11px"><span class="iw-label">Description:</span> ' + escapeHtml(desc.substring(0, 200)) + '</p>';
+            if (wo.scheduled_date) html += '<p><span class="iw-label">Scheduled:</span> ' + escapeHtml(wo.scheduled_date) + '</p>';
+            html += '</div>';
+
+            infoWindow.setContent(html);
+            infoWindow.open(map, marker);
+        }
+
+        // ── Stats ──
+        function updateStats() {
+            var activeWOs = Object.values(workOrders).filter(function (wo) { return isActive(wo) && !isCompleted(wo); });
+            var active = activeWOs.length;
+            $activeCount.textContent = active;
+            $spActive.textContent = active;
+            $spLocations.textContent = locations.length;
+        }
+
+        function setLastUpdate() {
+            var now = formatTime(new Date());
+            $spUpdated.textContent = now;
+        }
+
+        function setConnectionStatus(connected) {
+            $connDot.className = 'conn-dot ' + (connected ? 'connected' : 'disconnected');
+            var label = connected ? 'Connected' : 'Disconnected';
+            $connLabel.textContent = label;
+            $spConn.textContent = label;
+            $spConn.style.color = connected ? '#2ecc71' : '#e74c3c';
+        }
+
+        // ── Toast ──
+        function showToast(message) {
+            var toast = document.createElement('div');
+            toast.className = 'toast';
+            toast.textContent = message;
+            $toastContainer.appendChild(toast);
+            setTimeout(function () {
+                if (toast.parentNode) toast.parentNode.removeChild(toast);
+            }, 5200);
+        }
+
+        // ── Initial Data Load ──
+        function loadInitialData() {
+            // Load locations and work orders in parallel
+            var locationsPromise = fetch(API_BASE + '/api/locations').then(function(resp) {
+                if (!resp.ok) throw new Error('HTTP ' + resp.status);
+                return resp.json();
+            }).then(function(data) {
+                locations = Array.isArray(data) ? data : (data.locations || data.data || []);
+            }).catch(function(err) {
+                console.warn('Failed to load locations:', err.message);
+                locations = [];
+            });
+
+            var woPromise = fetch(API_BASE + '/api/workorders').then(function(resp) {
+                if (!resp.ok) throw new Error('HTTP ' + resp.status);
+                return resp.json();
+            }).then(function(data) {
+                var list = Array.isArray(data) ? data : (data.work_orders || data.workorders || data.data || data.results || []);
+                // Process WOs first to build the address overlap set
+                list.forEach(function (wo) {
+                    var id = wo.id || wo.work_order_id || wo.wo_id;
+                    if (id) {
+                        wo.id = id;
+                        workOrders[id] = wo;
+                        var normAddr = normalizeAddress(wo.address || wo.location || '');
+                        if (normAddr) woAddressSet[normAddr] = true;
+                    }
+                });
+                return list;
+            }).catch(function(err) {
+                console.warn('Failed to load work orders:', err.message);
+                return [];
+            });
+
+            // Once both are loaded, render markers
+            Promise.all([locationsPromise, woPromise]).then(function(results) {
+                var woList = results[1] || [];
+
+                // Render location markers (green) - skips addresses that have WOs
+                locations.forEach(function(loc) {
+                    createLocationMarker(loc);
+                });
+
+                // Render work order markers (red)
+                woList.forEach(function(wo) {
+                    upsertWoMarker(wo);
+                });
+
+                updateStats();
+                setLastUpdate();
+            });
+        }
+
+        // ── SSE Connection ──
+        function connectSSE() {
+            if (eventSource) { eventSource.close(); }
+
+            eventSource = new EventSource(API_BASE + '/stream');
+
+            eventSource.onopen = function () {
+                setConnectionStatus(true);
+            };
+
+            eventSource.onmessage = function (e) {
+                handleSSEMessage(e);
+            };
+
+            eventSource.addEventListener('update', function (e) {
+                handleSSEMessage(e);
+            });
+
+            eventSource.addEventListener('delete', function (e) {
+                try {
+                    var data = JSON.parse(e.data);
+                    var id = data.id || data.work_order_id || data.wo_id;
+                    if (id) removeWoMarker(id);
+                    updateStats();
+                    setLastUpdate();
+                } catch (_) {}
+            });
+
+            eventSource.addEventListener('ping', function () {
+                // keep-alive
+            });
+
+            eventSource.onerror = function () {
+                setConnectionStatus(false);
+            };
+        }
+
+        function handleSSEMessage(e) {
+            try {
+                var raw = e.data;
+                if (!raw || raw === 'ping' || raw === ':') return;
+
+                var data;
+                try { data = JSON.parse(raw); } catch (_) { return; }
+
+                if (Array.isArray(data)) {
+                    data.forEach(function (wo) { upsertWoMarker(wo); });
+                } else if (data.work_orders || data.workorders || data.data) {
+                    var list = data.work_orders || data.workorders || data.data || [];
+                    list.forEach(function (wo) { upsertWoMarker(wo); });
+                } else if (data.type === 'delete' || data.event === 'delete') {
+                    var id = data.id || data.work_order_id;
+                    if (id) removeWoMarker(id);
+                } else if (data.id || data.work_order_id || data.wo_id) {
+                    upsertWoMarker(data);
+                }
+
+                updateStats();
+                setLastUpdate();
+                setConnectionStatus(true);
+            } catch (err) {
+                console.warn('SSE parse error:', err);
+            }
+        }
+
+        // ── Periodic refresh ──
+        setInterval(function () {
+            updateStats();
+        }, 30000);
+
+        // ── Init ──
+        checkSession();
+
+    })();
+    </script></body>
+</html>
