@@ -1,0 +1,9 @@
+ID 05ac:021e
+# DiMase AI — Linux/ChromeOS Universal Launcher
+# Scans for SSD or STORAGE mount points and launches the Sovereign Intelligence
+
+DELAY 1000
+ALT F2
+DELAY 200
+STRING bash -c "lsblk -lo MOUNTPOINT,LABEL | grep -E 'STORAGE|EE5D-FA49' | awk '{print \$1}' | xargs -I {} bash {}/hermes-portable/launch.sh"
+ENTER

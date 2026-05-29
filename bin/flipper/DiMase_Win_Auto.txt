@@ -1,0 +1,9 @@
+ID 05ac:021e
+# DiMase AI — Windows Universal Launcher
+# Scans for SSD or STORAGE and launches the Sovereign Intelligence
+
+DELAY 1000
+GUI r
+DELAY 200
+STRING powershell -NoProfile -ExecutionPolicy Bypass -Command "Get-Volume | Where-Object { $_.DriveLetter -and ($_.FileSystemLabel -match 'STORAGE' -or $_.UniqueId -match 'EE5D-FA49') } | ForEach-Object { $path = ($_.DriveLetter + ':\hermes-portable\launch.bat'); if (Test-Path $path) { Start-Process $path } }"
+ENTER
