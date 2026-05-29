@@ -1,18 +1,18 @@
 ---
 name: Groq API Key
-description: Groq API key for DiMase Control council models and dimase-monitor AI fallback
+description: Groq API key for Axis Control council models and axis-monitor AI fallback
 type: reference
 ---
 
-**Key name:** dimase (created 2026-03-27)
+**Key name:** axis (created 2026-03-27)
 **Key value:** ENV_VAR_GROQ_KEYL35o
 **Account:** DiMaseInc (console.groq.com)
 **Existing keys:** "bots" (gsk_...sN4N, active, 109 calls as of 2026-03-27), "Synapes" (gsk_...dYIJ, unused)
 
 **Where set:**
-- `/home/dimase/dimase-control/.env` — GROQ_API_KEY (loaded by model_council.py on startup)
-- `/home/dimase/dimase-control/launch.sh` — exported as env var
-- `/etc/systemd/system/dimase-monitor.service` — Environment= line (server)
+- `/home/dimase/axis-control/.env` — GROQ_API_KEY (loaded by model_council.py on startup)
+- `/home/dimase/axis-control/launch.sh` — exported as env var
+- `/etc/systemd/system/axis-monitor.service` — Environment= line (server)
 
 **Active Groq models in council (2026-03-27):**
 - llama-3.3-70b-versatile (groq-llama)

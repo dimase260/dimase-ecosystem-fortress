@@ -65,9 +65,9 @@ This file is the single source of truth for all server infrastructure, website c
 | portainer.dimaseinc.org | http://localhost:80 (nginx-proxy → portainer) |
 | grafana.dimaseinc.org | http://localhost:80 (nginx-proxy → neo-grafana) |
 | files.dimaseinc.org | http://localhost:80 (nginx-proxy → file-browser) |
-| dimase.dimaseinc.org | http://localhost:80 (nginx-proxy → dimase-hud) |
-| downloads.dimaseinc.org | http://localhost:80 (nginx-proxy → dimase-hud) |
-| dimaseinc.org | http://localhost:80 (nginx-proxy → dimase-hud) — fallback only; Worker handles most traffic |
+| axis.dimaseinc.org | http://localhost:80 (nginx-proxy → axis-hud) |
+| downloads.dimaseinc.org | http://localhost:80 (nginx-proxy → axis-hud) |
+| dimaseinc.org | http://localhost:80 (nginx-proxy → axis-hud) — fallback only; Worker handles most traffic |
 | (catch-all) | http_status:404 |
 
 **DNS note:** All DNS records are CNAMEs to the tunnel. Use `cloudflared tunnel route dns -f f1b740f7-12dd-499f-81a8-969b7bfd7885 <hostname>` to add. CF rate-limits quickly — if 429, run from LOCAL machine using server cert:
@@ -88,8 +88,8 @@ cloudflared --origincert /tmp/cf-cert.pem tunnel route dns -f f1b740f7-12dd-499f
 | Container | Image | Port/Access | Notes |
 |---|---|---|---|
 | nginx-proxy | jwilder/nginx-proxy | :80 | Auto-configures from VIRTUAL_HOST |
-| dimase-nexus | custom (python:3.12-slim) | via nginx | DiMase AI; src at `/media/Storage/server-flies/dimase_nexus/` |
-| dimase-hud | custom nginx | dimase.dimaseinc.org, agent-zero.dimaseinc.org, dimaseinc.org, downloads.dimaseinc.org | nginx config: `/media/Storage/server-flies/dimase_hud_nginx.conf`; proxies `/dimase-api/` to `http://172.18.0.1:8000/` |
+| axis-nexus | custom (python:3.12-slim) | via nginx | Axis AI; src at `/media/Storage/server-flies/axis_nexus/` |
+| axis-hud | custom nginx | axis.dimaseinc.org, agent-zero.dimaseinc.org, dimaseinc.org, downloads.dimaseinc.org | nginx config: `/media/Storage/server-flies/axis_hud_nginx.conf`; proxies `/axis-api/` to `http://172.18.0.1:8000/` |
 | map-server | custom (python:3.12-slim FastAPI) | map.dimaseinc.org | src at `/media/Storage/map-server/` |
 | file-browser | filebrowser | files.dimaseinc.org | BoltDB at `/media/Storage/server-flies/filebrowser/filebrowser.db`; min 12-char password |
 | neo-grafana | grafana/grafana | grafana.dimaseinc.org, neo.dimaseinc.org | GF_DATABASE_WAL=true applied |
@@ -131,45 +131,45 @@ cloudflared --origincert /tmp/cf-cert.pem tunnel route dns -f f1b740f7-12dd-499f
 - **D1 table:** `podcast_episodes` (see D1 section below)
 - Recording uses ffmpeg from PulseAudio: `PULSE_SERVER=tcp:localhost:4713 ffmpeg -f pulse -i virtual_speaker.monitor`
 
-### DiMase AI (dimase-nexus)
-- **What it is:** Custom Python FastAPI app built by the user (DiMase 2.0, v2.11.0)
-- **Source:** `/media/Storage/server-flies/dimase_nexus/`
+### Axis AI (axis-nexus)
+- **What it is:** Custom Python FastAPI app built by the user (Axis 2.0, v2.11.0)
+- **Source:** `/media/Storage/server-flies/axis_nexus/`
 - **Internal port:** 8000 (host network mode)
-- **Public URLs:** https://dimase.dimaseinc.org and https://agent-zero.dimaseinc.org (both work)
-- **Health endpoint:** `GET /dimase-api/health` → `{"status":"DiMase 2.0 Nexus is Operational"}`
+- **Public URLs:** https://axis.dimaseinc.org and https://agent-zero.dimaseinc.org (both work)
+- **Health endpoint:** `GET /axis-api/health` → `{"status":"Axis 2.0 Nexus is Operational"}`
 - **AI backend:** Uses Ollama locally (`http://localhost:11434`, model `llama3.1:8b`) — **Ollama is NOT installed** (server has 1.9GB RAM, can't run it)
-- **Worker fallback:** When dimase-nexus inference fails, Worker's `/dimase/chat` automatically uses CF Workers AI (`llama-3.1-8b-instruct`)
-- **Routing:** dimase-hud nginx container proxies `/dimase-api/` to `http://172.18.0.1:8000/` (not localhost — host bridge gateway)
-- **VIRTUAL_HOST:** `dimase.dimaseinc.org,agent-zero.dimaseinc.org,dimaseinc.org,downloads.dimaseinc.org`
-- **D1 config table:** `dimase_config` (key/value) — keys: `system_prompt`, `model`, `max_tokens`, plus custom features
-- **Cloud Panel DiMase API:** `GET /cloud/dimase/health`, `GET/POST /cloud/dimase/config`, `DELETE /cloud/dimase/config/:key` (requires cloud_session)
+- **Worker fallback:** When axis-nexus inference fails, Worker's `/axis/chat` automatically uses CF Workers AI (`llama-3.1-8b-instruct`)
+- **Routing:** axis-hud nginx container proxies `/axis-api/` to `http://172.18.0.1:8000/` (not localhost — host bridge gateway)
+- **VIRTUAL_HOST:** `axis.dimaseinc.org,agent-zero.dimaseinc.org,dimaseinc.org,downloads.dimaseinc.org`
+- **D1 config table:** `axis_config` (key/value) — keys: `system_prompt`, `model`, `max_tokens`, plus custom features
+- **Cloud Panel Axis API:** `GET /cloud/axis/health`, `GET/POST /cloud/axis/config`, `DELETE /cloud/axis/config/:key` (requires cloud_session)
 
-### DiMase AI - Multi-Channel Voice
-All channels use the shared `callDiMaseAI(text, history, env)` helper and route to `/dimase/bot-chat` Worker endpoint.
+### Axis AI - Multi-Channel Voice
+All channels use the shared `callAxisAI(text, history, env)` helper and route to `/axis/bot-chat` Worker endpoint.
 
 | Channel | Status | Details |
 |---|---|---|
 | Telegram | Live | @DiMaseIncbot |
-| Web chat | Live | https://dimaseinc.org/dimase/chat-ui (dark terminal UI, no auth) |
-| CLI | Live | `/usr/local/bin/dimase` on server — `dimase "message"` or `dimase` for REPL |
-| Facebook Messenger | Deployed | `/dimase/messenger` webhook — needs MESSENGER_PAGE_ACCESS_TOKEN + MESSENGER_VERIFY_TOKEN secrets |
-| Twilio SMS | Deployed | `/dimase/sms` TwiML endpoint — needs Twilio account setup |
-| Twilio Voice | Deployed | `/dimase/voice` + `/dimase/voice/gather` TwiML — needs Twilio account setup |
+| Web chat | Live | https://dimaseinc.org/axis/chat-ui (dark terminal UI, no auth) |
+| CLI | Live | `/usr/local/bin/axis` on server — `axis "message"` or `axis` for REPL |
+| Facebook Messenger | Deployed | `/axis/messenger` webhook — needs MESSENGER_PAGE_ACCESS_TOKEN + MESSENGER_VERIFY_TOKEN secrets |
+| Twilio SMS | Deployed | `/axis/sms` TwiML endpoint — needs Twilio account setup |
+| Twilio Voice | Deployed | `/axis/voice` + `/axis/voice/gather` TwiML — needs Twilio account setup |
 
 **Email-to-SMS (owner notifications):**
 - Cloudflare Email Routing enabled for dimaseinc.org
-- Routing rule: dimase@dimaseinc.org → Worker dimaseinc-website
+- Routing rule: axis@dimaseinc.org → Worker dimaseinc-website
 - _mailchannels TXT DNS record added
 - Owner SMS gateway: `5137482017@vtext.com` (Verizon 513-748-2017) stored as OWNER_SMS_GATEWAY secret
 - SMS sending via MailChannels is BROKEN — CF removed free tier; pending fix
-- Worker routes: `/dimase/notify-sms` (POST), email export handler (receives email → calls AI → replies)
+- Worker routes: `/axis/notify-sms` (POST), email export handler (receives email → calls AI → replies)
 
 ### Daily Cron Jobs (Server)
 | Time | Script | Purpose |
 |---|---|---|
-| 3am | `/usr/local/bin/dimase-preserve.py` | Backs up scripts to Cloudflare KV |
-| 7am | `/usr/local/bin/dimase-research.py` | AI capabilities research, auto-pulls Ollama models, Telegram report |
-| 10am | `/usr/local/bin/dimase-briefing.py` | Comprehensive server briefing to Mr. DiMase via Telegram |
+| 3am | `/usr/local/bin/axis-preserve.py` | Backs up scripts to Cloudflare KV |
+| 7am | `/usr/local/bin/axis-research.py` | AI capabilities research, auto-pulls Ollama models, Telegram report |
+| 10am | `/usr/local/bin/axis-briefing.py` | Comprehensive server briefing to Mr. DiMase via Telegram |
 
 ---
 
@@ -185,7 +185,7 @@ All channels use the shared `callDiMaseAI(text, history, env)` helper and route 
 - **Wrangler auth:** OAuth token with refresh_token stored at `/root/.wrangler/config/default.toml` on server
 - **Routes:** `dimaseinc.org/*` and `www.dimaseinc.org/*`
 - **.assetsignore:** excludes `app-builds/`, `node_modules/`, `.git/`, `downloads/`, `*.apk`, etc.
-- **APK downloads:** 7 APKs in `downloads/` folder: DiMase AI, DiMase AI, DiMase Learning, Jellyfin Android, Jellyfin Fire TV, Service Map, smartcloud-map
+- **APK downloads:** 7 APKs in `downloads/` folder: Axis AI, DiMase AI, DiMase Learning, Jellyfin Android, Jellyfin Fire TV, Service Map, smartcloud-map
 - **Applications page:** `/applications.html` — all links fixed to point to `/downloads/*.apk`
 
 ### Cloudflare Bindings
@@ -204,7 +204,7 @@ All channels use the shared `callDiMaseAI(text, history, env)` helper and route 
 - **classes** / **progress** — LMS AI learning courses
 - **cb_classes** / **cb_progress** — Computer Basics courses
 - **podcast_episodes** — podcast metadata (id, title, description, audio_url, filename, duration, file_size, pub_date, episode_number, explicit)
-- **dimase_config** — DiMase AI key/value config (system_prompt, model, max_tokens, custom features)
+- **axis_config** — Axis AI key/value config (system_prompt, model, max_tokens, custom features)
 - **activity_logs**, **media_logs** — usage tracking
 
 ### Wrangler Secrets (stored in CF Workers)
@@ -261,18 +261,18 @@ Auth: `POST /<gate>/auth` with `{username, password}`. SHA-256 of password must 
 | `POST /cloud/users/:id/grant` | cloud_session | Grant grandfathered status |
 | `/lms/*` | API token (Bearer) | Learning platform API |
 | `/cb/*` | API token (Bearer) | Computer Basics API |
-| `/dimase/chat` | API token (Bearer) | DiMase AI chat with fallback |
-| `/dimase/bot-chat` | none | Shared AI endpoint for all channels |
-| `/dimase/chat-ui` | none | Web chat UI (dark terminal UI) |
-| `/dimase/messenger` | none | Facebook Messenger webhook |
-| `/dimase/sms` | none | Twilio SMS TwiML |
-| `/dimase/voice` + `/dimase/voice/gather` | none | Twilio Voice TwiML |
-| `/dimase/notify-sms` | none | POST to trigger owner SMS |
-| `/auth/*` | — | Unified auth for DiMase AI app (creates API tokens) |
+| `/axis/chat` | API token (Bearer) | Axis AI chat with fallback |
+| `/axis/bot-chat` | none | Shared AI endpoint for all channels |
+| `/axis/chat-ui` | none | Web chat UI (dark terminal UI) |
+| `/axis/messenger` | none | Facebook Messenger webhook |
+| `/axis/sms` | none | Twilio SMS TwiML |
+| `/axis/voice` + `/axis/voice/gather` | none | Twilio Voice TwiML |
+| `/axis/notify-sms` | none | POST to trigger owner SMS |
+| `/auth/*` | — | Unified auth for Axis AI app (creates API tokens) |
 | `/podcast.rss` | public | RSS feed from D1 |
 | `/podcast/audio/:filename` | public | Audio file proxy to rec-api |
 | `/podcast/episodes` | cloud_session | GET/POST episode management |
-| `/cloud/dimase/*` | cloud_session | DiMase config management |
+| `/cloud/axis/*` | cloud_session | Axis config management |
 
 ### Pricing Structure
 | Plan | Price | Notes |
@@ -285,12 +285,12 @@ Auth: `POST /<gate>/auth` with `{username, password}`. SHA-256 of password must 
 ### Cloud Panel Sections (dimaseinc.org/cloud)
 1. **Services grid** — links to all services
 2. **Podcast** — rec controls, MP3 upload, add episode form, episode list
-3. **DiMase Management** — system prompt editor, feature manager
+3. **Axis Management** — system prompt editor, feature manager
 4. **Podcast Production Guide** — collapsible steps (Audacity solo + OBS remote guest)
 5. **User Management** — table of all users with status badges, trial/billing dates, approx location, Revoke/Grant/Email buttons
 
 ### Nav Links (index.html)
-About, Services, Jellyfin, Applications, DiMase, Map, Cloud Panel, Podcast, Learning, Contact
+About, Services, Jellyfin, Applications, Axis, Map, Cloud Panel, Podcast, Learning, Contact
 (Terminal removed, Podcast added — applies to index.html, learning.html, computer-basics.html, map.html)
 
 ---
@@ -313,13 +313,13 @@ About, Services, Jellyfin, Applications, DiMase, Map, Cloud Panel, Podcast, Lear
 | Main site | https://dimaseinc.org | Cloudflare Worker |
 | Jellyfin | https://jellyfin.dimaseinc.org | Native, port 8096 |
 | VNC Desktop | https://vnc.dimaseinc.org | noVNC → TigerVNC |
-| DiMase AI | https://dimase.dimaseinc.org | Docker dimase-hud → dimase-nexus |
+| Axis AI | https://axis.dimaseinc.org | Docker axis-hud → axis-nexus |
 | Agent Zero | https://agent-zero.dimaseinc.org | same as above |
 | Map | https://map.dimaseinc.org | FastAPI map-server |
 | File Browser | https://files.dimaseinc.org | Docker file-browser |
 | Portainer | https://portainer.dimaseinc.org | Docker portainer |
 | Grafana | https://grafana.dimaseinc.org | Docker neo-grafana |
-| Downloads | https://downloads.dimaseinc.org | Served via dimase-hud nginx |
+| Downloads | https://downloads.dimaseinc.org | Served via axis-hud nginx |
 | Cloud Panel | https://dimaseinc.org/cloud | Worker gate (auth required) |
 | Podcast RSS | https://dimaseinc.org/podcast.rss | Worker, public |
 | Rec API | https://rec-api.dimaseinc.org | Python server, secret required |
@@ -335,8 +335,8 @@ About, Services, Jellyfin, Applications, DiMase, Map, Cloud Panel, Podcast, Lear
 /root/.cloudflared/cert.pem          — CF tunnel cert (for DNS route commands)
 /media/Storage/server-flies/
   docker-compose-live.yml            — Docker stack definition
-  dimase_nexus/                        — DiMase AI source code
-  dimase_hud_nginx.conf                — nginx config for dimase-hud container
+  axis_nexus/                        — Axis AI source code
+  axis_hud_nginx.conf                — nginx config for axis-hud container
   downloads/                         — APK and app downloads
 /media/Storage/website/dimaseinc-website/
   src/worker.js                      — Main Cloudflare Worker (all routes, gates, AI)
@@ -345,7 +345,7 @@ About, Services, Jellyfin, Applications, DiMase, Map, Cloud Panel, Podcast, Lear
   learning.html                      — AI Learning page
   computer-basics.html               — Computer Basics page
   applications.html                  — Applications page (links to /downloads/*.apk)
-  downloads/                         — 7 APKs (DiMase AI, DiMase AI, DiMase Learning, Jellyfin Android, Jellyfin Fire TV, Service Map, smartcloud-map)
+  downloads/                         — 7 APKs (Axis AI, DiMase AI, DiMase Learning, Jellyfin Android, Jellyfin Fire TV, Service Map, smartcloud-map)
 /root/.wrangler/config/default.toml  — wrangler OAuth token with refresh_token (server-side)
 /media/Storage/map-server/           — Map server FastAPI source
 /media/Storage/podcast/              — Podcast audio files (owned by dimase)
@@ -361,12 +361,12 @@ About, Services, Jellyfin, Applications, DiMase, Map, Cloud Panel, Podcast, Lear
 /usr/local/bin/
   podcast-record                     — Recording control script (start/stop/status)
   podcast-rec-api.py                 — HTTP API server on port 8998
-  dimase                               — DiMase AI CLI (`dimase "message"` or `dimase` for REPL)
-  dimase-chat                          — alias for dimase
-  dimase-briefing.py                   — 10am server briefing to Telegram
-  dimase-research.py                   — 7am AI research + auto-pull Ollama models + Telegram report
-  dimase-preserve.py                   — 3am KV backup of scripts
-  dimase-telegram-bot.py               — Telegram bot daemon
+  axis                               — Axis AI CLI (`axis "message"` or `axis` for REPL)
+  axis-chat                          — alias for axis
+  axis-briefing.py                   — 10am server briefing to Telegram
+  axis-research.py                   — 7am AI research + auto-pull Ollama models + Telegram report
+  axis-preserve.py                   — 3am KV backup of scripts
+  axis-telegram-bot.py               — Telegram bot daemon
   deploy-website                     — Deploys dimaseinc-website via wrangler
 /usr/share/novnc/index.html          — symlink to vnc.html (fixes root directory listing)
 /opt/google/chrome/google-chrome     — Chrome wrapper (restored after breakage)
@@ -405,7 +405,7 @@ NOTE: Website source is no longer on local machine. /mnt/2tb is OFFLINE.
 | Docker logs filling root disk | `/etc/docker/daemon.json` with max-size=10m, max-file=3 | 2026-02-26 |
 | Evolution/GVFS OOM killing in VNC | Disabled autostart via `~/.config/autostart/` Hidden=true files | 2026-02-26 |
 | SELinux denial on docker-ce.repo (local) | `restorecon -v /etc/yum.repos.d/docker-ce.repo` | 2026-02-26 |
-| DiMase nginx port mismatch (8001→8000) | Fixed dimase_hud_nginx.conf to use `http://172.18.0.1:8000/` | 2026-02-26 |
+| Axis nginx port mismatch (8001→8000) | Fixed axis_hud_nginx.conf to use `http://172.18.0.1:8000/` | 2026-02-26 |
 
 | Issue | Fix |
 |---|---|
@@ -414,7 +414,7 @@ NOTE: Website source is no longer on local machine. /mnt/2tb is OFFLINE.
 | noVNC showing directory listing at vnc.dimaseinc.org | `ln -sf /usr/share/novnc/vnc.html /usr/share/novnc/index.html` |
 | Chrome broken in VNC (missing wrapper) | Restored `/opt/google/chrome/google-chrome` wrapper + `dpkg --configure -a` |
 | CF tunnel DNS rate limit (429) | Run `cloudflared --origincert /tmp/cf-cert.pem tunnel route dns` from local machine |
-| icecast2 port conflict with dimase-nexus on :8000 | Removed icecast2 entirely; using ffmpeg direct recording now |
+| icecast2 port conflict with axis-nexus on :8000 | Removed icecast2 entirely; using ffmpeg direct recording now |
 | SSH locked out (fail2ban banned local IP) | fail2ban on Ubuntu 24.04 uses nft backend (not iptables). Unban: `sudo nft delete element inet f2b-table addr-set-sshd { IP }`. Fixed ignoreip typo (183→189) in jail.local | 2026-02-26 |
 | SSH disabled (wouldn't survive reboot) | `sudo systemctl enable ssh` — socket activation handles boot, service must also be enabled | 2026-02-26 |
 
@@ -523,7 +523,7 @@ Manage  → dimaseinc.org/cloud (Cloud Panel, requires cloud_session)
 - **OpenClaw (Clawbot)** — needs Telegram bot token + Anthropic API key; install via Docker on server
 - **RESEND_API_KEY** — optional, for email notifications from support form
 - Nav: Terminal button replaced with Podcast on all pages (index, learning, computer-basics, map)
-- ~~**DiMase multi-channel voice**~~ — ✅ DONE: Telegram, web chat, CLI live; Messenger/Twilio deployed (need account setup)
-- **MailChannels SMS broken** — CF removed free MailChannels tier; owner SMS notifications (dimase@dimaseinc.org → SMS) non-functional; needs alternative (Resend, SendGrid, or Twilio SMS direct)
+- ~~**Axis multi-channel voice**~~ — ✅ DONE: Telegram, web chat, CLI live; Messenger/Twilio deployed (need account setup)
+- **MailChannels SMS broken** — CF removed free MailChannels tier; owner SMS notifications (axis@dimaseinc.org → SMS) non-functional; needs alternative (Resend, SendGrid, or Twilio SMS direct)
 - **Facebook Messenger** — add MESSENGER_PAGE_ACCESS_TOKEN + MESSENGER_VERIFY_TOKEN wrangler secrets
 - **Twilio SMS/Voice** — add Twilio account credentials as wrangler secrets to activate those channels

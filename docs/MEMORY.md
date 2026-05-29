@@ -7,17 +7,17 @@
 - **BuyVM Server** - FULL DETAILS in master.md (feed that file to any AI for full context)
   - Ubuntu VPS at 209.141.36.104 | SSH: `ssh -i ~/Desktop/oci_key root@209.141.36.104` or `ssh buyvm`
   - Storage slab at /media/Storage (1TB)
-  - Docker stack (9 containers): dimase-nexus, dimase-hud, map-server, file-browser, portainer, neo-grafana, neo-prometheus, neo-loki, nginx-proxy
-  - **dimase-nexus v3.0.0** (2026-03-02): Full ReAct agent loop (ACTION/INPUT/FINAL format). Source: `/media/Storage/server-flies/dimase_nexus/`. Tools: web_search (DuckDuckGo), fetch_url, shell_exec, file_read, file_write, docker_ops, remember, recall, git_ops. AI fallback: CF Workers AI → Pollinations → Groq. Port 8000, host network mode.
-  - **dimase-nexus tool dispatch fix** (2026-03-03): fixed `tools.run_shell()` → `tools._shell_exec()`, `tools.docker_architect()` → `tools._docker_ops()`. Fixed /stats endpoint.
-  - **dimase-hud frontend** rebuilt 2026-03-02: auto-scroll (useRef), filterResponse() strips verbose AI preambles. Served from `frontend/dist/` mounted into nginx.
+  - Docker stack (9 containers): axis-nexus, axis-hud, map-server, file-browser, portainer, neo-grafana, neo-prometheus, neo-loki, nginx-proxy
+  - **axis-nexus v3.0.0** (2026-03-02): Full ReAct agent loop (ACTION/INPUT/FINAL format). Source: `/media/Storage/server-flies/axis_nexus/`. Tools: web_search (DuckDuckGo), fetch_url, shell_exec, file_read, file_write, docker_ops, remember, recall, git_ops. AI fallback: CF Workers AI → Pollinations → Groq. Port 8000, host network mode.
+  - **axis-nexus tool dispatch fix** (2026-03-03): fixed `tools.run_shell()` → `tools._shell_exec()`, `tools.docker_architect()` → `tools._docker_ops()`. Fixed /stats endpoint.
+  - **axis-hud frontend** rebuilt 2026-03-02: auto-scroll (useRef), filterResponse() strips verbose AI preambles. Served from `frontend/dist/` mounted into nginx.
   - Cloudflared tunnel: f1b740f7-12dd-499f-81a8-969b7bfd7885
   - VNC: vnc.dimaseinc.org → noVNC (port 6080) → TigerVNC as user dimase (display :1)
-  - **DiMase Monitor** (self-healing): `/root/dimase-monitor/` — systemd `dimase-monitor.service` (runs every 5min, port 9090 /health), `dimase-model-scout.timer` (daily 06:00 UTC), no Claude dependency, uses CF Workers AI + Pollinations as free AI. Telegram alerts on failures. 34 free AI models catalogued in `free_models.json`.
-  - Telegram bot token: `8713733121:AAGCvSq-bbX6TnPz8hwJXxiLRhG1SAdzLCw` (also in /usr/local/bin/dimase-telegram-bot.py)
+  - **Axis Monitor** (self-healing): `/root/axis-monitor/` — systemd `axis-monitor.service` (runs every 5min, port 9090 /health), `axis-model-scout.timer` (daily 06:00 UTC), no Claude dependency, uses CF Workers AI + Pollinations as free AI. Telegram alerts on failures. 34 free AI models catalogued in `free_models.json`.
+  - Telegram bot token: `8713733121:AAGCvSq-bbX6TnPz8hwJXxiLRhG1SAdzLCw` (also in /usr/local/bin/axis-telegram-bot.py)
   - Podcast rec API: rec-api.dimaseinc.org → Python server port 8998, secret: dmsinc-rec-2026
   - Podcast audio files: /media/Storage/podcast/ (owned by dimase)
-  - Daily crons: 3am dimase-preserve.py (KV backup), 7am dimase-research.py (AI research + Telegram), 10am dimase-briefing.py (server briefing)
+  - Daily crons: 3am axis-preserve.py (KV backup), 7am axis-research.py (AI research + Telegram), 10am axis-briefing.py (server briefing)
 
 - **dimaseinc.org website**
   - Cloudflare Workers project (NOT served by Docker)
@@ -49,7 +49,7 @@
   - /terminal route redirects to terminal.dimaseinc.org (not yet running)
   - Site subscription auth: /login /register /subscribe /site-logout /support (public pages) + /remote (RDP session check-in, requires bundle code)
   - **Pricing (updated 2026-03-03) — 5 tiers, all w/ 7-day trial:**
-    - Site Only: $7/mo (DiMase AI 5 req/hr, learning, podcast, streaming)
+    - Site Only: $7/mo (Axis AI 5 req/hr, learning, podcast, streaming)
     - Site + RDP: $35/mo (+ 2 free RustDesk sessions/mo, $30/hr after)
     - Site + Seller: $45/mo (+ D-Trading Post seller profile; DiMase Inc. retains 15% commission)
     - RDP + Seller: $65/mo (Site + RDP + Seller combined)
@@ -72,13 +72,13 @@
   - /sitemap.xml — dynamic, submitted to Google Search Console 2026-03-03
   - PENDING: Anthropic API key for OpenClaw
   - wrangler config: wrangler.jsonc (not .toml) — src/worker.js entry point
-  - APK/downloads: 9 entries in downloads/ (DiMaseAI.apk, DiMase AI, DiMase Learning, Jellyfin Android, Jellyfin Fire TV, Service Map, smartcloud-map, DiMaseAntiVirus.apk, DiMaseDeploy.apk)
-  - **DiMaseAI.apk (2026-03-07):** 17KB WebView APK, package com.dimaseinc.dimaseai, minSDK 21, loads https://dimaseinc.org/dimase/chat-ui. Replaced broken 4.8MB React Native original (org.dimaseinc.dimase, minSDK 26). Keystore alias: dimaseai, pass: dimase2026.
-  - **DiMaseDeploy.apk (2026-03-07):** 16.6KB WebView APK, package com.dimaseinc.dimasedeploy, USB_HOST permission, BroadcastReceiver fires `window.usbConnected()` when USB device attached, loads https://dimaseinc.org/dimase-deploy/. 5-tab PWA: Deploy, AI Terminal, System Scan, Deploy Tools, Logs.
+  - APK/downloads: 9 entries in downloads/ (AxisAI.apk, DiMase AI, DiMase Learning, Jellyfin Android, Jellyfin Fire TV, Service Map, smartcloud-map, DiMaseAntiVirus.apk, AxisDeploy.apk)
+  - **AxisAI.apk (2026-03-07):** 17KB WebView APK, package com.dimaseinc.axisai, minSDK 21, loads https://dimaseinc.org/axis/chat-ui. Replaced broken 4.8MB React Native original (org.dimaseinc.axis, minSDK 26). Keystore alias: axisai, pass: dimase2026.
+  - **AxisDeploy.apk (2026-03-07):** 16.6KB WebView APK, package com.dimaseinc.axisdeploy, USB_HOST permission, BroadcastReceiver fires `window.usbConnected()` when USB device attached, loads https://dimaseinc.org/axis-deploy/. 5-tab PWA: Deploy, AI Terminal, System Scan, Deploy Tools, Logs.
   - **DiMase Inc. AntiVirus (2026-03-05):** `/opt/dimase-antivirus/antivirus.py` — tkinter GUI, ClamAV, rootkit detection, network/process monitor, AI analyst. Linux .tar.gz + Windows .zip + Android APK (`DiMaseAntiVirus.apk`, WebView app). Webapp: `https://dimaseinc.org/dimase-antivirus/`. Android SDK at `/media/Storage/android-sdk/` (build-tools;34.0.0 + platforms;android-34). openjdk-17-jdk installed on server.
   - **Applications tile on /member dashboard (2026-03-05):** featureCard linking to `/applications.html` — "Download DiMase Inc. apps — Linux, Windows, Android"
-  - **DiMase Deploy tile on /member dashboard (2026-03-07):** featureCard linking to `/dimase-deploy/` — public (no auth). /dimase-deploy in publicPrefixes.
-  - **applications.html (2026-03-07):** DiMase AI (DiMaseAI.apk), DiMase Deploy (DiMaseDeploy.apk), Service Map, DiMase Learning, Jellyfin, DiMase Inc. AntiVirus (Linux/Windows/DiMaseAntiVirus.apk)
+  - **Axis Deploy tile on /member dashboard (2026-03-07):** featureCard linking to `/axis-deploy/` — public (no auth). /axis-deploy in publicPrefixes.
+  - **applications.html (2026-03-07):** Axis AI (AxisAI.apk), Axis Deploy (AxisDeploy.apk), Service Map, DiMase Learning, Jellyfin, DiMase Inc. AntiVirus (Linux/Windows/DiMaseAntiVirus.apk)
   - **Ann's Bibliotheca (2026-03-26):** `/ann-reads.html` — 70K+ Gutenberg books + ACPL OverDrive library; no login required (public); hero: "Rejected by the Alpha" (Wattpad/17539298); details: dimase-control/ANNS-BIBLIOTHECA.md
 
 - **D-Trading Post** — Western-themed e-commerce marketplace ✅ LIVE
@@ -120,12 +120,12 @@
   - Source: /media/Storage/server-flies/apps/dimasehome/worker.js + wrangler.toml
   - Login: DiMase / Ruffieno
   - Bindings: DTRADING_DB (dtrading-db), LEARNING_DB (dimaseinc-learning), LOCKSMITH_DB (dimase-locksmith), JELLYFIN_API_KEY (secret), SEND_EMAIL
-  - **Quick Actions tiles**: Portainer, File Browser, DiMase Inc., D-Trading Admin, Locksmith Admin, Podcast/Sub, VNC Desktop, Service Map, Grafana, Podcast Studio, DiMase Chat, Jellyfin, Learning Admin, **Local VNC** (local-vnc.dimaseinc.org), **Wake Local PC** (POST /admin/wake-local → wol-relay)
+  - **Quick Actions tiles**: Portainer, File Browser, DiMase Inc., D-Trading Admin, Locksmith Admin, Podcast/Sub, VNC Desktop, Service Map, Grafana, Podcast Studio, Axis Chat, Jellyfin, Learning Admin, **Local VNC** (local-vnc.dimaseinc.org), **Wake Local PC** (POST /admin/wake-local → wol-relay)
   - **WOL_SECRET**: a5c7be26fb29ce5538469e324a3d2d9dec95eadbf286d79587f0518bfac06ce6 (wrangler secret + /root/wol-relay.env on BuyVM)
   - **Users & Standings** (6 tables): DiMase Inc. Members, D-Trading Post Users, Locksmith Customers (service_requests), DiMase Learning Users (progress counts), Podcast & Site Subscribers (active/trial filter), Jellyfin Media Users
   - All user tables have SUSPEND/DELETE/RESET PW buttons where applicable
   - /admin/user-action (main=LEARNING_DB, dt=DTRADING_DB), /admin/reset-password (sends email + Telegram), /admin/locksmith-delete (LOCKSMITH_DB)
-  - **DiMase Learning Admin** section (id=learning-admin): DiMase AI + Chatbot Builder class tables with publish/unpublish/delete; Add Class form; LMS user progress table
+  - **DiMase Learning Admin** section (id=learning-admin): Axis AI + Chatbot Builder class tables with publish/unpublish/delete; Add Class form; LMS user progress table
   - /admin/lms/class-create, /admin/lms/class-toggle, /admin/lms/class-delete (direct LEARNING_DB ops)
   - **D-Trading Package Tracking** section: fetchDtradingShipments() queries transactions JOIN listings JOIN users; dtShipmentsSection() renders table with carrier-specific tracking links (USPS/UPS/FedEx/DHL/ONTRAC); status counts (awaiting/in-transit/delivered)
   - Bundle Codes: create/adjust(+1/-1)/delete codes from LEARNING_DB.bundle_codes; shows remaining_uses progress bars; type=locksmith|rdp
@@ -135,17 +135,17 @@
   - fetchHealth() calls https://monitor.dimaseinc.org/health
   - Service checks: accept HTTP status < 500 as "up" (4xx = server responded, just auth-blocked)
 
-- **DiMase Monitor** — now includes system stats in /health response
+- **Axis Monitor** — now includes system stats in /health response
   - Added get_system_stats(): uptime (from /proc/uptime), cpu (load avg / ncpu), memory (/proc/meminfo), disk (os.statvfs)
   - Added containers list (docker-type services) and checked_at alias to status.json
   - monitor.dimaseinc.org → CF tunnel → localhost:9090 (DNS CNAME added 2026-03-03)
   - rec-api /ping endpoint added (public, no auth) for service health checks
 
-- **DiMase AI - Multi-Channel Voice** (all channels → /dimase/bot-chat Worker endpoint)
-  - Telegram: @DiMaseIncbot | Web: /dimase/chat-ui | CLI: /usr/local/bin/dimase (REPL or `dimase "msg"`)
-  - Facebook Messenger: /dimase/messenger (needs MESSENGER_PAGE_ACCESS_TOKEN + MESSENGER_VERIFY_TOKEN)
-  - Twilio SMS: /dimase/sms | Twilio Voice: /dimase/voice + /dimase/voice/gather (deployed, needs Twilio acct)
-  - Email→SMS: dimase@dimaseinc.org → Worker; SMS via CF send_email binding
+- **Axis AI - Multi-Channel Voice** (all channels → /axis/bot-chat Worker endpoint)
+  - Telegram: @DiMaseIncbot | Web: /axis/chat-ui | CLI: /usr/local/bin/axis (REPL or `axis "msg"`)
+  - Facebook Messenger: /axis/messenger (needs MESSENGER_PAGE_ACCESS_TOKEN + MESSENGER_VERIFY_TOKEN)
+  - Twilio SMS: /axis/sms | Twilio Voice: /axis/voice + /axis/voice/gather (deployed, needs Twilio acct)
+  - Email→SMS: axis@dimaseinc.org → Worker; SMS via CF send_email binding
   - Landing page: landingPageHTML() for ALL visitors at / — NOT login
   - Owner contact: 513-748-2017 (Verizon), SMS gateway: 5137482017@vtext.com (OWNER_SMS_GATEWAY secret)
 
@@ -155,12 +155,12 @@
 - Stored as CF_API_TOKEN wrangler secret on dimaseinc-website Worker
 
 ## Groq API
-- Key stored in groq.md — set in dimase-control/.env + launch.sh + dimase-monitor.service
+- Key stored in groq.md — set in dimase-control/.env + launch.sh + axis-monitor.service
 - 7 active models; decommissioned: mixtral-8x7b-32768, gemma2-9b-it (use groq.md for full list)
 
-## DiMase Control (Local App)
+## Axis Control (Local App)
 - `/home/dimase/dimase-control/` — Flask+SocketIO on port 7777, gold/black cyberpunk UI
-- **11-model council**: DiMase Nexus + 7 Groq models + 3 Local Ollama — Pollinations REMOVED (legacy API)
+- **11-model council**: Axis Nexus + 7 Groq models + 3 Local Ollama — Pollinations REMOVED (legacy API)
 - **Groq models**: llama-3.3-70b, llama-4-scout, qwen3-32b, kimi-k2, gpt-oss-120b, llama-3.1-8b, compound
 - **Ollama local**: qwen3:latest (5.2GB), llama3.2:3b (2GB), phi3:mini (2.2GB)
 - **Groq key**: in `.env` + `launch.sh`; see groq.md for full key + model list
@@ -180,7 +180,7 @@
 - **Ventoy USB backup key**: oci_key_buyvm_backup on Ventoy USB
   - connect.sh — Linux/Mac SSH to server
   - connect.bat — Windows SSH to server
-  - dimase.sh — Linux/Mac DiMase AI CLI (HTTPS only, no SSH needed)
+  - axis.sh — Linux/Mac Axis AI CLI (HTTPS only, no SSH needed)
   - To SSH from any machine: `ssh -i /path/to/oci_key_buyvm_backup root@209.141.36.104`
   - **USB Hardware Key Login** (added 2026-03-03): plug in USB, run script → auto-logs into all 4 admin sites
     - `dimase_usb.key` — 256-bit token (USB_AUTH_TOKEN wrangler secret on all 4 workers)
@@ -207,10 +207,10 @@
 
 ## Fixes & Troubleshooting Log (Live)
 - Local master: `/home/dimase/.claude/projects/-home-dimase/memory/fixes.md` (update after every fix)
-- Server master: `/media/Storage/dimase-knowledge/fixes.md` (auto-synced daily 08:00 UTC via dimase-knowledge-sync.timer)
-- Server copies: `/root/dimase-monitor/fixes.md`, `/media/Storage/server-flies/dimase_nexus/knowledge/fixes.md`
+- Server master: `/media/Storage/axis-knowledge/fixes.md` (auto-synced daily 08:00 UTC via axis-knowledge-sync.timer)
+- Server copies: `/root/axis-monitor/fixes.md`, `/media/Storage/server-flies/axis_nexus/knowledge/fixes.md`
 - **Auto-append**: healer.py logs every successful auto-fix to server master automatically
-- **Daily sync**: `dimase-knowledge-sync.timer` syncs all copies + sends Telegram summary at 08:00 UTC
+- **Daily sync**: `axis-knowledge-sync.timer` syncs all copies + sends Telegram summary at 08:00 UTC
 
 ## User Identity
 - Full details in user_identity.md
